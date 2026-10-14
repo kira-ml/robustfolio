@@ -1,12 +1,12 @@
 # Scope and Non-Goals: robustfolio
 
-**Version:** 1.0  
-**Status:** Draft — pending owner confirmation of proposed defaults; becomes Active on sign-off  
-**Owner:** Ken Ira Lacson Talingting  
-**Created:** 2026-10-14  
-**Last Updated:** 2026-10-14  
-**Supersedes:** Scope sections of [`problem_framing.md`](problem_framing.md) §11 and [`project_charter.md`](project_charter.md) §5  
-**Related:** [`problem_framing.md`](problem_framing.md), [`project_charter.md`](project_charter.md), [`success_metrics_and_evaluation_protocol.md`](success_metrics_and_evaluation_protocol.md), [`benchmark_and_baseline_spec.md`](benchmark_and_baseline_spec.md), [`falsification_and_kill_criteria.md`](falsification_and_kill_criteria.md)
+**Version:** 1.1
+**Status:** Draft — pending owner confirmation of proposed defaults; becomes Active on sign-off
+**Owner:** Ken Ira Lacson Talingting
+**Created:** 2026-10-14
+**Last Updated:** 2026-10-15
+**Supersedes:** 1.0 (which superseded scope sections of problem_framing.md §10 and project_charter.md §5; both are now stubs pointing here)
+**Related:** [`problem_framing.md`](problem_framing.md), [`project_charter.md`](project_charter.md), [`success_metrics_and_evaluation_protocol.md`](success_metrics_and_evaluation_protocol.md), [`benchmark_and_baseline_spec.md`](benchmark_and_baseline_spec.md), [`falsification_and_kill_criteria.md`](falsification_and_kill_criteria.md), [`cost_model_and_frictions.md`](cost_model_and_frictions.md)
 
 ---
 
@@ -30,7 +30,7 @@ Three principles govern scope decisions.
 
 1. **Narrow by default, widen deliberately.** Every additional asset class, method, or frequency multiplies the surface area for bugs and overfitting. The default answer to "should we add X?" is no.
 2. **MVP is what completes a loop.** The MVP must be able to run a full walk-forward, net-of-cost, multiple-testing-adjusted evaluation on at least one baseline and one robust method. Nothing else is required to demonstrate or falsify the project's hypothesis.
-3. **Extensions are earned, not assumed.** An extension enters scope only if the MVP is complete and the extension is justified by a pre-registered hypothesis in `experiment_registry_and_preregistration.md`.
+3. **Extensions are earned, not assumed.** An extension enters scope only if the MVP is complete and the extension is justified by a pre-registered hypothesis in [`experiment_registry_and_preregistration.md`](experiment_registry_and_preregistration.md).
 
 A scope that grows without amendment is scope creep, even if each addition looks reasonable in isolation. [Systems]
 
@@ -52,7 +52,7 @@ Everything not listed in Core MVP or Extensions is Out of Scope by default.
 
 ## 3. Core MVP
 
-The MVP is the minimum sufficient implementation to test the project's primary hypothesis (charter §3). It is frozen when this document becomes Active.
+The MVP is the minimum sufficient implementation to test the project's primary hypothesis ([`project_charter.md`](project_charter.md) §3). It is frozen when this document becomes Active.
 
 ### 3.1 Universe
 
@@ -70,7 +70,7 @@ The MVP is the minimum sufficient implementation to test the project's primary h
 | Dimension | MVP value |
 |-----------|-----------|
 | Frequency | Daily prices, monthly decisions |
-| Source | Per `data_contract_and_point_in_time_policy.md` §2.1 |
+| Source | Per [`data_contract_and_point_in_time_policy.md`](data_contract_and_point_in_time_policy.md) §2.1 |
 | Point-in-time discipline | Mandatory per data contract §4 |
 | Risk-free rate | 1-month T-bill, FRED DGS1MO |
 
@@ -121,11 +121,11 @@ The MVP is the minimum sufficient implementation to test the project's primary h
 |-----------|------------|
 | Walk-forward | MVP |
 | Purged cross-validation + embargo | MVP |
-| Net-of-cost Sharpe at 5 cost levels | MVP |
+| Net-of-cost Sharpe at all cost levels | MVP (cost levels defined in [`cost_model_and_frictions.md`](cost_model_and_frictions.md) §3.3) |
 | Deflated Sharpe ratio | MVP |
 | Probabilistic Sharpe ratio | MVP |
 | Block bootstrap confidence intervals | MVP |
-| Cost sensitivity bands (0, 5, 10, 20, 50 bps) | MVP |
+| Cost sensitivity bands | MVP (levels defined in [`cost_model_and_frictions.md`](cost_model_and_frictions.md) §3.3) |
 
 ### 3.9 Reporting
 
@@ -240,10 +240,11 @@ Other documents in `docs/` mention scope. This section defines how conflicts are
 
 | Conflicting document | Resolution |
 |---------------------|-----------|
-| `problem_framing.md` §11 | Superseded by this document. Update the reference to point here. |
-| `project_charter.md` §5 (Non-Goals) | Non-goals in this document §5 take precedence. Charter §5 should reference this document. |
+| `problem_framing.md` §10 | Now a stub pointing here. No conflict. |
+| `project_charter.md` §5 (Non-Goals) | Now a stub pointing here. No conflict. |
 | `benchmark_and_baseline_spec.md` §2 | Baseline set is defined there; whether each is MVP or extension is defined here. |
-| `success_metrics_and_evaluation_protocol.md` §5.5 | Cost levels are defined there; consistency with MVP here is mandatory. |
+| `success_metrics_and_evaluation_protocol.md` §5.5 | Now a stub pointing to the cost model doc. No conflict. |
+| [`cost_model_and_frictions.md`](cost_model_and_frictions.md) §3.3 | Cost levels are defined there. Scope marks cost sensitivity as MVP; the numeric levels are that document's authority. |
 | Any new document | Must not contradict this document. If it does, either this document or the new document is wrong. |
 
 **Rule:** Scope questions are answered here, not in the other documents. Other documents may *reference* scope but may not *define* it.
@@ -263,7 +264,7 @@ Signals that scope is creeping, and the correct response.
 | The "MVP" section of a report describes more than the MVP here | Definition drift | Freeze report; compare against this document |
 | The owner says "let me just add..." | Classic scope creep | Apply §4.3 entry criteria or decline |
 
-**Rule:** Any of these signals is a decision log entry, even if the decision is to decline the change. Silent scope drift is a project-level risk (see `risk_register_and_premortem.md` R-P03).
+**Rule:** Any of these signals is a decision log entry, even if the decision is to decline the change. Silent scope drift is a project-level risk (see [`risk_register_and_premortem.md`](risk_register_and_premortem.md) R-P03).
 
 ---
 
@@ -301,16 +302,17 @@ Before setting Status to `Active`:
 - [ ] Section 3.4–3.7: confirm which methods are MVP vs extension
 - [ ] Section 4.1–4.2: confirm or reorder the extension tiers
 - [ ] Section 5: confirm the out-of-scope list is complete and acceptable
-- [ ] Section 6: confirm other documents will be updated to reference this one
+- [ ] Section 6: confirm other documents reference this one and do not redefine scope
 
 Also confirm:
 
 - [ ] You accept that everything not in Core MVP or Extensions is out of scope by default.
 - [ ] You accept the extension entry criteria (§4.3).
 - [ ] You accept the scope-creep detection signals (§7) and will act on them.
-- [ ] You will update `problem_framing.md` §11 and `project_charter.md` §5 to point to this document rather than duplicating scope.
+- [ ] Cost levels are confirmed in [`cost_model_and_frictions.md`](cost_model_and_frictions.md) §3.3, not here.
+- [ ] `problem_framing.md` §10 and `project_charter.md` §5 are now stubs pointing here (completed 2026-10-15).
 
-Once confirmed, bump to Version 1.1, set Status to `Active`, and add a revision history row.
+Once confirmed, bump to Version 1.2, set Status to `Active`, and add a revision history row.
 
 ---
 
@@ -319,6 +321,7 @@ Once confirmed, bump to Version 1.1, set Status to `Active`, and add a revision 
 | Date | Version | Change | Author |
 |------|---------|--------|--------|
 | 2026-10-14 | 1.0 | Initial scope and non-goals document | Ken Ira Lacson Talingting |
+| 2026-10-15 | 1.1 | Replaced §3.8 cost-level row with pointer to cost model doc §3.3 (A6); updated §6 conflict table to reflect supersessions; updated §10 checklist to reflect completed supersessions; added revision history | Ken Ira Lacson Talingting |
 
 ---
 

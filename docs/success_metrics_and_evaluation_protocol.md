@@ -1,12 +1,14 @@
 # Success Metrics and Evaluation Protocol: robustfolio
 
-**Version:** 1.0  
-**Status:** Draft — pending owner confirmation of proposed thresholds; freeze before first experiment  
-**Owner:** Ken Ira Lacson Talingting  
-**Created:** 2026-10-14  
-**Last Updated:** 2026-10-14  
-**Supersedes:** None  
+**Version:** 1.1
+**Status:** Draft — pending owner confirmation of proposed thresholds; freeze before first experiment
+**Owner:** Ken Ira Lacson Talingting
+**Created:** 2026-10-14
+**Last Updated:** 2026-10-15
+**Supersedes:** 1.0
 **Related:** [`problem_framing.md`](problem_framing.md), [`project_charter.md`](project_charter.md), [`falsification_and_kill_criteria.md`](falsification_and_kill_criteria.md), [`data_contract_and_point_in_time_policy.md`](data_contract_and_point_in_time_policy.md), [`cost_model_and_frictions.md`](cost_model_and_frictions.md), [`benchmark_and_baseline_spec.md`](benchmark_and_baseline_spec.md), [`experiment_registry_and_preregistration.md`](experiment_registry_and_preregistration.md)
+
+> **Note on future consolidation.** Per the execution TODO item B1, [`falsification_and_kill_criteria.md`](falsification_and_kill_criteria.md) is scheduled to merge into this document. When that happens, this document will be renamed `evaluation_protocol.md` and will contain metrics, thresholds, hypotheses, and kill/pivot triggers. Until then, this document owns measurement and thresholds; the falsification document owns hypotheses and triggers.
 
 ---
 
@@ -24,7 +26,15 @@ Its purpose is to:
 - Specify what counts as "materially better" than baselines.
 - Specify what must be reported, in what form, and with what caveats.
 
-**This document does not define the problem** (see `problem_framing.md`), the project contract (see `project_charter.md`), or the kill thresholds (see `falsification_and_kill_criteria.md`). It defines the measurement instrument.
+**This document does not define:**
+
+- the problem (see [`problem_framing.md`](problem_framing.md)),
+- the project contract (see [`project_charter.md`](project_charter.md)),
+- scope (see [`scope_and_non_goals.md`](scope_and_non_goals.md)),
+- the cost model (see [`cost_model_and_frictions.md`](cost_model_and_frictions.md)),
+- kill thresholds in detail (see [`falsification_and_kill_criteria.md`](falsification_and_kill_criteria.md)).
+
+It defines the measurement instrument.
 
 **Once frozen, this document may not be modified after seeing experimental results.** Any modification requires a decision log entry and a version bump, and the modification must be justified by a pre-existing protocol flaw, not by an inconvenient result.
 
@@ -35,11 +45,11 @@ Its purpose is to:
 Three principles govern every measurement decision in this project:
 
 1. **Net-of-cost, out-of-sample, multiple-testing-aware.** Gross Sharpe, in-sample Sharpe, and unadjusted p-values are diagnostic only. They are never the basis for a success claim.
-2. **Pre-registration before execution.** Every experiment is registered with its hypothesis, parameters, metrics, and decision rule before it runs. See `experiment_registry_and_preregistration.md`.
+2. **Pre-registration before execution.** Every experiment is registered with its hypothesis, parameters, metrics, and decision rule before it runs. See [`experiment_registry_and_preregistration.md`](experiment_registry_and_preregistration.md).
 3. **Report the full distribution, not the point estimate.** Confidence intervals, sensitivity bands, and failure modes are reported alongside every headline number.
 
-A result that is statistically significant but economically trivial is not success.  
-A result that is economically large but statistically fragile is not success.  
+A result that is statistically significant but economically trivial is not success.
+A result that is economically large but statistically fragile is not success.
 Success requires both, under the frozen protocol, after costs and multiple-testing adjustment.
 
 ---
@@ -84,7 +94,7 @@ These are reported for every method. None of them alone determines success, but 
 
 ## 4. Baselines
 
-The primary metric is always reported relative to baselines, not in isolation. Baselines are defined in `benchmark_and_baseline_spec.md`. At minimum:
+The primary metric is always reported relative to baselines, not in isolation. Baselines are defined in [`benchmark_and_baseline_spec.md`](benchmark_and_baseline_spec.md). At minimum:
 
 | # | Baseline | Rationale |
 |---|----------|-----------|
@@ -129,21 +139,17 @@ The primary metric is always reported relative to baselines, not in isolation. B
 - All estimates at time \( t \) use only information available at or before \( t \).
 - No survivorship bias: include delisted securities as they existed.
 - No lookahead in corporate actions, index membership, or pricing.
-- Any violation invalidates the experiment. See `data_contract_and_point_in_time_policy.md`.
+- Any violation invalidates the experiment. See [`data_contract_and_point_in_time_policy.md`](data_contract_and_point_in_time_policy.md).
 
-### 5.5 Cost sensitivity
+### 5.5 Cost sensitivity (moved)
 
-Every method is evaluated at multiple cost levels:
+Cost levels, the primary cost assumption, and sensitivity bands are defined authoritatively in:
 
-| Level | Cost per trade | Purpose |
-|-------|----------------|---------|
-| Zero | 0 bps | Diagnostic only; not a success criterion |
-| Low | 5 bps | Best-case realistic |
-| Baseline | 10 bps | Primary cost assumption |
-| High | 20 bps | Stress case |
-| Extreme | 50 bps | Robustness boundary |
+> [`cost_model_and_frictions.md`](cost_model_and_frictions.md) §3.3
 
-**Primary metric is reported at 10 bps.** Other levels are reported as sensitivity bands. A robust method is one whose advantage survives across cost levels.
+They are not duplicated here. Every method is evaluated at all cost levels defined in that document. The primary metric is reported at the baseline cost level defined there (currently 10 bps). A robust method is one whose advantage survives across cost levels.
+
+This stub is retained to preserve cross-references.
 
 ---
 
@@ -162,7 +168,7 @@ A robust method is statistically significant if:
 
 A robust method is economically material if:
 
-- **Net Sharpe improvement over best baseline ≥ 0.20** *(proposed)* at 10 bps, AND
+- **Net Sharpe improvement over best baseline ≥ 0.20** *(proposed)* at the baseline cost level, AND
 - **Turnover is not more than 2× the best baseline's turnover** *(proposed)*, AND
 - **Maximum drawdown is not worse than the best baseline's drawdown by more than 5 percentage points** *(proposed)*.
 
@@ -170,7 +176,7 @@ A robust method is economically material if:
 
 A robust method is robust if:
 
-- Its advantage over the best baseline holds at **≥ 3 of 5 cost levels**, AND
+- Its advantage over the best baseline holds at **≥ 3 of the cost levels defined in [`cost_model_and_frictions.md`](cost_model_and_frictions.md) §3.3**, AND
 - Its advantage holds in **≥ 60% of walk-forward folds** *(proposed)*, AND
 - No single fold accounts for more than 40% of the total advantage *(proposed)*.
 
@@ -191,7 +197,7 @@ A method is **successful** if it satisfies **all** of:
 
 ## 7. Multiple Testing Adjustment
 
-Every experiment is logged in `experiment_registry_and_preregistration.md`. The number of registered trials is the multiple-testing denominator.
+Every experiment is logged in [`experiment_registry_and_preregistration.md`](experiment_registry_and_preregistration.md). The number of registered trials is the multiple-testing denominator.
 
 ### 7.1 Deflated Sharpe Ratio
 
@@ -237,13 +243,13 @@ Monthly portfolio returns exhibit autocorrelation and volatility clustering. IID
 
 ## 9. Reporting Requirements
 
-Every experiment result is reported in a standard format. See `results_reporting_and_claims_policy.md` for the full template.
+Every experiment result is reported in a standard format. See [`results_reporting_and_claims_policy.md`](results_reporting_and_claims_policy.md) for the full template (to be written before Phase 4).
 
 ### 9.1 Mandatory disclosures
 
 Every result must report:
 
-1. Gross and net Sharpe at all 5 cost levels.
+1. Gross and net Sharpe at every cost level defined in [`cost_model_and_frictions.md`](cost_model_and_frictions.md) §3.3.
 2. In-sample and out-of-sample metrics, clearly labeled.
 3. Turnover, drawdown, CVaR, cost drag.
 4. Deflated Sharpe and probabilistic Sharpe.
@@ -274,7 +280,7 @@ A result is invalidated (not merely weakened) if any of the following occurred:
 - Survivorship bias in universe construction.
 - Post-hoc metric or threshold changes.
 - Undisclosed trials contributing to multiple-testing inflation.
-- Cost model inconsistent with `cost_model_and_frictions.md`.
+- Cost model inconsistent with [`cost_model_and_frictions.md`](cost_model_and_frictions.md).
 - Point-in-time violation in corporate actions, pricing, or index membership.
 - Test period overlap with training period beyond the allowed embargo.
 
@@ -288,7 +294,7 @@ Once this document is `Frozen`:
 
 1. Metrics cannot be added, removed, or redefined to change the outcome.
 2. Thresholds in Sections 6, 7, and 8 cannot be relaxed.
-3. Cost levels in Section 5.5 cannot be changed.
+3. Cost levels defined in [`cost_model_and_frictions.md`](cost_model_and_frictions.md) §3.3 cannot be changed without amending that document, which in turn requires the same discipline.
 4. A change is permitted only if:
    - A protocol flaw is discovered **before** seeing results, AND
    - The change is documented in the decision log with rationale, AND
@@ -304,7 +310,7 @@ Once this document is `Frozen`:
 - **[Experimental]** — Pre-registration, walk-forward, purged CV, embargo, falsification.
 - **[Bayesian]** — Confidence intervals, probabilistic Sharpe, calibration.
 - **[Inversion]** — Section 10 (invalidation), Section 9.2 (forbidden claims), Section 11 (freeze rules).
-- **[Systems]** — Cost sensitivity bands, multiple-testing family control.
+- **[Systems]** — Cost sensitivity bands (delegated to cost model doc), multiple-testing family control.
 - **[Expected Value]** — Materiality thresholds define economically meaningful improvement.
 - **[Information Theory]** — Compressed to decisions, thresholds, and rules; no filler.
 
@@ -321,9 +327,9 @@ Before setting Status to `Frozen`, confirm or replace every `[PROPOSED]` value:
 - [ ] Section 6.3: robustness thresholds
 - [ ] Section 7.3: FDR level
 - [ ] Section 8.1: block length, replications
-- [ ] Section 5.5: cost levels (confirm 0/5/10/20/50 bps or replace)
+- [ ] Cost levels: confirm in [`cost_model_and_frictions.md`](cost_model_and_frictions.md) §11, not here
 
-Once confirmed, bump to Version 1.1, set Status to `Frozen`, and add a revision history row.
+Once confirmed, bump to Version 1.2, set Status to `Frozen`, and add a revision history row.
 
 ---
 
@@ -332,6 +338,7 @@ Once confirmed, bump to Version 1.1, set Status to `Frozen`, and add a revision 
 | Date | Version | Change | Author |
 |------|---------|--------|--------|
 | 2026-10-14 | 1.0 | Initial protocol | Ken Ira Lacson Talingting |
+| 2026-10-15 | 1.1 | Replaced §5.5 (Cost sensitivity) with pointer to cost model doc §3.3 (A6); updated §6.2, §6.3, §9.1, and §11 to reference cost levels via the cost model doc; added header note on future consolidation into evaluation_protocol.md (B1); updated cross-references to full paths | Ken Ira Lacson Talingting |
 
 ---
 

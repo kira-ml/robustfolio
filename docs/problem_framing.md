@@ -1,8 +1,8 @@
 # Problem Framing: Robust, Turnover-Aware Portfolio Rebalancing
 
-**Version:** 2.0  
-**Status:** Foundational, falsifiable problem contract  
-**Project:** `robustfolio`  
+**Version:** 2.1
+**Status:** Foundational, falsifiable problem contract
+**Project:** `robustfolio`
 **License:** MIT (see repository root)
 
 ---
@@ -17,10 +17,19 @@ Its purpose is to:
 - Identify who experiences it and what decisions it affects.
 - Explain why it matters in practice.
 - Document current approaches and their limitations.
-- Define the boundaries of what this project will and will not address.
+- Point to the authoritative sources for scope, evaluation, and risk.
 - Provide a falsifiable basis for evaluating whether the project succeeds.
 
 Read this before writing code, selecting models, or running backtests.
+
+**Scope note.** This document does not define scope, evaluation protocol, or risk register. Those live in:
+
+- Scope: [`scope_and_non_goals.md`](scope_and_non_goals.md)
+- Evaluation: [`success_metrics_and_evaluation_protocol.md`](success_metrics_and_evaluation_protocol.md)
+- Risk: [`risk_register_and_premortem.md`](risk_register_and_premortem.md)
+- Kill/pivot triggers: [`falsification_and_kill_criteria.md`](falsification_and_kill_criteria.md)
+
+This document answers only: *what is the problem, and what is the causal model?*
 
 ---
 
@@ -56,7 +65,7 @@ Choose a rebalancing policy \( \pi \) that maximizes expected net risk-adjusted 
 
 where \( R_{\text{net}} = R_{\text{gross}} - \text{costs} \), and \( U \) is a risk-adjusted utility such as net Sharpe ratio, expected shortfall-adjusted return, or a multi-period objective.
 
-The decision problem is therefore not “find the optimal portfolio.” It is:
+The decision problem is therefore not "find the optimal portfolio." It is:
 
 > **How should a systematic investor construct and rebalance a portfolio to maximize net risk-adjusted return while controlling turnover, estimation error, and multiple-testing risk?**
 
@@ -82,7 +91,7 @@ The primary decision this project supports:
 
 ### 3.1 Economic Significance
 
-- Transaction costs are real. A strategy with a gross Sharpe of 1.0 can lose most of its edge after 10–20 bps per trade if turnover is high.
+- Transaction costs are real. A strategy with a modest gross Sharpe and high turnover can lose a material fraction of its risk-adjusted edge once costs are applied. The magnitude depends on turnover, cost per trade, and return volatility; it is not a constant. This is exactly what the project measures.
 - Estimation error causes real capital to be misallocated and can lead to drawdowns that impair compounding.
 - Capacity constraints mean even successful strategies degrade as assets under management grow.
 
@@ -114,9 +123,11 @@ The primary decision this project supports:
 | Turnover penalty | Add L1/L2 penalty to objective | Directly controls turnover | Requires tuning, may distort allocation |
 | Multi-period optimization | Optimize over horizon with costs | Theoretically sound | Computationally heavy, model-dependent |
 
-**Gap:** The gap this project targets is not the absence of any library or paper. It is the absence of a reproducible, open-source benchmark that systematically compares robust estimation, Bayesian expected returns, and turnover-aware optimization under realistic costs, walk-forward evaluation, and multiple-testing-aware metrics.
+### 4.1 Hypothesized gap
 
-This gap claim must be validated by a literature and tool scan before the project proceeds past the problem-validation phase.
+**Hypothesis, not established fact.** No reproducible, open-source benchmark currently exists that systematically compares robust estimation, Bayesian expected returns, and turnover-aware optimization under realistic costs, walk-forward evaluation, and multiple-testing-aware metrics.
+
+This is stated as a hypothesis to be tested, not as an assertion. It is the claim the project must validate in Phase 0 before proceeding. The test is a literature and tool scan; the failure mode is that an equivalent benchmark already exists, in which case the project pivots to replication or extension (see [`falsification_and_kill_criteria.md`](falsification_and_kill_criteria.md) §4 K3 and the Phase 0 gate in [`project_charter.md`](project_charter.md) §6).
 
 ---
 
@@ -210,121 +221,47 @@ The project treats all estimates as probabilistic and evaluates methods by out-o
 
 ---
 
-## 9. Evaluation Contract
+## 9. Evaluation Contract (moved)
 
-This section defines what “success” means before any method is built.
+The evaluation contract — baselines, primary and secondary metrics, walk-forward protocol, success criteria, falsification criteria, and cost sensitivity levels — is defined authoritatively in:
 
-### Baselines
+> [`success_metrics_and_evaluation_protocol.md`](success_metrics_and_evaluation_protocol.md)
 
-At minimum:
-
-- 1/N equal weight.
-- Risk parity.
-- Sample mean-variance optimization.
-- Minimum variance.
-- A simple turnover-penalized mean-variance optimizer.
-
-### Primary metric
-
-- **Net-of-cost out-of-sample Sharpe ratio.**
-
-### Secondary metrics
-
-- Turnover (annualized, one-way).
-- Maximum drawdown.
-- CVaR or expected shortfall.
-- Cost drag.
-- Calibration of return and risk forecasts.
-- Deflated Sharpe ratio to adjust for multiple testing.
-
-### Protocol
-
-- Walk-forward evaluation.
-- Purged and embargoed cross-validation where appropriate.
-- Point-in-time data discipline; no lookahead.
-- Transaction cost sensitivity: 0, 5, 10, 20 bps per trade.
-- Pre-registered evaluation before running final comparisons.
-- Report gross and net results separately.
-
-### Success criteria
-
-A robust method is considered practically useful if, across multiple walk-forward folds and datasets:
-
-1. It beats 1/N or risk parity on net Sharpe after costs, or
-2. It matches baseline net Sharpe while materially reducing turnover, drawdown, or cost drag, and
-3. The result survives multiple-testing adjustment such as deflated Sharpe.
-
-### Falsification criteria
-
-If no robust method outperforms simple baselines on net-of-cost out-of-sample metrics after multiple-testing adjustment, then:
-
-- The project must document the negative result honestly.
-- The problem framing may be revised to focus on diagnostic benchmarking rather than method superiority.
-- Further complexity is not justified unless new evidence changes the prior.
+It is not duplicated here. Changes to evaluation thresholds or metrics are made in that document, not in this one. This stub is retained to preserve cross-references from other documents.
 
 ---
 
-## 10. Scope and Boundaries
+## 10. Scope and Boundaries (moved)
 
-### Core MVP
+The authoritative definition of scope — Core MVP, extensions, and out-of-scope items — is:
 
-- Multi-asset portfolios: liquid ETFs and large-cap equities.
-- Monthly rebalancing baseline.
-- Covariance estimators: sample, Ledoit-Wolf.
-- Expected return estimators: historical mean, equal, Black-Litterman.
-- Optimizers: mean-variance, minimum variance, risk parity.
-- Turnover penalties: L1, L2.
-- Evaluation: walk-forward, net-of-cost, deflated Sharpe, sensitivity analysis.
+> [`scope_and_non_goals.md`](scope_and_non_goals.md)
 
-### Extensions
-
-- PCA factor covariance.
-- CVaR optimization.
-- Multi-period optimization.
-- Regime detection.
-- Alternative rebalancing frequencies.
-
-### Out of scope
-
-- High-frequency trading.
-- Options or complex derivatives.
-- Intraday data.
-- Proprietary alpha signals.
-- Live trading execution.
-- Market impact modeling beyond fixed bps.
-
-These exclusions are intentional. They keep the project feasible and focused on the core problem.
+Scope is not duplicated here. Any conflict between this document and the scope document is resolved in favor of the scope document. This stub is retained to preserve cross-references.
 
 ---
 
 ## 11. Problem Validation Criteria
 
-Before building the full solution, validate that the problem is real and worth solving:
+Before building the full solution, validate that the problem is real and worth solving. These are the Phase 1 gates, distinct from the Phase 0 gates in the charter.
 
-1. A literature and tool scan confirms that estimation error, turnover, and cost-aware evaluation are recognized practical issues.
-2. Simple experiments show sample MVO produces extreme weights and high turnover on public ETF data.
-3. Baselines such as 1/N and risk parity are robust and often competitive, confirming robustness is a key challenge.
-4. A minimal turnover penalty reduces turnover without destroying net performance in preliminary tests.
-5. The proposed benchmark gap is not already fully covered by existing open-source tools.
+1. **Literature and tool scan.** Covered by the Phase 0 gate in [`project_charter.md`](project_charter.md) §6. This section does not duplicate it.
+2. **Simple experiments show sample MVO produces extreme weights and high turnover on the primary dataset.** This is the Phase 1 empirical gate (see also `falsification_and_kill_criteria.md` H1.1 and H1.2).
+3. **Baselines such as 1/N and risk parity are robust and often competitive, confirming robustness is a key challenge.**
+4. **A minimal turnover penalty reduces turnover without destroying net performance in preliminary tests.**
+5. **The gap hypothesis in §4.1 is not falsified by the Phase 0 scan.** See [`falsification_and_kill_criteria.md`](falsification_and_kill_criteria.md) §4 K3.
 
-If these criteria are not met, narrow, pivot, or stop.
+If these criteria are not met, narrow, pivot, or stop per the kill/pivot triggers.
 
 ---
 
-## 12. Failure Modes / Pre-Mortem
+## 12. Failure Modes / Pre-Mortem (moved)
 
-| Failure Mode | Likelihood | Impact | Mitigation |
-|---|---|---|---|
-| No improvement over baselines | Medium | High | Define clear falsification criteria; pivot to diagnostic tool if needed |
-| Overfitting to historical data | High | High | Walk-forward, purged CV, deflated Sharpe |
-| Ignoring transaction costs | Medium | High | Model costs explicitly; sensitivity analysis |
-| Data leakage | Medium | High | Point-in-time discipline; document limitations |
-| Scope creep | High | Medium | MVP defined; strict phase gates |
-| No open-source adoption | Medium | Low | Focus on reproducibility and documentation; adoption is a bonus |
-| Misleading claims | Medium | High | Distinguish gross vs net, in-sample vs out-of-sample |
-| Unsupported gap claim | Medium | Medium | Validate via literature and tool scan before proceeding |
+The failure-mode table and pre-mortem belong to the risk register, which is the living source of truth for this content:
 
-**Conclusion:** The project is most likely to fail by producing no out-of-sample improvement over simple baselines. This is acceptable if documented honestly and if the framework itself is useful.
+> [`risk_register_and_premortem.md`](risk_register_and_premortem.md)
+
+This section previously contained a strict subset of that register and would have drifted. It is not duplicated here. This stub is retained to preserve cross-references.
 
 ---
 
@@ -355,6 +292,16 @@ If these criteria are not met, narrow, pivot, or stop.
 - Ledoit, O., & Wolf, M. (2004). A Well-Conditioned Estimator for Large-Dimensional Covariance Matrices.
 - Markowitz, H. (1952). Portfolio Selection.
 - Michaud, R. O. (1989). The Markowitz Optimization Enigma.
+
+---
+
+## 16. Revision History
+
+| Date | Version | Change | Author |
+|------|---------|--------|--------|
+| 2026-10-13 | 1.0 | Initial problem framing | Ken Ira Lacson Talingting |
+| 2026-10-14 | 2.0 | Expanded to full falsifiable problem contract | Ken Ira Lacson Talingting |
+| 2026-10-15 | 2.1 | Qualified §3.1 Sharpe-erosion example; inverted §4 gap claim from assertion to hypothesis (§4.1); moved §9 (evaluation), §10 (scope), §12 (pre-mortem) to their authoritative documents and left stubs; trimmed §11 items 1 and 5 to pointers; added revision history | Ken Ira Lacson Talingting |
 
 ---
 

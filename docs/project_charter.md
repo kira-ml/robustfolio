@@ -1,12 +1,12 @@
 # Project Charter: robustfolio
 
-**Version:** 1.1  
-**Status:** Draft — pending owner confirmation of Section 9 budgets; then flip to Active  
-**Owner:** Ken Ira Lacson Talingting  
-**Created:** 2026-10-13  
-**Last Updated:** 2026-10-14  
-**Supersedes:** 1.0  
-**Related:** [`problem_framing.md`](problem_framing.md), [`success_metrics_and_evaluation_protocol.md`](success_metrics_and_evaluation_protocol.md), [`falsification_and_kill_criteria.md`](falsification_and_kill_criteria.md)
+**Version:** 1.2
+**Status:** Draft — pending owner confirmation of Section 9 budgets; then flip to Active
+**Owner:** Ken Ira Lacson Talingting
+**Created:** 2026-10-13
+**Last Updated:** 2026-10-15
+**Supersedes:** 1.1
+**Related:** [`problem_framing.md`](problem_framing.md), [`scope_and_non_goals.md`](scope_and_non_goals.md), [`success_metrics_and_evaluation_protocol.md`](success_metrics_and_evaluation_protocol.md), [`falsification_and_kill_criteria.md`](falsification_and_kill_criteria.md)
 
 ---
 
@@ -14,9 +14,16 @@
 
 This charter defines **why `robustfolio` exists, who owns it, what it will deliver, how it will be governed, and when it must stop.**
 
-It does not define the problem (see `problem_framing.md`), the measurement protocol (see `success_metrics_and_evaluation_protocol.md`), or the kill criteria in detail (see `falsification_and_kill_criteria.md`). It defines the **contract** under which those documents are created, executed, and enforced.
+It does not define:
 
-If this charter conflicts with a later document, this charter wins unless amended by a decision log entry.
+- the problem (see [`problem_framing.md`](problem_framing.md)),
+- scope (see [`scope_and_non_goals.md`](scope_and_non_goals.md)),
+- the measurement protocol (see [`success_metrics_and_evaluation_protocol.md`](success_metrics_and_evaluation_protocol.md)),
+- the kill criteria in detail (see [`falsification_and_kill_criteria.md`](falsification_and_kill_criteria.md)).
+
+It defines the **contract** under which those documents are created, executed, and enforced.
+
+**Conflict resolution.** If this charter conflicts with a later document, this charter wins unless amended by a decision log entry — except for scope, where [`scope_and_non_goals.md`](scope_and_non_goals.md) is authoritative.
 
 ---
 
@@ -68,17 +75,24 @@ where \(\tau\) and \(\delta\) are defined in the evaluation protocol.
 
 ### 4.1 Documentation Deliverables (Tier 0, before code)
 
+Status reflects the actual file state as of 2026-10-15. Documents not yet written are listed in the charter only if they gate a phase; the full planned list lives in the README "Not yet written" section.
+
 | # | Deliverable | Status | Gate |
 |---|-------------|--------|------|
 | D1 | `README.md` | Active | — |
-| D2 | `problem_framing.md` | Active | — |
+| D2 | `problem_framing.md` | Foundational (v2.1) | — |
 | D3 | `project_charter.md` | Draft → Active on owner sign-off | This document |
-| D4 | `success_metrics_and_evaluation_protocol.md` | Planned | Frozen before first experiment |
-| D5 | `falsification_and_kill_criteria.md` | Planned | Frozen before first experiment |
-| D6 | `data_contract_and_point_in_time_policy.md` | Planned | Frozen before first backtest |
-| D7 | `cost_model_and_frictions.md` | Planned | Frozen before first backtest |
-| D8 | `benchmark_and_baseline_spec.md` | Planned | Frozen before method comparison |
-| D9 | `experiment_registry_and_preregistration.md` | Planned | Active before first experiment |
+| D4 | `scope_and_non_goals.md` | Draft → Active on owner sign-off | — |
+| D5 | `success_metrics_and_evaluation_protocol.md` | Draft | Frozen before first experiment |
+| D6 | `falsification_and_kill_criteria.md` | Draft | Frozen before first experiment; scheduled to merge into D5 (see §13) |
+| D7 | `data_contract_and_point_in_time_policy.md` | Draft | Frozen before first backtest |
+| D8 | `cost_model_and_frictions.md` | Draft | Frozen before first backtest |
+| D9 | `benchmark_and_baseline_spec.md` | Draft | Frozen before method comparison |
+| D10 | `experiment_registry_and_preregistration.md` | Draft | Active before first experiment |
+| D11 | `risk_register_and_premortem.md` | Draft | — |
+| D12 | `model_and_method_spec.md` | **Not yet written** | Frozen before Phase 1 code |
+
+**Note on numbering.** The original list (D1–D9) omitted `scope_and_non_goals.md` and `risk_register_and_premortem.md`, both of which exist. This version includes them and renumbers. `model_and_method_spec.md` is added as D12 because it is the only missing document that gates Phase 1.
 
 ### 4.2 Code Deliverables
 
@@ -95,26 +109,18 @@ where \(\tau\) and \(\delta\) are defined in the evaluation protocol.
 
 | # | Deliverable | Phase |
 |---|-------------|-------|
-| R1 | Literature and tool scan validating the gap claim | Phase 0 |
+| R1 | Literature and tool scan validating the gap hypothesis | Phase 0 |
 | R2 | Baseline behavior report (extreme weights, turnover, cost drag) | Phase 1 |
 | R3 | Method comparison report with confidence intervals | Phase 3 |
 | R4 | Honest conclusion: positive, negative, or mixed | Phase 4 |
 
 ---
 
-## 5. Non-Goals
+## 5. Non-Goals (moved)
 
-Explicitly out of scope. Adding any of these requires a charter amendment.
+Non-goals are defined authoritatively in [`scope_and_non_goals.md`](scope_and_non_goals.md) §5. They are not duplicated here.
 
-- High-frequency or intraday trading.
-- Options, futures, or complex derivatives.
-- Proprietary alpha signals or alternative data.
-- Live trading or execution systems.
-- Market impact modeling beyond fixed bps per trade.
-- Beating the market or maximizing absolute return.
-- Producing a positive result at the expense of statistical honesty.
-- Building a general-purpose backtesting framework for all asset classes.
-- Competing with commercial portfolio optimizers on features or speed.
+The scope document's "Out of Scope" list is broader and more specific than the list that previously appeared in this section. Any conflict between this charter and the scope document on the question of non-goals is resolved in favor of the scope document.
 
 ---
 
@@ -124,8 +130,8 @@ Each phase has a **go/no-go decision**. A phase cannot begin until the prior gat
 
 | Phase | Name | Entry Criteria | Exit Criteria (Go) | No-Go Action |
 |-------|------|----------------|--------------------|--------------|
-| 0 | Problem Validation | Charter Active | R1 complete and documents a scan of ≥10 relevant open-source tools, papers, or repositories, explicitly stating which part of the claimed gap remains uncovered; D4–D9 drafted | Narrow problem or stop |
-| 1 | Data & Baselines | Gate 0 passed; D6, D7, D8 frozen | C1, C2, C3 work; R2 shows MVO instability is real | Fix data/cost contract or stop |
+| 0 | Problem Validation | Charter Active | R1 complete and documents a scan of ≥10 relevant open-source tools, papers, or repositories, explicitly stating which part of the gap hypothesis remains uncovered; D5, D6, D7, D8, D9, D10 drafted | Narrow problem or stop |
+| 1 | Data & Baselines | Gate 0 passed; D7, D8, D9 frozen; D12 frozen | C1, C2, C3 work; R2 shows MVO instability is real | Fix data/cost contract or stop |
 | 2 | Robust Methods | Gate 1 passed | C4 implemented and unit-tested; no leakage | Reduce method scope |
 | 3 | Evaluation | Gate 2 passed | C5 complete; R3 produced; multiple-testing adjusted | Extend evaluation or narrow claims |
 | 4 | Reporting & Release | Gate 3 passed | C6 complete; R4 written; repo reproducible from scratch | Release as negative result or diagnostic tool |
@@ -137,7 +143,7 @@ Each phase has a **go/no-go decision**. A phase cannot begin until the prior gat
 
 ## 7. Kill, Pivot, and Stop Criteria
 
-Detailed thresholds live in `falsification_and_kill_criteria.md`. The charter establishes the *authority* and the *categories*:
+Detailed thresholds live in [`falsification_and_kill_criteria.md`](falsification_and_kill_criteria.md). The charter establishes the *authority* and the *categories*:
 
 | Category | Meaning | Authority |
 |----------|---------|-----------|
@@ -161,7 +167,7 @@ Detailed thresholds live in `falsification_and_kill_criteria.md`. The charter es
 |------|--------|----------------|
 | **Owner / Decision-maker** | Ken Ira Lacson Talingting | Final authority on scope, gates, kill/pivot, and claims |
 | **Reasoning partner** | LLM (Core Mental Models OS) | Challenge assumptions, surface failure modes, apply models, flag anti-patterns |
-| **Reviewer** | None (self-review) | Sanity-check evaluation protocol and claims before release |
+| **Reviewer** | None (no third-party reviewer; self-review plus reasoning-partner challenge) | Sanity-check evaluation protocol and claims before release |
 | **Informed** | Open-source users, readers of the repo | Consume results and documentation |
 
 **Escalation:** If the reasoning partner identifies a violation of the evaluation protocol, kill criteria, or anti-patterns, it must flag it. The owner decides. Silence is not consent.
@@ -198,7 +204,7 @@ Detailed thresholds live in `falsification_and_kill_criteria.md`. The charter es
 - Monthly rebalancing is a realistic baseline frequency.
 - Fixed-bps transaction costs are a reasonable first approximation.
 - Simple baselines (1/N, risk parity) are strong enough to be meaningful competitors.
-- The gap claim (no reproducible open-source benchmark of this kind) survives a tool scan.
+- The gap hypothesis (see [`problem_framing.md`](problem_framing.md) §4.1) survives a tool scan.
 
 **Constraints:**
 
@@ -251,6 +257,7 @@ The project is **done** when all of the following are true:
 - A pivot from "method superiority" to "diagnostic benchmark."
 - A decision to expand scope to a new asset class or frequency (requires amendment, not silent expansion).
 - A decision to stop the project.
+- Completion of the planned merge of `falsification_and_kill_criteria.md` into `success_metrics_and_evaluation_protocol.md` (see the execution TODO, item B1), which will update references in §0, §4.1, §6, and §7.
 
 Any change requires a decision log entry and a version bump.
 
@@ -274,6 +281,7 @@ Any change requires a decision log entry and a version bump.
 |------|---------|--------|--------|
 | 2026-10-13 | 1.0 | Initial charter | Ken Ira Lacson Talingting |
 | 2026-10-14 | 1.1 | Filled Section 9 with proposed defaults; resolved reviewer field; tightened Phase 0 exit criterion; required decision log for kills; added charter to Definition of Done; set monthly cadence | Ken Ira Lacson Talingting |
+| 2026-10-15 | 1.2 | Replaced §5 (Non-Goals) with pointer to scope document (A2); updated §4.1 status board to match actual file states and added D4, D11, D12; changed "gap claim" to "gap hypothesis" in §6 and §10 for consistency with problem_framing v2.1; clarified §8 Reviewer row; added §13 clause anticipating the falsification merge | Ken Ira Lacson Talingting |
 
 ---
 

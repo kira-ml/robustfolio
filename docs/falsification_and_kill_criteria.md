@@ -1,12 +1,14 @@
 # Falsification and Kill Criteria: robustfolio
 
-**Version:** 1.0  
-**Status:** Draft — pending owner confirmation of proposed thresholds; freeze before first experiment  
-**Owner:** Ken Ira Lacson Talingting  
-**Created:** 2026-10-14  
-**Last Updated:** 2026-10-14  
-**Supersedes:** None  
+**Version:** 1.1
+**Status:** Draft — pending owner confirmation of proposed thresholds; freeze before first experiment
+**Owner:** Ken Ira Lacson Talingting
+**Created:** 2026-10-14
+**Last Updated:** 2026-10-15
+**Supersedes:** 1.0
 **Related:** [`problem_framing.md`](problem_framing.md), [`project_charter.md`](project_charter.md), [`success_metrics_and_evaluation_protocol.md`](success_metrics_and_evaluation_protocol.md), [`experiment_registry_and_preregistration.md`](experiment_registry_and_preregistration.md), [`decision_log.md`](decision_log.md), [`risk_register_and_premortem.md`](risk_register_and_premortem.md)
+
+> **Note on future consolidation.** Per the execution TODO item B1, this document is scheduled to merge into [`success_metrics_and_evaluation_protocol.md`](success_metrics_and_evaluation_protocol.md). When that merge happens, this document will be retired and its content (hypotheses, triggers, sunk-cost firewall, freeze rules) will live in the merged protocol. Until then, this document is the source of truth for falsification tests and kill/pivot triggers.
 
 ---
 
@@ -19,7 +21,7 @@ This document defines, **before any experiment is run**:
 3. What **time-based** and **evidence-based** triggers force a decision.
 4. How to prevent **goalpost-moving**, **sunk-cost continuation**, and **complexity creep as rescue**.
 
-This is the enforcement document. The charter establishes authority and categories; the evaluation protocol establishes measurement; this document establishes **the decision rules that fire when measurement returns a verdict**.
+This is the enforcement document. The charter establishes authority and the taxonomy of decisions (Kill, Pivot, Stop-and-report, Continue — see [`project_charter.md`](project_charter.md) §7). The evaluation protocol establishes measurement. This document establishes **the decision rules that fire when measurement returns a verdict**.
 
 **Once frozen, this document may not be modified after seeing experimental results.** Any change requires a decision log entry with a rationale that a skeptical external reviewer would accept.
 
@@ -31,7 +33,7 @@ The project is falsificationist, not confirmationist. This has three operational
 
 1. **Every claim must have a test that could prove it wrong.** If no such test exists, the claim is not part of the project's scientific content and may not be reported as a finding.
 2. **Failure to falsify is not proof.** A method that survives its tests is "not yet falsified," not "correct." Language in reporting must reflect this.
-3. **Negative results are first-class outputs.** A falsified hypothesis is a successful experiment. A project that ends with a clean negative result has succeeded by its own definition (see `project_charter.md` §1).
+3. **Negative results are first-class outputs.** A falsified hypothesis is a successful experiment. A project that ends with a clean negative result has succeeded by its own definition (see [`project_charter.md`](project_charter.md) §1).
 
 Every hypothesis below has the form: *"Under protocol P, method M beats baseline B on metric m by at least δ."* The corresponding falsification is: *"Under protocol P, M does not beat B on m by δ, after adjustment."*
 
@@ -39,7 +41,7 @@ Every hypothesis below has the form: *"Under protocol P, method M beats baseline
 
 ## 2. Hypotheses and Falsification Tests
 
-Hypotheses are grouped by family. Each family shares a multiple-testing correction (see evaluation protocol §7).
+Hypotheses are grouped by family. Each family shares a multiple-testing correction (see [`success_metrics_and_evaluation_protocol.md`](success_metrics_and_evaluation_protocol.md) §7).
 
 ### Family H1 — Estimation error is the binding constraint
 
@@ -47,7 +49,7 @@ Hypotheses are grouped by family. Each family shares a multiple-testing correcti
 |----|-----------|-------------------|------------------------------|
 | H1.1 | Sample MVO produces extreme weights relative to 1/N | Max absolute weight > `[PROPOSED: 0.40]` in ≥ 1 fold | If not, the framing premise is weak; document and re-evaluate problem |
 | H1.2 | Sample MVO has higher turnover than 1/N | Annualized turnover ratio > `[PROPOSED: 2.0]` | If not, turnover is not the problem; revisit |
-| H1.3 | Estimation error, not optimization, drives instability | Shrinkage covariance reduces weight dispersion vs sample covariance | If not, revisit root-cause model in `problem_framing.md` §5 |
+| H1.3 | Estimation error, not optimization, drives instability | Shrinkage covariance reduces weight dispersion vs sample covariance | If not, revisit root-cause model in [`problem_framing.md`](problem_framing.md) §5 |
 
 **Family kill trigger:** If H1.1 and H1.2 both fail on the primary dataset, the problem framing is falsified. Pivot or stop before Phase 2.
 
@@ -72,29 +74,26 @@ Hypotheses are grouped by family. Each family shares a multiple-testing correcti
 
 **Family kill trigger:** If H3.3 fails for all methods, the project cannot claim method superiority. Pivot to diagnostic benchmark.
 
-### Family H4 — The gap claim is real
+### Family H4 — The gap hypothesis is real
 
 | ID | Hypothesis | Falsification test | Kill/pivot on falsification |
 |----|-----------|-------------------|------------------------------|
 | H4.1 | No open-source tool reproduces this exact comparison | R1 tool scan identifies no equivalent | If equivalent exists, pivot to replication or extension |
 | H4.2 | Published work does not already answer the question | R1 literature scan | If answered, pivot to replication or extension |
 
-**Family kill trigger:** If H4.1 or H4.2 fails, the gap claim is falsified. Update `problem_framing.md` §4 and pivot.
+**Family kill trigger:** If H4.1 or H4.2 fails, the gap hypothesis is falsified. Update [`problem_framing.md`](problem_framing.md) §4.1 and pivot.
 
 ---
 
-## 3. Kill / Pivot / Stop Definitions
+## 3. Kill / Pivot / Stop Definitions (moved)
 
-These match `project_charter.md` §7 but add operational precision.
+The taxonomy of decisions — **Kill**, **Pivot**, **Stop-and-report**, **Continue** — and their authority are defined authoritatively in:
 
-| Category | Definition | Scope | Reversible? |
-|----------|------------|-------|-------------|
-| **Kill** | Stop the project entirely. Archive findings. | Whole project | Yes, but requires new charter |
-| **Pivot** | Change the framing, deliverable, or claim set. | Problem or deliverable | Yes |
-| **Stop-and-report** | Conclude with a documented negative or partial result. | Project | Yes |
-| **Continue** | Proceed to next phase. | Phase | — |
+> [`project_charter.md`](project_charter.md) §7
 
-**Hard rule:** A pivot is not a rescue. A pivot must be justified by a falsified hypothesis, not by an inconvenient result. If the pivot looks like "add another method to fix the last failure," it is scope creep wearing a pivot costume.
+They are not duplicated here. The charter's hard rules (no phase exceeds its time-box without a decision log entry; primary-objective failure forces Stop-and-report rather than added complexity; new methods require pre-registered hypotheses; kill requires a decision log entry) are enforced by the triggers in §4–§7 of this document.
+
+This stub is retained to preserve cross-references.
 
 ---
 
@@ -104,7 +103,7 @@ These are the conditions under which the project as a whole must decide to kill,
 
 ### K1 — Primary objective falsified
 
-**Trigger:** After Phase 3 evaluation, no robust method satisfies evaluation protocol §6.4 (statistical significance + economic materiality + robustness).
+**Trigger:** After Phase 3 evaluation, no robust method satisfies [`success_metrics_and_evaluation_protocol.md`](success_metrics_and_evaluation_protocol.md) §6.4 (statistical significance + economic materiality + robustness).
 
 **Decision:** Stop-and-report. The project's primary hypothesis is falsified.
 
@@ -120,7 +119,7 @@ These are the conditions under which the project as a whole must decide to kill,
 
 **Not permitted:** Proceeding to Phase 2 on the assumption that "the problem must be real."
 
-### K3 — Gap claim falsified
+### K3 — Gap hypothesis falsified
 
 **Trigger:** R1 identifies an existing tool or paper that reproduces the planned comparison with equivalent rigor.
 
@@ -130,7 +129,7 @@ These are the conditions under which the project as a whole must decide to kill,
 
 ### K4 — Time budget exhausted
 
-**Trigger:** Total time budget from charter §9 is reached, regardless of where the project is.
+**Trigger:** Total time budget from [`project_charter.md`](project_charter.md) §9 is reached, regardless of where the project is.
 
 **Decision:** Stop-and-report with whatever is complete. If results are not yet available, report as "incomplete — no conclusion."
 
@@ -138,7 +137,7 @@ These are the conditions under which the project as a whole must decide to kill,
 
 ### K5 — Phase time-box exhausted without gate pass
 
-**Trigger:** Any phase exceeds its time-box from charter §9 without passing its gate.
+**Trigger:** Any phase exceeds its time-box from [`project_charter.md`](project_charter.md) §9 without passing its gate.
 
 **Decision:** Kill the phase or pivot the phase goal. Do not roll over into the next phase.
 
@@ -146,7 +145,7 @@ These are the conditions under which the project as a whole must decide to kill,
 
 ### K6 — Data or cost contract broken
 
-**Trigger:** Any experiment in Phase 1 or later reveals a violation of `data_contract_and_point_in_time_policy.md` or `cost_model_and_frictions.md` that cannot be corrected without invalidating prior results.
+**Trigger:** Any experiment in Phase 1 or later reveals a violation of [`data_contract_and_point_in_time_policy.md`](data_contract_and_point_in_time_policy.md) or [`cost_model_and_frictions.md`](cost_model_and_frictions.md) that cannot be corrected without invalidating prior results.
 
 **Decision:** Halt evaluation. Fix the contract. Re-run affected experiments or kill.
 
@@ -189,7 +188,7 @@ Stop-and-report is the correct decision when:
 
 1. K1 fires (primary objective falsified), OR
 2. The project reaches its total time budget without a positive result, OR
-3. The owner elects to stop for any reason (per charter §7 Hard Rule 4), OR
+3. The owner elects to stop for any reason (per [`project_charter.md`](project_charter.md) §7 Hard Rule 4), OR
 4. Two or more pivot attempts have failed.
 
 **Stop-and-report deliverable:**
@@ -229,7 +228,7 @@ When a trigger fires, follow this sequence:
 3. **Evaluate options.** Kill, pivot, stop-and-report, or continue — with explicit expected value reasoning.
 4. **Decide.** The owner decides. No decision is a decision to continue, which must be logged.
 5. **Act.** Update affected documents. Bump versions. Notify informed parties.
-6. **Update priors.** Record what was learned in `decision_log.md` and, if relevant, in `problem_framing.md` or the evaluation protocol.
+6. **Update priors.** Record what was learned in `decision_log.md` and, if relevant, in [`problem_framing.md`](problem_framing.md) or the evaluation protocol.
 
 **Time-box for decisions:** `[PROPOSED: 1 week]` from trigger recognition to decision. Beyond this, the project is drifting.
 
@@ -239,10 +238,11 @@ When a trigger fires, follow this sequence:
 
 | Conflict | Resolution |
 |----------|------------|
-| Charter vs this document | Charter wins unless this document was written later and the charter's rules are out of date |
-| Evaluation protocol vs this document | Evaluation protocol defines measurement; this document defines decisions on that measurement. They must agree on thresholds. |
-| Problem framing vs this document | This document may falsify the problem framing. When it does, `problem_framing.md` must be updated. |
+| Charter vs this document | The charter owns the decision *taxonomy* (§7) and *authority* (§8). This document owns the *triggers* that fire on those categories. If they conflict on a trigger, this document wins until amended. If they conflict on a category, the charter wins. |
+| Evaluation protocol vs this document | The evaluation protocol defines measurement; this document defines decisions on that measurement. They must agree on thresholds. |
+| Problem framing vs this document | This document may falsify the problem framing. When it does, [`problem_framing.md`](problem_framing.md) must be updated. |
 | Owner intuition vs this document | This document wins until amended via decision log. |
+| Scope vs this document | [`scope_and_non_goals.md`](scope_and_non_goals.md) owns scope. This document's pivot criteria (§5) that change scope (e.g., narrower universe) require a scope amendment, not just a decision log entry. |
 
 ---
 
@@ -268,12 +268,13 @@ Before setting Status to `Frozen`, confirm or replace every `[PROPOSED]` value:
 
 Also confirm:
 
-- [ ] Section 4 triggers are consistent with your charter time-boxes (charter §9)
+- [ ] Section 4 triggers are consistent with your charter time-boxes ([`project_charter.md`](project_charter.md) §9)
 - [ ] Section 5 forbidden pivots are acceptable to you
 - [ ] Section 7 sunk cost firewall rules are acceptable
-- [ ] The decision authority in Section 8 matches charter §8
+- [ ] The decision authority in Section 8 matches [`project_charter.md`](project_charter.md) §8
+- [ ] Section 9 conflict resolution is consistent with the charter's own conflict rule
 
-Once confirmed, bump to Version 1.1, set Status to `Frozen`, and add a revision history row.
+Once confirmed, bump to Version 1.2, set Status to `Frozen`, and add a revision history row.
 
 ---
 
@@ -282,6 +283,7 @@ Once confirmed, bump to Version 1.1, set Status to `Frozen`, and add a revision 
 | Date | Version | Change | Author |
 |------|---------|--------|--------|
 | 2026-10-14 | 1.0 | Initial falsification and kill criteria | Ken Ira Lacson Talingting |
+| 2026-10-15 | 1.1 | Replaced §3 (Kill/Pivot/Stop Definitions) with pointer to charter §7 (A5); changed "gap claim" to "gap hypothesis" in §2 H4 and §4 K3 for consistency with problem_framing v2.1; updated §9 conflict table to clarify taxonomy vs trigger ownership; added note on future consolidation into evaluation protocol (B1); updated cross-references to full paths | Ken Ira Lacson Talingting |
 
 ---
 
