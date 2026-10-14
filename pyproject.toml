@@ -1,0 +1,10 @@
+[project]
+name = "robustfolio"
+version = "0.0.1"
+description = "Walk-forward, cost-aware portfolio rebalancing benchmark"
+requires-python = ">=3.10"
+readme = "README.md"
+license = { file = "LICENSE" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
