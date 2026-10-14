@@ -1,6 +1,6 @@
 # Problem Framing: Robust, Turnover-Aware Portfolio Rebalancing
 
-**Version:** 2.1
+**Version:** 2.2
 **Status:** Foundational, falsifiable problem contract
 **Project:** `robustfolio`
 **License:** MIT (see repository root)
@@ -25,9 +25,8 @@ Read this before writing code, selecting models, or running backtests.
 **Scope note.** This document does not define scope, evaluation protocol, or risk register. Those live in:
 
 - Scope: [`scope_and_non_goals.md`](scope_and_non_goals.md)
-- Evaluation: [`success_metrics_and_evaluation_protocol.md`](success_metrics_and_evaluation_protocol.md)
-- Risk: [`risk_register_and_premortem.md`](risk_register_and_premortem.md)
-- Kill/pivot triggers: [`falsification_and_kill_criteria.md`](falsification_and_kill_criteria.md)
+- Evaluation, falsification, and kill/pivot triggers: [`evaluation_protocol.md`](evaluation_protocol.md)
+- Risk register: not yet written. Active risks are tracked in §14 of this document and in `evaluation_protocol.md` §7.
 
 This document answers only: *what is the problem, and what is the causal model?*
 
@@ -123,11 +122,19 @@ The primary decision this project supports:
 | Turnover penalty | Add L1/L2 penalty to objective | Directly controls turnover | Requires tuning, may distort allocation |
 | Multi-period optimization | Optimize over horizon with costs | Theoretically sound | Computationally heavy, model-dependent |
 
-### 4.1 Hypothesized gap
+### 4.1 Gap hypothesis (Phase 0 scan completed 2026-10-15)
 
-**Hypothesis, not established fact.** No reproducible, open-source benchmark currently exists that systematically compares robust estimation, Bayesian expected returns, and turnover-aware optimization under realistic costs, walk-forward evaluation, and multiple-testing-aware metrics.
+**Hypothesis, partially validated by the Phase 0 scan.** The individual techniques (shrunk covariance, Bayesian returns, turnover penalties, ex-ante cost modeling, multi-period optimization) are well studied in the literature. What does not exist is a single reproducible, open-source benchmark that runs them head-to-head under one walk-forward protocol with multiple-testing-aware metrics and publishes the full result — positive, negative, or mixed.
 
-This is stated as a hypothesis to be tested, not as an assertion. It is the claim the project must validate in Phase 0 before proceeding. The test is a literature and tool scan; the failure mode is that an equivalent benchmark already exists, in which case the project pivots to replication or extension (see [`falsification_and_kill_criteria.md`](falsification_and_kill_criteria.md) §4 K3 and the Phase 0 gate in [`project_charter.md`](project_charter.md) §6).
+**Phase 0 scan result:**
+
+- `cvxportfolio` (Boyd et al.) provides a cost-aware, multi-period optimizer, but not a benchmark comparison.
+- `PyPortfolioOpt`, `Riskfolio-Lib`, and `skfolio` each provide subsets of the methods, but no comparison study.
+- No published paper packages the full comparison with reproducible code.
+
+**Refined contribution claim:** a reproducible, cost-aware, walk-forward benchmark that operationalizes the post-2009 literature's proposed fixes (ex-ante costs, shrinkage plus turnover constraints, robust optimization) under one protocol and reports the outcome honestly. The contribution is the packaging and reproducibility, not a novel method.
+
+**Failure mode:** if a comparable benchmark is released, pivot to replication or extension of it. See [`evaluation_protocol.md`](evaluation_protocol.md) §8 K3.
 
 ---
 
@@ -203,8 +210,8 @@ Feedback loops, delays, and bottlenecks:
 - **Reinforcing loop:** High turnover → high costs → lower returns → pressure to rebalance more to recover → higher turnover.
 - **Balancing loop:** Turnover penalty → lower turnover → lower costs → higher net returns.
 - **Delay:** Costs are incurred immediately; benefits of rebalancing may take months to materialize.
-- **Bottleneck:** Estimation error and objective misspecification are primary bottlenecks. No amount of optimization can overcome bad inputs or a gross-return-only objective.
-- **Leverage point:** Covariance shrinkage, Bayesian expected returns, and turnover penalties are high-leverage interventions because they directly address the bottleneck.
+- **Bottleneck (hypothesis):** estimation error and objective misspecification are the primary bottlenecks. No amount of optimization can overcome bad inputs or a gross-return-only objective. Tested in Phase 1 (see §14).
+- **Leverage point (hypothesis):** covariance shrinkage, Bayesian expected returns, and turnover penalties are *hypothesized* to be high-leverage interventions because they address the bottleneck. Phase 1 partially contradicts this at 232 months — see §14.
 
 ---
 
@@ -225,7 +232,7 @@ The project treats all estimates as probabilistic and evaluates methods by out-o
 
 The evaluation contract — baselines, primary and secondary metrics, walk-forward protocol, success criteria, falsification criteria, and cost sensitivity levels — is defined authoritatively in:
 
-> [`success_metrics_and_evaluation_protocol.md`](success_metrics_and_evaluation_protocol.md)
+> [`evaluation_protocol.md`](evaluation_protocol.md)
 
 It is not duplicated here. Changes to evaluation thresholds or metrics are made in that document, not in this one. This stub is retained to preserve cross-references from other documents.
 
@@ -243,25 +250,21 @@ Scope is not duplicated here. Any conflict between this document and the scope d
 
 ## 11. Problem Validation Criteria
 
-Before building the full solution, validate that the problem is real and worth solving. These are the Phase 1 gates, distinct from the Phase 0 gates in the charter.
+Before building the full solution, validate that the problem is real and worth solving. These are the Phase 1 gates.
 
-1. **Literature and tool scan.** Covered by the Phase 0 gate in [`project_charter.md`](project_charter.md) §6. This section does not duplicate it.
-2. **Simple experiments show sample MVO produces extreme weights and high turnover on the primary dataset.** This is the Phase 1 empirical gate (see also `falsification_and_kill_criteria.md` H1.1 and H1.2).
-3. **Baselines such as 1/N and risk parity are robust and often competitive, confirming robustness is a key challenge.**
-4. **A minimal turnover penalty reduces turnover without destroying net performance in preliminary tests.**
-5. **The gap hypothesis in §4.1 is not falsified by the Phase 0 scan.** See [`falsification_and_kill_criteria.md`](falsification_and_kill_criteria.md) §4 K3.
+1. **Literature and tool scan.** Completed 2026-10-15. See §4.1.
+2. **Simple experiments show sample MVO produces extreme weights and high turnover on the primary dataset.** Phase 1 empirical gate. See [`evaluation_protocol.md`](evaluation_protocol.md) §7 H1.1 and H1.2. **Status: passed 2026-10-15.**
+3. **Baselines such as 1/N and risk parity are robust and often competitive, confirming robustness is a key challenge.** **Status: passed 2026-10-15.**
+4. **A minimal turnover penalty reduces turnover without destroying net performance in preliminary tests.** **Status: not passed at 232 months.** Turnover reduced, but net Sharpe fell below unpenalized MVO. See §14.
+5. **The gap hypothesis in §4.1 is not falsified by the Phase 0 scan.** **Status: not falsified.** See [`evaluation_protocol.md`](evaluation_protocol.md) §8 K3.
 
 If these criteria are not met, narrow, pivot, or stop per the kill/pivot triggers.
 
 ---
 
-## 12. Failure Modes / Pre-Mortem (moved)
+## 12. Failure Modes / Pre-Mortem
 
-The failure-mode table and pre-mortem belong to the risk register, which is the living source of truth for this content:
-
-> [`risk_register_and_premortem.md`](risk_register_and_premortem.md)
-
-This section previously contained a strict subset of that register and would have drifted. It is not duplicated here. This stub is retained to preserve cross-references.
+Not yet written. Failure-mode and pre-mortem content will be added as a section of [`evaluation_protocol.md`](evaluation_protocol.md) when Phase 2 begins, or as a standalone document if Phase 2 warrants it. Not duplicated here.
 
 ---
 
@@ -274,12 +277,36 @@ This section previously contained a strict subset of that register and would hav
 
 ---
 
-## 14. Feedback and Revision
+## 14. Feedback, Revision, and Phase 1 Finding
 
 - **Feedback source:** Out-of-sample results, sensitivity analyses, peer review, open-source issues.
-- **Update trigger:** If baselines dominate all robust methods, reframe the problem as a diagnostic tool.
-- **Iteration:** Revisit this document after baseline implementation and after the evaluation phase.
-- **Learning loop:** Every major experiment should update priors about which interventions actually improve net risk-adjusted return.
+- **Update trigger:** If baselines dominate all robust methods, reframe the problem as a diagnostic tool. **Partially triggered 2026-10-15.** Not yet reframed — deferred until Tests B/C/D resolve whether the observed underperformance is an artifact.
+- **Iteration:** Revisit this document after each phase.
+- **Learning loop:** Every major experiment updates priors about which interventions improve net risk-adjusted return.
+
+### Phase 1 finding (2026-10-15)
+
+**Setup:** 15 liquid US ETFs, 232 months (2007-06 to 2026-09), monthly rebalance, 10 bps per unit turnover, 60-month rolling train / 12-month test / 12-month step, long-only, box cap 0.40 (or unconstrained where noted).
+
+**Observed:**
+
+| Method | Gross Sharpe | Net Sharpe | Turnover | MaxW |
+|---|---|---|---|---|
+| equal_weight (1/N) | 0.727 | **0.530** | 0.254 | 0.067 |
+| sample_mvo (capped) | 0.610 | 0.462 | 1.904 | 0.400 |
+| inverse_vol | 1.208 | 0.425 | 0.182 | 0.858 |
+| unconstrained_sample_mvo | 0.471 | 0.341 | 0.210 | 0.599 |
+| turnover_penalized_mvo | 0.389 | 0.240 | 0.219 | 0.400 |
+| ledoit_wolf_mvo | 0.381 | 0.233 | 0.218 | 0.400 |
+
+**Conclusions:**
+
+- **H1.1, H1.2 confirmed.** Sample MVO produces extremal weights (unconstrained max 0.60, capped at boundary) and 7.5x the turnover of 1/N. The framing's premise is confirmed.
+- **Remedy hypothesis weakened.** Shrinkage and turnover penalty underperform even unpenalized MVO at 232 months. This is *not* the framing's prediction. §7's leverage-point claim is downgraded to a hypothesis.
+- **Base rate reproduced.** 1/N beats every optimizer net of cost. Consistent with DeMiguel et al. (2009), who estimated ~3000 months are needed for MVO to reliably beat 1/N.
+- **Open question (unresolved):** is the shrinkage/penalty underperformance a box-cap artifact, a window-length artifact, or a real effect? Planned Tests B/C/D will resolve this before Phase 2 begins.
+
+**What this triggers (per the update trigger above):** the "baselines dominate" trigger is partially satisfied. Not yet reframed as a diagnostic tool — deferred until Tests B/C/D run. The next experiment is a sensitivity sweep, not a new method.
 
 ---
 
@@ -302,6 +329,7 @@ This section previously contained a strict subset of that register and would hav
 | 2026-10-13 | 1.0 | Initial problem framing | Ken Ira Lacson Talingting |
 | 2026-10-14 | 2.0 | Expanded to full falsifiable problem contract | Ken Ira Lacson Talingting |
 | 2026-10-15 | 2.1 | Qualified §3.1 Sharpe-erosion example; inverted §4 gap claim from assertion to hypothesis (§4.1); moved §9 (evaluation), §10 (scope), §12 (pre-mortem) to their authoritative documents and left stubs; trimmed §11 items 1 and 5 to pointers; added revision history | Ken Ira Lacson Talingting |
+| 2026-10-15 | 2.2 | Updated §0 and §9 cross-references to reflect deletion of `success_metrics_and_evaluation_protocol.md` and `falsification_and_kill_criteria.md` (merged into `evaluation_protocol.md`); rewrote §4.1 with Phase 0 scan result and refined contribution claim; downgraded §7 bottleneck and leverage-point claims to hypotheses; updated §11 status per Phase 1; replaced §12 stub with accurate note; added §14 Phase 1 finding; added this row | Ken Ira Lacson Talingting |
 
 ---
 
