@@ -6,7 +6,7 @@
 **Created:** 2026-10-14  
 **Last Updated:** 2026-10-14  
 **Supersedes:** None  
-**Related:** [`problem_framing.md`](problem_framing.md), [`project_charter.md`](project_charter.md), [`success_metrics_and_evaluation_protocol.md`](success_metrics_and_evaluation_protocol.md), [`falsification_and_kill_criteria.md`](falsification_and_kill_criteria.md), [`data_contract_and_point_in_time_policy.md`](data_contract_and_point_in_time_policy.md), [`cost_model_and_frictions.md`](cost_model_and_frictions.md), [`benchmark_and_baseline_spec.md`](benchmark_and_baseline_spec.md), [`decision_log.md`](decision_log.md)
+**Related:** [`problem_framing.md`](problem_framing.md), [`project_charter.md`](project_charter.md), [`evaluation_protocol.md`](evaluation_protocol.md), [`data_contract_and_point_in_time_policy.md`](data_contract_and_point_in_time_policy.md), [`cost_model_and_frictions.md`](cost_model_and_frictions.md), [`benchmark_and_baseline_spec.md`](benchmark_and_baseline_spec.md), [`decision_log.md`](decision_log.md)
 
 ---
 
@@ -22,7 +22,7 @@ This document defines:
 6. How amendments, re-runs, and invalidations are handled.
 7. How exploratory work is separated from confirmatory work.
 
-It is the **contract** between intention and execution. An experiment that is not pre-registered is not eligible to support a success claim (see `success_metrics_and_evaluation_protocol.md` §7.2).
+It is the **contract** between intention and execution. An experiment that is not pre-registered is not eligible to support a success claim (see `evaluation_protocol.md` §1, principle 2).
 
 **Once frozen, the format and rules of this document may not be modified after seeing experimental results.** Any change requires a decision log entry and a version bump.
 
@@ -251,7 +251,7 @@ Appended after analysis. Never edited.
 **Threats to validity:** (list)
 
 **Links to update:**
-- [ ] `falsification_and_kill_criteria.md` §2 (hypothesis status)
+- [ ] `evaluation_protocol.md` §7 (hypothesis status)
 - [ ] `decision_log.md` (decision entry)
 - [ ] `risk_register_and_premortem.md` (if new failure mode observed)
 - [ ] `problem_framing.md` (if framing affected)
@@ -443,6 +443,7 @@ Once confirmed, bump to Version 1.1, set Status to `Frozen`, and add a revision 
 | Date | Version | Change | Author |
 |------|---------|--------|--------|
 | 2026-10-14 | 1.0 | Initial experiment registry and preregistration document | Ken Ira Lacson Talingting |
+| 2026-10-15 | 1.1 | Updated cross-references after `success_metrics_and_evaluation_protocol.md` and `falsification_and_kill_criteria.md` were merged into `evaluation_protocol.md`. No content changed. | Ken Ira Lacson Talingting |
 
 ---
 

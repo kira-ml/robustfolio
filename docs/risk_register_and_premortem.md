@@ -6,7 +6,7 @@
 **Created:** 2026-10-14  
 **Last Updated:** 2026-10-14  
 **Supersedes:** None  
-**Related:** [`problem_framing.md`](problem_framing.md), [`project_charter.md`](project_charter.md), [`success_metrics_and_evaluation_protocol.md`](success_metrics_and_evaluation_protocol.md), [`falsification_and_kill_criteria.md`](falsification_and_kill_criteria.md), [`data_contract_and_point_in_time_policy.md`](data_contract_and_point_in_time_policy.md), [`cost_model_and_frictions.md`](cost_model_and_frictions.md), [`benchmark_and_baseline_spec.md`](benchmark_and_baseline_spec.md), [`experiment_registry_and_preregistration.md`](experiment_registry_and_preregistration.md), [`decision_log.md`](decision_log.md)
+**Related:** [`problem_framing.md`](problem_framing.md), [`project_charter.md`](project_charter.md), [`evaluation_protocol.md`](evaluation_protocol.md), [`data_contract_and_point_in_time_policy.md`](data_contract_and_point_in_time_policy.md), [`cost_model_and_frictions.md`](cost_model_and_frictions.md), [`benchmark_and_baseline_spec.md`](benchmark_and_baseline_spec.md), [`experiment_registry_and_preregistration.md`](experiment_registry_and_preregistration.md), [`decision_log.md`](decision_log.md)
 
 ---
 
@@ -34,7 +34,7 @@ Three principles govern this register.
 2. **Rank by detectability, not only severity.** A high-impact risk that is easy to detect is less dangerous than a moderate-impact risk that is invisible.
 3. **Every risk has a trigger and an owner.** A risk without a trigger is a worry. A worry without an owner is drift.
 
-The register is the operational arm of [Inversion]. Its contents feed directly into `falsification_and_kill_criteria.md` and `decision_log.md`.
+The register is the operational arm of [Inversion]. Its contents feed directly into `evaluation_protocol.md` §7–§8 and `decision_log.md`.
 
 ---
 
@@ -329,7 +329,7 @@ The six critical risks warrant specific attention.
 - Version bump for any amendment.
 - External-review defense required for post-result changes.
 
-**Trigger to escalate:** Any change to `success_metrics_and_evaluation_protocol.md` or `falsification_and_kill_criteria.md` after Phase 1 begins without a decision log entry.
+**Trigger to escalate:** Any change to `evaluation_protocol.md` after Phase 1 begins without a decision log entry.
 
 ---
 
