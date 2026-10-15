@@ -1,0 +1,51 @@
+{
+  "note": "Illustrative DSR inputs from exploratory Phase 1. Not a confirmatory result. See DEC-20261015-012, -015.",
+  "methods": {
+    "equal_weight": {
+      "T_months": 168,
+      "SR_monthly": 0.153123,
+      "SR_ann": 0.5304,
+      "skew": -0.5945,
+      "kurtosis_raw": 4.6405
+    },
+    "inverse_vol": {
+      "T_months": 168,
+      "SR_monthly": 0.122736,
+      "SR_ann": 0.4252,
+      "skew": -0.4992,
+      "kurtosis_raw": 4.7023
+    },
+    "sample_mvo": {
+      "T_months": 168,
+      "SR_monthly": 0.133389,
+      "SR_ann": 0.4621,
+      "skew": -0.6065,
+      "kurtosis_raw": 3.7788
+    },
+    "unconstrained_sample_mvo": {
+      "T_months": 168,
+      "SR_monthly": 0.098441,
+      "SR_ann": 0.341,
+      "skew": 0.1844,
+      "kurtosis_raw": 3.0432
+    },
+    "ledoit_wolf_mvo": {
+      "T_months": 168,
+      "SR_monthly": 0.067278,
+      "SR_ann": 0.2331,
+      "skew": 0.1588,
+      "kurtosis_raw": 3.1968
+    },
+    "turnover_penalized_mvo": {
+      "T_months": 168,
+      "SR_monthly": 0.069248,
+      "SR_ann": 0.2399,
+      "skew": 0.1546,
+      "kurtosis_raw": 3.1981
+    }
+  },
+  "M_trials_raw": 6,
+  "V_of_SR_monthly": 0.001229364342166667,
+  "average_pairwise_corr": 0.6476,
+  "N_hat_implied_independent": 2.7619
+}
