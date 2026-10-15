@@ -1,6 +1,6 @@
 # Problem Framing: Robust, Turnover-Aware Portfolio Rebalancing
 
-**Version:** 2.2
+**Version:** 2.3
 **Status:** Foundational, falsifiable problem contract
 **Project:** `robustfolio`
 **License:** MIT (see repository root)
@@ -26,7 +26,7 @@ Read this before writing code, selecting models, or running backtests.
 
 - Scope: [`scope_and_non_goals.md`](scope_and_non_goals.md)
 - Evaluation, falsification, and kill/pivot triggers: [`evaluation_protocol.md`](evaluation_protocol.md)
-- Risk register: not yet written. Active risks are tracked in §14 of this document and in `evaluation_protocol.md` §7.
+- Risk register: [`risk_register_and_premortem.md`](risk_register_and_premortem.md).
 
 This document answers only: *what is the problem, and what is the causal model?*
 
@@ -253,8 +253,8 @@ Scope is not duplicated here. Any conflict between this document and the scope d
 Before building the full solution, validate that the problem is real and worth solving. These are the Phase 1 gates.
 
 1. **Literature and tool scan.** Completed 2026-10-15. See §4.1.
-2. **Simple experiments show sample MVO produces extreme weights and high turnover on the primary dataset.** Phase 1 empirical gate. See [`evaluation_protocol.md`](evaluation_protocol.md) §7 H1.1 and H1.2. **Status: passed 2026-10-15.**
-3. **Baselines such as 1/N and risk parity are robust and often competitive, confirming robustness is a key challenge.** **Status: passed 2026-10-15.**
+2. **Simple experiments show sample MVO produces extreme weights and high turnover on the primary dataset.** Phase 1 empirical gate. See [`evaluation_protocol.md`](evaluation_protocol.md) §7 H1.1 and H1.2. **Status: not falsified (exploratory) 2026-10-15.** See `decision_log.md` DEC-20261015-012.
+3. **Baselines such as 1/N and risk parity are robust and often competitive, confirming robustness is a key challenge.** **Status: not falsified (exploratory) 2026-10-15.** See `decision_log.md` DEC-20261015-012.
 4. **A minimal turnover penalty reduces turnover without destroying net performance in preliminary tests.** **Status: not passed at 232 months.** Turnover reduced, but net Sharpe fell below unpenalized MVO. See §14.
 5. **The gap hypothesis in §4.1 is not falsified by the Phase 0 scan.** **Status: not falsified.** See [`evaluation_protocol.md`](evaluation_protocol.md) §8 K3.
 
@@ -284,7 +284,7 @@ Not yet written. Failure-mode and pre-mortem content will be added as a section 
 - **Iteration:** Revisit this document after each phase.
 - **Learning loop:** Every major experiment updates priors about which interventions improve net risk-adjusted return.
 
-### Phase 1 finding (2026-10-15)
+### Phase 1 exploratory finding (2026-10-15)
 
 **Setup:** 15 liquid US ETFs, 232 months (2007-06 to 2026-09), monthly rebalance, 10 bps per unit turnover, 60-month rolling train / 12-month test / 12-month step, long-only, box cap 0.40 (or unconstrained where noted).
 
@@ -299,14 +299,12 @@ Not yet written. Failure-mode and pre-mortem content will be added as a section 
 | turnover_penalized_mvo | 0.389 | 0.240 | 0.219 | 0.400 |
 | ledoit_wolf_mvo | 0.381 | 0.233 | 0.218 | 0.400 |
 
-**Conclusions:**
+**Conclusions (exploratory, non-confirmatory — see `decision_log.md` DEC-20261015-012):**
 
-- **H1.1, H1.2 confirmed.** Sample MVO produces extremal weights (unconstrained max 0.60, capped at boundary) and 7.5x the turnover of 1/N. The framing's premise is confirmed.
-- **Remedy hypothesis weakened.** Shrinkage and turnover penalty underperform even unpenalized MVO at 232 months. This is *not* the framing's prediction. §7's leverage-point claim is downgraded to a hypothesis.
-- **Base rate reproduced.** 1/N beats every optimizer net of cost. Consistent with DeMiguel et al. (2009), who estimated ~3000 months are needed for MVO to reliably beat 1/N.
+- **H1.1, H1.2 not falsified.** Sample MVO produces extremal weights (unconstrained max 0.599, capped at boundary 0.400) and ~7.5× the turnover of 1/N. This is a diagnostic signal, not a finding.
+- **Remedy hypothesis not supported in the 60/0.40/10bps configuration.** Shrinkage and turnover penalty underperform even unpenalized MVO at 232 months in this configuration. This is not the framing's prediction. §7's leverage-point claim remains a hypothesis. Whether the underperformance is a cap artifact, a window artifact, or a real effect is unresolved — Tests B/C/D.
+- **Base rate reproduced (exploratory).** 1/N beats every optimizer net of cost in this configuration. Consistent with DeMiguel et al. (2009), who estimated ~3000 months are needed for MVO to reliably beat 1/N.
 - **Open question (unresolved):** is the shrinkage/penalty underperformance a box-cap artifact, a window-length artifact, or a real effect? Planned Tests B/C/D will resolve this before Phase 2 begins.
-
-**What this triggers (per the update trigger above):** the "baselines dominate" trigger is partially satisfied. Not yet reframed as a diagnostic tool — deferred until Tests B/C/D run. The next experiment is a sensitivity sweep, not a new method.
 
 ---
 
@@ -330,6 +328,7 @@ Not yet written. Failure-mode and pre-mortem content will be added as a section 
 | 2026-10-14 | 2.0 | Expanded to full falsifiable problem contract | Ken Ira Lacson Talingting |
 | 2026-10-15 | 2.1 | Qualified §3.1 Sharpe-erosion example; inverted §4 gap claim from assertion to hypothesis (§4.1); moved §9 (evaluation), §10 (scope), §12 (pre-mortem) to their authoritative documents and left stubs; trimmed §11 items 1 and 5 to pointers; added revision history | Ken Ira Lacson Talingting |
 | 2026-10-15 | 2.2 | Updated §0 and §9 cross-references to reflect deletion of `success_metrics_and_evaluation_protocol.md` and `falsification_and_kill_criteria.md` (merged into `evaluation_protocol.md`); rewrote §4.1 with Phase 0 scan result and refined contribution claim; downgraded §7 bottleneck and leverage-point claims to hypotheses; updated §11 status per Phase 1; replaced §12 stub with accurate note; added §14 Phase 1 finding; added this row | Ken Ira Lacson Talingting |
+| 2026-10-15 | 2.3 | §14 retitled and relabeled as exploratory per DEC-20261015-012; §11 items 2–3 downgraded from "passed" to "not falsified (exploratory)" | Ken Ira Lacson Talingting |
 
 ---
 

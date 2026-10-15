@@ -1,487 +1,397 @@
-# Decision Log: robustfolio
+# Decision Log — robustfolio
 
-**Version:** 1.0  
-**Status:** Active — this log is used from the moment the first Tier 0 document is written  
-**Owner:** Ken Ira Lacson Talingting  
-**Created:** 2026-10-14  
-**Last Updated:** 2026-10-14  
-**Supersedes:** None  
-**Related:** [`README.md`](README.md), [`project_charter.md`](project_charter.md), [`problem_framing.md`](problem_framing.md), [`success_metrics_and_evaluation_protocol.md`](success_metrics_and_evaluation_protocol.md), [`falsification_and_kill_criteria.md`](falsification_and_kill_criteria.md), [`data_contract_and_point_in_time_policy.md`](data_contract_and_point_in_time_policy.md), [`cost_model_and_frictions.md`](cost_model_and_frictions.md), [`benchmark_and_baseline_spec.md`](benchmark_and_baseline_spec.md), [`experiment_registry_and_preregistration.md`](experiment_registry_and_preregistration.md), [`risk_register_and_premortem.md`](risk_register_and_premortem.md), [`scope_and_non_goals.md`](scope_and_non_goals.md)
+**Project:** `robustfolio`
+**Owner:** Ken Ira Lacson Talingting
+**Created:** 2026-10-14
+**Last Updated:** 2026-10-15
+**Purpose:** Immutable record of every governance, experiment, and pivot decision in the project. Entries are append-only. Supersession is by a new entry, not by editing an old one.
 
 ---
 
-## 0. Purpose of This Document
+## Format
 
-This document is the **append-only log of material decisions** made during the `robustfolio` project.
+Each entry uses the following fields:
 
-Its purpose is to:
+- **Date** — calendar date of the decision
+- **Type** — GOVERNANCE / EXPERIMENT / PIVOT / KILL / STOP
+- **Status** — ACTIVE / SUPERSEDED / REVERTED
+- **Authority** — Owner (sole authority on this project)
+- **Related docs** — files that this decision constrains or is constrained by
+- **Related risks** — R-IDs from `risk_register_and_premortem.md`
+- **Context** — what was happening and why a decision was needed
+- **Decision** — what was decided
+- **Alternatives considered** — what was rejected and why
+- **Rationale** — mental models applied and reasoning
+- **Reversibility** — Soft / Hard / Irreversible
+- **Revisit trigger** — conditions under which this decision is reopened
+- **Expected value assessment** — probabilistic view, where applicable
+- **Pre-mortem** — how this decision fails in 6 weeks
 
-1. Preserve the **reasoning** behind decisions, not just the decision itself.
-2. Make **sunk-cost fallacy** harder by documenting why a path was chosen and what would change it.
-3. Provide an **audit trail** for anyone (including the owner) asking "why is this the way it is?"
-4. Feed the **learning loop**: every closed decision is an opportunity to update priors.
-5. Prevent **silent drift**: any change to a frozen document is recorded here.
+## Conventions
 
-A decision not logged is a decision that will be forgotten, second-guessed, or reversed without reflection.
-
-**This log is not frozen.** It grows with the project. Its *rules* and *format* are stable; its contents accumulate.
-
----
-
-## 1. What Counts as a Decision
-
-Log anything that materially affects the project's direction, claims, or reproducibility.
-
-### 1.1 Must log
-
-- Any change to a Frozen document (§11 of most contracts).
-- Any scope change (promotion, demotion, extension entry).
-- Any pivot, kill, or stop-and-report decision.
-- Any phase-gate outcome.
-- Any change to a baseline, metric, cost model, or data contract.
-- Any new experiment that is not routine (i.e., beyond the MVP set).
-- Any materialized risk with a non-trivial response.
-- Any reversal of a prior decision.
-- Any "continue unchanged" decision after a trigger fired.
-
-### 1.2 Do not log
-
-- Routine implementation details (variable naming, file structure).
-- Debugging sessions with no lasting effect.
-- Exploratory work that produced no reportable result.
-- Minor documentation typo fixes.
-
-**Rule of thumb:** if you would want to be able to defend it six months from now, log it.
+1. Entries are append-only. Editing an old entry is forbidden; supersede it with a new entry that references it.
+2. Historical references to files that have since been merged or deleted are preserved as-written. The `Related docs` field in an old entry reflects the state of the repo when the entry was written, not the current state.
+3. Every experiment that runs must have a pre-registration entry in `experiment_registry_and_preregistration.md` **and** a decision-log entry here. If a run was not pre-registered, it is logged here as exploratory and is non-confirmatory.
+4. When a TODO item is a governance decision (e.g., changing the target file set), it is logged here, not in `TODO.md`.
+5. The multiple-testing denominator for `evaluation_protocol.md` §12 is the count of EXPERIMENT entries in this log.
 
 ---
 
-## 2. Entry Format
+## Index
 
-Every entry follows the same structure. Fields marked *optional* may be omitted for small decisions.
+| ID | Date | Type | Status | Title |
+|----|------|------|--------|-------|
+| DEC-20261014-000 | 2026-10-14 | GOVERNANCE | ACTIVE | Establish falsificationist structure and Tier 0 docs before code |
+| DEC-20261015-012 | 2026-10-15 | EXPERIMENT | ACTIVE | Phase 1 smoke test logged as exploratory, non-confirmatory |
+| DEC-20261015-013 | 2026-10-15 | GOVERNANCE | ACTIVE | Adopt 5-doc target set; gate merges on taxonomy relocation |
+| DEC-20261015-014 | 2026-10-15 | GOVERNANCE | ACTIVE | Retract unrecoverable seed entries 001–011; resolve multiple-testing denominator |
+| DEC-20261015-015 | 2026-10-15 | GOVERNANCE | ACTIVE | Record code-review findings as freeze-session inputs |
+**Gap note (001–011):** Resolved by DEC-20261015-014. The seed entries referenced in DEC-20261014-000 were not written and are not recoverable. They are treated as never having existed in this log.
+| DEC-20261015-016 | 2026-10-15 | GOVERNANCE | ACTIVE | Close finding 3 of 015 — zero SLSQP fallbacks in Phase 1 |
 
-```markdown
-## DEC-<YYYYMMDD>-<nnn>
+---
 
-**Date:** YYYY-MM-DD  
-**Type:** SCOPE | METHOD | PROTOCOL | GOVERNANCE | DATA | COST | BASELINE | EXPERIMENT | PIVOT | KILL | STOP | RISK  
-**Status:** ACTIVE | SUPERSEDED | REVERSED  
-**Authority:** Owner  
-**Related docs:** (links)  
-**Related experiments:** (EXP-IDs, if any)  
-**Related risks:** (R-IDs, if any)  
+## Entries
 
-**Context:**  
-One paragraph. What situation prompted this decision.
+---
 
-**Decision:**  
-What was decided, stated as a single clear choice.
+### DEC-20261014-000
 
-**Alternatives considered:**  
-- Alternative A — rejected because …  
-- Alternative B — rejected because …
+**Date:** 2026-10-14
+**Type:** GOVERNANCE
+**Status:** ACTIVE
+**Authority:** Owner
+**Related docs:** `problem_framing.md`, `project_charter.md`, `scope_and_non_goals.md`, `success_metrics_and_evaluation_protocol.md`, `falsification_and_kill_criteria.md`, `data_contract_and_point_in_time_policy.md`, `cost_model_and_frictions.md`, `benchmark_and_baseline_spec.md`, `experiment_registry_and_preregistration.md`, `risk_register_and_premortem.md`
+**Related risks:** R-P02, R-P03, R-P04, R-H02
 
-**Rationale:**  
-Why this decision, grounded in the Core Mental Models where relevant.
+**Context:**
+Day 1 of `robustfolio`. The project exists because of a strategic goal: build a portfolio-quality research project that demonstrates quantitative reasoning, reproducibility discipline, and honest interpretation, for the purpose of attracting research and industry opportunities. The owner is a 20-year-old ML major with two years of hands-on experience.
 
-**Reversibility:** Easy | Moderate | Hard  
-**Revisit trigger:**  
-What observable event would cause this decision to be revisited.
+The immediate decision on Day 1 was not "what will the project do?" but "what failure modes does it need to defend against before any code is written?" The answer was informed by reading DeMiguel, Garlappi, and Uppal (2009), Chopra and Ziemba (1993), Michaud (1989), and Harvey, Liu, and Zhu (2016) — the foundational critiques of naive portfolio optimization and the multiple-testing problems that make most published strategies fail out-of-sample.
 
-*Optional for larger decisions:*
+**Decision:**
+Establish the project as a falsificationist research effort with frozen Tier 0 documentation prior to any code, and adopt the Core Mental Models OS as the reasoning framework. Produce ten Tier 0 documents in one day to force the reasoning to be explicit before implementation begins. Subsequent code will be written against these contracts, not before them.
 
-**Expected value assessment:**  
-Probability-weighted reasoning if relevant.
+**Alternatives considered:**
+- **Ad-hoc research notebook** — rejected. No reproducibility, no pre-registration, no protection against p-hacking. This is the base-rate failure mode for solo quant projects.
+- **Lightweight docs (one README + one notebook)** — rejected. Insufficient defense against the specific failure modes the literature documents (multiple testing, lookahead, cost ignorance).
+- **Full academic paper outline** — rejected. Over-formal for a solo 4–6 week project; the paper format requires peer review and an advisor. A blog post + reproducible repo is the correct format at this stage.
+- **Start coding immediately, document later** — rejected. Documentation written after results exist tends to rationalize the results rather than constrain them. This is the exact pattern the project exists to avoid.
 
-**Pre-mortem:**  
-How this decision could fail, and how that would be detected.
+**Rationale:**
+[First Principles] [Inversion] [Systems] The failure modes of portfolio research are well-documented and well-known: overfitting, lookahead bias, cost underestimation, multiple testing, goalpost-moving. Each has a standard defense, and each defense requires being in place *before* the experiment, not after. Ten documents in one day is aggressive, but the alternative — writing them piecemeal as the project proceeds — is how the defenses get weakened by convenience.
+
+The specific decision to write the *evaluation protocol* and *falsification and kill criteria* before any code is the load-bearing one. It forces the owner to specify, in advance, what would make them stop, what would count as failure, and what would count as success. That is the single most effective defense against confirmation bias in solo research.
+
+**Reversibility:** Hard (documentation contracts are hard to unwind without invalidating prior work)
+
+**Revisit trigger:**
+If by end of Week 1 the documentation effort has consumed more time than the code effort, and no experiment has run, the falsificationist structure is failing its own purpose (which is to accelerate honest work, not to substitute for it). In that case, downgrade to a lighter structure with an explicit decision entry — not a silent abandonment.
+
+**Expected value assessment:**
+- Probability the discipline holds and produces an honest result: 70%.
+- Probability the docs become churn and delay the experiment: 25%.
+- Probability the project is abandoned in Week 2–4 despite the structure: 5%.
+
+The failure modes are visible in real time via the update trigger above. That is the defense.
+
+**Pre-mortem:**
+Six weeks from Day 1, this decision has failed in one of two ways. Either (a) the documents have proliferated to 14+ files with contradictory cross-references, becoming a substitute for actual work — the doc-churn failure mode — or (b) the documents are correct but no experiment has been run, no finding exists, and the project has no empirical content. Both are detectable from the update trigger and the `evaluation_protocol.md` §9 sunk-cost firewall. Both are correctable by treating the "stop writing docs, run the experiment" rule as binding.
+
+**Outcome (Day 1, 2026-10-14):**
+
+Ten Tier 0 documents written:
+
+1. `problem_framing.md` v2.0 — problem statement, causal model, references
+2. `project_charter.md` v1.1 — mission, deliverables, phase gates
+3. `scope_and_non_goals.md` v1.0 — MVP, extensions, out-of-scope
+4. `success_metrics_and_evaluation_protocol.md` v1.0 — metrics, thresholds, walk-forward
+5. `falsification_and_kill_criteria.md` v1.0 — hypotheses, triggers, sunk-cost firewall
+6. `data_contract_and_point_in_time_policy.md` v1.0 — sources, point-in-time rules
+7. `cost_model_and_frictions.md` v1.0 — cost model, drifted weights, sensitivity
+8. `benchmark_and_baseline_spec.md` v1.0 — B1–B5, fair comparison rules
+9. `experiment_registry_and_preregistration.md` v1.0 — registry rules, templates
+10. `risk_register_and_premortem.md` v1.0 — RPN-scored risks, pre-mortem scenarios
+
+Plus `decision_log.md` (this file) and `README.md` (index).
+
+All ten docs written. Seed entries 001–011 referenced for the eleven foundational decisions (see gap note in Index). No code written. Consistent with the plan.
+
+**Day 1 open risk:** the doc set is already larger than what a solo 4–6 week project typically sustains. This will be tested in Week 1. If the docs are not consistently maintained, they become the failure mode rather than the defense.
+
+---
+
+### DEC-20261015-012
+
+**Date:** 2026-10-15
+**Type:** EXPERIMENT (exploratory)
+**Status:** ACTIVE
+**Authority:** Owner
+**Related docs:** `problem_framing.md` (§7, §11, §14), `evaluation_protocol.md` (§0, §1, §7 H1.1/H1.2, §12.2, §15), `experiment_registry_and_preregistration.md`, DEC-20261014-000
+**Related risks:** R-P02, R-P03, R-P04, R-H02
+
+**Context:**
+Phase 1 smoke test ran 2026-10-15 before `evaluation_protocol.md` reached Frozen status. The run implemented the walk-forward harness and evaluated six methods on 15 liquid US ETFs over 232 months (2007-06 to 2026-09). Parameters: 60-month rolling train, 12-month test, 12-month step, monthly rebalance, long-only, box cap 0.40 (unconstrained where noted), 10 bps per unit turnover.
+
+The run was executed as an exploratory smoke test — to verify the pipeline end-to-end and to check whether H1.1 and H1.2 had any signal at all — and was not registered in `experiment_registry_and_preregistration.md` before execution. Under `evaluation_protocol.md` §12.2, an unregistered run is not confirmatory evidence. Under §15, results from unregistered runs are exploratory.
+
+The parameter choices (60-month window, 0.40 cap, 1.0 turnover penalty, 0.1 = 10 bps cost) were made during harness implementation, not pre-registered. They are recorded here retroactively to prevent silent tuning.
+
+**Decision:**
+Treat Phase 1 as exploratory, non-confirmatory. The results in `results/phase1_results.csv` and `problem_framing.md` §14 may be used for diagnostic purposes only — specifically, to scope Tests B/C/D — and may not be cited as evidence for or against any hypothesis in `evaluation_protocol.md` §7 families H1–H4.
+
+Specifically:
+
+- H1.1 and H1.2 are **not falsified**, not confirmed. The observation that sample MVO produces extremal weights (capped max 0.400, unconstrained max 0.599) and ~7.5× the turnover of 1/N is a diagnostic signal, not a finding.
+- The observation that Ledoit-Wolf shrinkage and turnover-penalized MVO underperform unpenalized sample MVO on net Sharpe is **not a finding**. It is a signal that the 60/0.40/10bps configuration is not the configuration in which the remedy hypothesis holds — if it holds at all.
+
+**Alternatives considered:**
+- **Treat Phase 1 as confirmatory.** Rejected. Violates `evaluation_protocol.md` §12.2 (pre-registration before execution) and §1 principle 1 (gross and exploratory metrics are diagnostic only). Accepting it would erode the protocol's first freeze.
+- **Discard Phase 1 entirely and re-run after freeze.** Rejected. The pipeline works; discarding verified code is waste. Marking the result exploratory preserves the code and its diagnostic value while removing the claim.
+- **Retroactively register Phase 1 with back-dated parameters.** Rejected. Retroactive registration is not registration. This is the exact goalpost-moving pattern the protocol exists to prevent.
+- **Silently keep the Phase 1 numbers without disclosure.** Rejected. Silent inheritance is the failure mode; this entry exists to cut the inheritance path.
+
+**Rationale:**
+[Inversion] [Bayesian] The failure mode is not "Phase 1 was wrong." The failure mode is "Phase 1 was unregistered, and later decisions quietly inherit its results." Logging the run as exploratory — with the parameter choices recorded — converts an ambiguous artifact into a named, bounded, disclosed artifact.
+
+[First Principles] A registered experiment is one whose hypothesis, parameters, metrics, and decision rule existed before the result. Phase 1 had none of these. The honest label is what the protocol says it is.
+
+[Goodhart's Law] The temptation to keep "H1.1 and H1.2 confirmed" in `problem_framing.md` §14 is the temptation to let an exploratory number stand in for a confirmatory one. The label must match the protocol, not the wish.
+
+**Reversibility:** Soft. The entry can be superseded if Tests B/C/D later produce a confirmatory result under a frozen protocol. It cannot be deleted — the record is the point.
+
+**Revisit trigger:**
+After Tests B/C/D are pre-registered, executed, and logged, and after `evaluation_protocol.md` reaches Frozen. At that point, if the sensitivity sweep produces a configuration in which a robust method beats the best baseline per §6.4, a new confirmatory experiment is registered and Phase 1 becomes its diagnostic predecessor. If not, the diagnostic-benchmark pivot (K1/K3, §10) applies.
+
+**Expected value assessment:**
+- Probability the exploratory disclosure prevents a later goalpost-move: high (~85%). Once the parameters are named in the log, they cannot be silently changed without a visible contradiction.
+- Probability Phase 1's diagnostic signal is later confirmed by Tests B/C/D: not estimable from Phase 1 alone. This is exactly what Tests B/C/D exist to resolve. Assigning a probability now would itself be an unregistered prior.
+- Probability the entry is skipped and Phase 1 gets cited as confirmatory anyway: low, contingent on this entry existing. Hence this entry.
+
+**Pre-mortem:**
+Six weeks from now this entry has failed in one of two ways. Either (a) Phase 1's numbers appear in a claim without the "exploratory" qualifier — the label-without-teeth failure mode; or (b) the entry is treated as a verdict rather than a deferral, and Tests B/C/D are skipped on the reasoning that "Phase 1 already answered it" — the premature-closure failure mode. Both are detectable: (a) by grepping `problem_framing.md` §14 and `evaluation_protocol.md` §7 for "confirmed" language attached to Phase 1; (b) by confirming that Tests B/C/D have a registry entry before any Phase 2 work begins.
+
+---
+
+### DEC-20261015-013
+
+**Date:** 2026-10-15
+**Type:** GOVERNANCE
+**Status:** ACTIVE
+**Authority:** Owner
+**Related docs:** `TODO.md` (Open Decision, Definition of done), `README.md`, `problem_framing.md`, `evaluation_protocol.md`, `project_charter.md`, `benchmark_and_baseline_spec.md`, `cost_model_and_frictions.md`, `data_contract_and_point_in_time_policy.md`, `experiment_registry_and_preregistration.md`, `risk_register_and_premortem.md`, `scope_and_non_goals.md`
+**Related risks:** R-P02, R-P03, R-P04, R-H02
+
+**Context:**
+`TODO.md` records an owner decision (2026-10-15) to reduce the doc set from the current 12 files (9 Tier 0 + `decision_log.md` + `README.md` + `TODO.md`) to ~5 foundational files. The stated target is:
+
+```
+README.md
+docs/problem_framing.md
+docs/scope_and_non_goals.md
+docs/evaluation_protocol.md      ← absorbs baselines, cost, data, registry rules
+docs/decision_log.md
 ```
 
----
+That decision supersedes `TODO.md`'s own "Definition of done" (items 4 and 5). By the TODO's own rule — "Do not add items to this list. If you discover a new task, it goes into `decision_log.md`" — a change of this scope is a decision-log entry, not a TODO footnote. This entry records it.
 
-## 3. Rules of the Log
+The decision was reached in the context of the Phase 1 finding and the pivot risk it created. It is not a response to Phase 1's results — the motivation is doc-set reduction independent of any experimental outcome — but it must be logged before it becomes entangled with Phase 1's resolution (DEC-20261015-012).
 
-1. **Append-only.** Entries are never deleted. Corrections are new entries that reference the old one.
-2. **Immutable.** Once written, an entry's Context, Decision, Alternatives, and Rationale are frozen.
-3. **Status updates allowed.** The `Status` field may change to `SUPERSEDED` or `REVERSED`, with a reference to the superseding entry.
-4. **Material changes to Frozen documents require an entry.** No exceptions.
-5. **Every kill, pivot, and stop produces an entry.** Even if the justification is "owner decision."
-6. **Every materialized risk with a response produces an entry.** Even if the response is "continue."
-7. **Every phase-gate outcome produces an entry.** Even if the outcome is "proceed as planned."
-8. **Every entry has a stable ID.** IDs are never reused. `DEC-YYYYMMDD-NNN`, incrementing per day.
-9. **Cross-reference by ID, not position.** "See DEC-20261015-002," never "see the entry above."
+**Decision:**
+Adopt a 5-doc target set as the intended end-state of the documentation phase. Execute the merges only after:
 
----
+1. DEC-20261015-012 (Phase 1 exploratory status) is in the log.
+2. The charter's decision taxonomy and authority (`project_charter.md` §7–8, referenced by `evaluation_protocol.md` §16) has been relocated to `evaluation_protocol.md` §8 **before** `project_charter.md` is deleted.
+3. A home for the experiment registry (running log, not spec) and the risk register (R-IDs, not spec) has been designated. Candidate homes: `decision_log.md` for the registry ledger; `problem_framing.md` §12 for the risk register. If no home is acceptable, keep both as separate non-Tier-0 files — a running log is not a contract and cannot merge into a frozen protocol.
 
-## 4. Entry Index
+Merges not gated by these three conditions (`benchmark_and_baseline_spec.md` → `evaluation_protocol.md` §4; `cost_model_and_frictions.md` → §5.5; `data_contract_and_point_in_time_policy.md` → §5.4) may proceed whenever the owner elects, and are not on the critical path for today.
 
-> Newest first. This index is regenerated whenever the log is updated. Entries themselves are appended in chronological order in §5.
+**Alternatives considered:**
+- **Keep all 12 files.** Rejected. DEC-20261014-000's pre-mortem named doc proliferation as a failure mode; the file count is not the issue but the maintenance surface is. Consolidation is directionally correct.
+- **Merge immediately, including charter and registry.** Rejected. `evaluation_protocol.md` §16 says "The charter owns the decision taxonomy and authority." Deleting the charter before moving the taxonomy self-references a deleted file and breaks the conflict-resolution table. The registry is a ledger, not a spec; merging it into a frozen protocol makes the protocol a mutable log, which destroys the freeze.
+- **Pause everything until the doc set is 5 files.** Rejected. That treats the doc count as the goal. The binding constraint is the Phase 1 disclosure and the freeze; the merge is downstream.
+- **Fold the decision into `TODO.md` and skip the log entry.** Rejected. That is the TODO's own rule being violated. The Open Decision supersedes the TODO's completion criteria; supersessions of the TODO by the TODO cannot be recorded in the TODO.
 
-| ID | Date | Type | Summary | Status |
-|----|------|------|---------|--------|
-| DEC-20261014-011 | 2026-10-14 | SCOPE | MVP universe: 15–25 US ETFs | ACTIVE |
-| DEC-20261014-010 | 2026-10-14 | BASELINE | Baseline set B1–B5 | ACTIVE |
-| DEC-20261014-009 | 2026-10-14 | COST | Baseline κ = 10 bps | ACTIVE |
-| DEC-20261014-008 | 2026-10-14 | PROTOCOL | Deflated Sharpe as primary multiple-testing adjustment | ACTIVE |
-| DEC-20261014-007 | 2026-10-14 | PROTOCOL | Walk-forward: 36-month rolling, 12-month test | ACTIVE |
-| DEC-20261014-006 | 2026-10-14 | METHOD | Turnover penalty: L1 = κ alignment | ACTIVE |
-| DEC-20261014-005 | 2026-10-14 | DATA | Point-in-time price reconstruction required | ACTIVE |
-| DEC-20261014-004 | 2026-10-14 | GOVERNANCE | Falsification before optimization | ACTIVE |
-| DEC-20261014-003 | 2026-10-14 | SCOPE | Monthly rebalancing baseline | ACTIVE |
-| DEC-20261014-002 | 2026-10-14 | METHOD | Adopt Core Mental Models OS as reasoning framework | ACTIVE |
-| DEC-20261014-001 | 2026-10-14 | GOVERNANCE | Adopt falsificationist project structure | ACTIVE |
+**Rationale:**
+[First Principles] A governance decision that changes the target file set changes what "done" means. That is definitional, not executional. Definitional changes belong in the decision log.
 
----
+[Systems] The charter, registry, and risk register are not merely docs; each holds IDs and cross-references (R-P02, R-P03, R-P04, R-H02 in the Day 1 entry; the conflict-resolution table in `evaluation_protocol.md` §16). Deleting without relocating the IDs leaves dangling references. The three preconditions above are exactly the three dangling-reference risks.
 
-## 5. Entries
+[Goodhart's Law] "5 files" is a metric. If it becomes the goal, coverage is sacrificed to hit it. The correct test is coverage-preservation, not file count. The three preconditions are the coverage check.
 
-> Entries are appended in chronological order. Newest at the bottom. Never insert in the middle.
+**Reversibility:** Hard. Deleted docs are recoverable from git history but their cross-references are not automatically restored. Revisit triggers below bound the damage.
 
----
+**Revisit trigger:**
+If any `[PROPOSED]` value in `evaluation_protocol.md` §18 becomes unreachable after a merge — i.e., its source doc is deleted and the value is not relocated — the merge is reversed for that doc. If any R-ID named in DEC-20261014-000 or DEC-20261015-012 dangles after `risk_register_and_premortem.md` is deleted, the merge is reversed for that doc. If the 5-doc set is not reached by end of Week 2 and no experiment has run in the interim, the merge is deferred to after the protocol freeze — the constraint is the freeze, not the file count.
 
-### DEC-20261014-001
+**Expected value assessment:**
+- Probability the 5-doc target is reached without loss of coverage: moderate (~60%). The three preconditions are the reason it is not lower.
+- Probability a merge introduces a dangling cross-reference that takes >1 hour to notice and fix: moderate (~40%) if executed without the preconditions; low (~10%) if executed after them.
+- Probability the merge delays the freeze past Week 2: low (~20%) if the three non-critical merges are deferred until after the freeze; high (~60%) if the merge is attempted first.
 
-**Date:** 2026-10-14  
-**Type:** GOVERNANCE  
-**Status:** ACTIVE  
-**Authority:** Owner  
-**Related docs:** [`project_charter.md`](project_charter.md), [`problem_framing.md`](problem_framing.md)  
-**Related risks:** R-P01, R-P02, R-S05  
+The EV of "merge first, freeze second" is lower than "freeze first, merge second" because the merge is reversible-in-principle but the freeze is the binding constraint on Phase 2.
 
-**Context:**  
-Before any code, the project needed a governance structure that would prevent silent failure, false positives, and goalpost-moving.
-
-**Decision:**  
-Adopt a falsificationist project structure with frozen Tier 0 contracts: evaluation protocol, kill criteria, data contract, cost model, baseline spec, and experiment registry.
-
-**Alternatives considered:**  
-- Ad-hoc research notebook — rejected: no reproducibility, no protection against p-hacking.  
-- Lightweight docs — rejected: insufficient defense against the known failure modes of portfolio research.  
-- Full academic paper outline — rejected: over-formal for a solo project; slows execution.
-
-**Rationale:**  
-[First Principles] [Inversion] The failure modes of portfolio research are well known: overfitting, lookahead, cost ignorance, multiple testing. A falsificationist structure addresses each explicitly and forces the owner to confront them before, not after, seeing results.
-
-**Reversibility:** Hard  
-**Revisit trigger:** If the structure proves too heavy to sustain and blocks Phase 1 progress, downgrade to a lighter structure with an explicit decision entry.
+**Pre-mortem:**
+Six weeks from now this entry has failed if the doc set is at 5 files and `evaluation_protocol.md` is not Frozen — consolidation achieved at the cost of the freeze. That is the count-as-goal failure mode, visible from the Status field of `evaluation_protocol.md`. The entry has also failed if the doc set is at 5 files and one of R-P02/R-P03/R-P04/R-H02 appears in the log without a register entry defining it — coverage traded for count, visible by grepping the log for R-IDs and confirming each resolves.
 
 ---
 
-### DEC-20261014-002
+### DEC-20261015-014
 
-**Date:** 2026-10-14  
-**Type:** METHOD  
-**Status:** ACTIVE  
-**Authority:** Owner  
-**Related docs:** All Tier 0 docs  
-**Related risks:** R-H03 (blind spots)  
+**Date:** 2026-10-15
+**Type:** GOVERNANCE
+**Status:** ACTIVE
+**Authority:** Owner
+**Related docs:** `decision_log.md` (Index gap note; DEC-20261014-000 Outcome), `evaluation_protocol.md` §12 (multiple-testing denominator), `experiment_registry_and_preregistration.md`
+**Related risks:** R-P02, R-P03, R-P04, R-H02
 
-**Context:**  
-Solo research is prone to blind spots, sunk-cost reasoning, and confirmation bias. A reasoning framework is needed to surface these.
+**Context:**
+DEC-20261014-000 records in its Outcome block that "seed entries 001–011 [were] logged for the eleven foundational decisions" on Day 1. A full-file audit on 2026-10-15 finds no such entries in `decision_log.md`. The file contains DEC-20261014-000, DEC-20261015-012, and DEC-20261015-013 only. The claim in `000` is therefore unsubstantiated.
 
-**Decision:**  
-Adopt the Core Mental Models OS as the reasoning framework for all substantive decisions in this project.
+Under `evaluation_protocol.md` §12, the count of EXPERIMENT entries in this log is the multiple-testing denominator. If any of the missing 001–011 entries were EXPERIMENT type, the denominator is undercounted. If all eleven were GOVERNANCE type, the denominator is unaffected but the record is still incomplete.
 
-**Alternatives considered:**  
-- No framework — rejected: leaves failure modes invisible.  
-- Informal checklist — rejected: too weak to enforce; drifts under pressure.
+**Decision:**
+Declare seed entries 001–011 **not written and not recoverable**. They are treated as never having existed in this log.
 
-**Rationale:**  
-[Systems] [Inversion] An explicit framework, applied consistently and labeled in docs, makes reasoning auditable. It also establishes a role (reasoning partner) that can challenge the owner's decisions.
+This has the following consequences:
 
-**Reversibility:** Easy  
-**Revisit trigger:** If model tags become ritual rather than useful, simplify to a smaller core set.
+1. The claim in DEC-20261014-000's Outcome block — "seed entries 001–011 logged for the eleven foundational decisions" — is **retracted**. The line is superseded by this entry, not edited in place, per the append-only convention.
+2. The eleven "foundational decisions" referenced are, as of this entry, undocumented. Where they are load-bearing (the falsificationist structure, the ten-doc Tier 0 set, the adoption of the Core Mental Models OS), their content is preserved in the prose of DEC-20261014-000. Where they are not (individual parameter choices, minor doc-level decisions), they are dropped.
+3. The multiple-testing denominator in `evaluation_protocol.md` §12 is confirmed as zero EXPERIMENT entries prior to DEC-20261015-012. No correction is required.
+4. The Index gap note in this file is resolved and may be removed in the next file normalization.
+
+**Alternatives considered:**
+- **Back-fill entries 001–011 from memory.** Rejected. Reconstructed decisions are not contemporaneous records. Back-filling them with any label short of "reconstructed" would create false provenance. Back-filling them with an explicit "reconstructed" label adds eleven low-value entries for decisions already captured in DEC-20261014-000's prose.
+- **Leave the gap open and continue.** Rejected. `evaluation_protocol.md` §12's denominator cannot be validated against an open question. The gap must be closed either way.
+- **Delete the "seed entries 001–011" line from `000`.** Rejected. Entries are append-only. Editing history to remove a gap is the failure mode this log exists to prevent.
+- **Treat the eleven as SUPERSEDED by `000`.** Rejected. `000` is dated 2026-10-14 and cannot supersede entries of the same date it claims to summarize. The relationship is undefined, not supersession.
+
+**Rationale:**
+[Inversion] The failure mode is not "eleven decisions were made informally." The failure mode is "a reference to eleven entries appears in the log, the entries do not exist, and downstream counts (multiple-testing denominator) inherit the reference." Logging the absence closes the inheritance path.
+
+[First Principles] A decision log is a set of dated, atomic records. A reference to records that do not exist is not a record. Retraction is the correct operation; back-fill is not.
+
+[Goodhart's Law] The eleven entries were likely never written because "log eleven entries" was a target on Day 1 and was satisfied in prose instead. This entry exists to prevent the same pattern from recurring: future counts of logged decisions must correspond to actual entries, not to narrative claims of entries.
+
+**Reversibility:** Hard. If the entries are later found in a different file, this entry is superseded by a new entry that migrates them. It cannot be edited.
+
+**Revisit trigger:**
+If any of the eleven foundational decisions is later cited as the basis for a Phase 2+ action, and the citation cannot be traced to DEC-20261014-000 or a later entry, this gap is reopened and the citation is treated as unsupported.
+
+**Expected value assessment:**
+- Probability the eleven entries exist elsewhere in the repository: low (~10%). The folder audit on 2026-10-15 found no candidate file.
+- Probability the gap, left open, later produces an uncounted experiment in the multiple-testing denominator: low (~5%), because no experiments were run on 2026-10-14 or 2026-10-15 other than Phase 1 (now logged as DEC-20261015-012).
+- Probability this entry becomes load-bearing for a future audit: moderate (~40%). A public-release or peer-review audit will encounter the "seed entries 001–011" line in `000` and require a resolution. This entry is that resolution.
+
+**Pre-mortem:**
+Six weeks from now this entry has failed if (a) the "seed entries 001–011" line in `000` is later discovered to refer to a real file, and this entry's retraction has to be reversed — provenance damage, since retraction then reversal looks like the log is unsure of its own contents; or (b) a future entry cites one of the eleven foundational decisions as a live constraint, and this entry's "dropped" clause is read as license to disregard it. Both are detectable: (a) by keeping the file audit log; (b) by the revisit trigger above.
+
+---
+### DEC-20261015-015
+
+**Date:** 2026-10-15
+**Type:** GOVERNANCE
+**Status:** ACTIVE
+**Authority:** Owner
+**Related docs:** `decision_log.md` (DEC-20261015-012), `evaluation_protocol.md` (§2, §3, §5.2, §15), `problem_framing.md` §14, source files reviewed: `metrics.py`, `backtest.py`, `optimize.py`, `estimators.py`, `data.py`, `phase1_experiment.py`
+**Related risks:** R-P02, R-P03, R-P04, R-H02
+
+**Context:**
+A §15 invalidation review of the Phase 1 source on 2026-10-15 produced four findings that affect the protocol freeze. None invalidates Phase 1's status as exploratory. All four are inputs to the freeze session, recorded here so they are not lost between now and then.
+
+**Findings:**
+
+1. **Gross Sharpe is not a Sharpe ratio.** `phase1_experiment.py` calls `annualized_sharpe(gross_returns)` without `rf_monthly`, and `annualized_sharpe(net_returns, rf_monthly=rf)` with it. Reported "gross Sharpe" is a raw return-to-vol ratio; reported "net Sharpe" is a true Sharpe. `cost_drag = gross_sharpe - net_sharpe` therefore conflates transaction cost with the risk-free rate. Order of magnitude: BIL averaged ~10–15 bps/month over 2007–2026, so gross Sharpe is overstated by roughly 0.1–0.2 relative to net. This does not affect H1.1 or H1.2, which use `max_abs_weight` and `realized_turnover`. It affects the §14 table's "Gross Sharpe" and "Cost drag" columns, which are mislabeled.
+
+2. **The turnover penalty was scale-dominated, not tested.** `TURNOVER_PENALTY = 0.1`. Objective terms in monthly units at typical values: `mu'w` ≈ 0.005, `½ w'Σw` ≈ 0.0005, `λ‖Δw‖₁` at λ=0.1 and ‖Δw‖₁ ≈ 0.1 → ≈ 0.01. The penalty is ~2× the return term and ~20× the risk term. The optimizer effectively minimizes ‖w − w_prev‖₁ with MVO as a small perturbation. The Phase 1 conclusion "turnover penalty underperforms unpenalized MVO" is therefore a statement about λ=0.1 specifically, not about turnover penalties as a class. §7 H2.3 was not tested. DEC-20261015-012's wording ("not a finding") understates this — the correct statement is "the penalty as implemented is scale-dominated and uninformative."
+
+3. **Silent SLSQP fallback to equal weight.** `optimize.py` returns `np.ones(n)/n` on any SLSQP failure, without a counter, log, or raise. If `ledoit_wolf_mvo` or `turnover_penalized_mvo` failed on a material fraction of folds, the reported performance is contaminated by 1/N, the best-performing baseline. Direction of bias unknown. The Phase 1 failure rate must be disclosed before the freeze, or the affected method must be flagged as contaminated.
+
+4. **Minor, non-invalidating.** (a) `data.py` cache returns stale data if the cache file exists and is stale; reproducibility risk. (b) `metrics.annualized_turnover` is dead code with a different turnover definition than `realized_turnover`; latent inconsistency. (c) `rf_monthly.reindex(r.index).fillna(0.0)` silently substitutes zero rf for missing months. (d) `_rebalance` uses an expanding-within-test training set (`train + test.iloc[:t]`), which is neither pure rolling nor pure expanding; §5.2 does not describe this convention.
+
+**Decision:**
+Record the four findings as freeze-session inputs. No code changes are authorized before the freeze, except the SLSQP failure-rate disclosure in finding 3, which may be performed as a diagnostic re-run without modifying any source file.
+
+**Alternatives considered:**
+- **Fix the code now.** Rejected. The freeze decides what the metrics should measure. Fixing `annualized_sharpe` before the freeze has decided whether gross Sharpe remains a reported metric would be action before resolution — the §9 anti-pattern.
+- **Amend DEC-20261015-012 to incorporate finding 2.** Rejected. Entries are append-only. Finding 2 is recorded here and referenced by the freeze session; 012's original wording stands as the record of what was decided on its date.
+- **Defer all four findings to the freeze session without logging.** Rejected. The gap between tonight and the freeze session is where findings get lost.
+
+**Rationale:**
+[Inversion] The failure mode is not "the code has bugs." It is "the code-review findings are discovered, discussed, and forgotten before the freeze session, and the freeze proceeds on the assumptions the review was supposed to challenge." Logging them now closes that path.
+
+[Theory of Constraints] The constraint is the freeze. These four findings are the freeze's inputs. They are not a work queue.
+
+**Reversibility:** Soft. Findings may be superseded by the freeze session's own decisions.
+
+**Revisit trigger:** The freeze session must address all four findings — resolve, defer with rationale, or declare out of scope — before the protocol status changes from `Draft` to `Frozen`.
+
+**Expected value assessment:**
+- Probability a finding is lost between tonight and the freeze session without this entry: high (~70%).
+- Probability at least one finding changes a `[PROPOSED]` value or a §3 metric definition: high (~80%).
+- Probability the SLSQP failure rate materially contaminates a Phase 1 method: not estimable without the diagnostic run.
+
+**Pre-mortem:**
+Six weeks from now this entry has failed if the freeze session is completed and none of the four findings is reflected in the frozen protocol or in a superseding entry. Detectable by diffing the frozen `evaluation_protocol.md` §2, §3, §5.2 against this entry.
 
 ---
 
-### DEC-20261014-003
 
-**Date:** 2026-10-14  
-**Type:** SCOPE  
-**Status:** ACTIVE  
-**Authority:** Owner  
-**Related docs:** [`scope_and_non_goals.md`](scope_and_non_goals.md), [`cost_model_and_frictions.md`](cost_model_and_frictions.md)  
+### DEC-20261015-016
 
-**Context:**  
-Rebalancing frequency materially affects turnover and cost sensitivity. The project needs a baseline frequency.
+**Date:** 2026-10-15
+**Type:** GOVERNANCE
+**Status:** ACTIVE
+**Authority:** Owner
+**Related docs:** `decision_log.md` DEC-20261015-015 (finding 3), `evaluation_protocol.md` §15
+**Related risks:** R-P02, R-P03, R-P04, R-H02
 
-**Decision:**  
-Monthly rebalancing is the baseline frequency. Other frequencies (weekly, quarterly) are extensions.
+**Context:**
+DEC-20261015-015 finding 3 flagged a silent SLSQP fallback in `optimize.py` that substitutes equal weight on convergence failure, with unknown failure rate across Phase 1 folds. The diagnostic authorized by that entry was run on 2026-10-15 via `scripts/diagnose_slsqp.py`, which detects fallbacks by exact-equality against `1/n` across all assets.
 
-**Alternatives considered:**  
-- Quarterly — rejected: too few observations for turnover to differentiate methods.  
-- Weekly — rejected: unrealistic for retail and inflates costs without adding insight.  
-- Multiple frequencies in MVP — rejected: scope creep.
+**Result:**
 
-**Rationale:**  
-[First Principles] [Systems] Monthly is the standard practitioner frequency for ETF portfolios, produces enough rebalancing events to test turnover behavior, and keeps the data pipeline simple.
+| Method | Fallbacks | Total rebalances | Rate |
+|---|---|---|---|
+| `sample_mvo` | 0 | 168 | 0.0% |
+| `unconstrained_sample_mvo` | 0 | 168 | 0.0% |
+| `ledoit_wolf_mvo` | 0 | 168 | 0.0% |
+| `turnover_penalized_mvo` | 0 | 168 | 0.0% |
 
-**Reversibility:** Easy  
-**Revisit trigger:** If monthly turnover turns out to be dominated by drift rather than signal, revisit with quarterly.
+**Decision:**
+Close finding 3 of DEC-20261015-015 as a non-issue. The SLSQP fallback branch was not exercised in Phase 1. Phase 1's reported numbers for `ledoit_wolf_mvo` and `turnover_penalized_mvo` are not contaminated by equal-weight substitution.
 
----
+**Alternatives considered:**
+- **Add a persistent failure counter to `optimize.py` and re-run.** Rejected. The exact-equality detector is sufficient given the near-impossibility of the optimizer converging to identical weights for 15 heterogeneous assets under active constraints. A persistent counter is a Phase 2 code change, which DEC-20261015-015 forbids.
+- **Leave finding 3 open into the freeze.** Rejected. It is now resolved.
 
-### DEC-20261014-004
+**Rationale:**
+[Inversion] The failure mode was "Phase 1's shrinkage/penalty numbers are partly 1/N in disguise." The diagnostic rules this out.
 
-**Date:** 2026-10-14  
-**Type:** GOVERNANCE  
-**Status:** ACTIVE  
-**Authority:** Owner  
-**Related docs:** [`falsification_and_kill_criteria.md`](falsification_and_kill_criteria.md)  
+[Theory of Constraints] This was the last open invalidation risk from the code review. The freeze now proceeds with all four 015 findings either resolved (3), deferred to freeze (1, 2), or non-invalidating (4).
 
-**Context:**  
-The most common failure in quantitative research is confirmationism: running experiments until something looks significant, then reporting it.
+**Reversibility:** Soft.
 
-**Decision:**  
-Falsification and kill criteria are defined before any experiment is run, and the project must be willing to conclude with a documented negative result.
+**Revisit trigger:** If Phase 2's walk-forward harness or optimizer is modified, re-run the diagnostic before any confirmatory experiment.
 
-**Alternatives considered:**  
-- Define criteria after piloting — rejected: this is p-hacking with extra steps.  
-- Define criteria informally — rejected: informal criteria are reinterpreted under pressure.
+**Expected value assessment:**
+- Probability the diagnostic misses a real fallback: low (~5%). The exact-equality check is conservative.
+- Probability a Phase 2 optimizer change reintroduces silent fallbacks without this entry: moderate (~40%) if the fallback branch is not removed; low if it is.
 
-**Rationale:**  
-[Inversion] [Experimental] Writing the falsification criteria first forces the owner to specify what would change their mind, which is the only reliable defense against post-hoc rationalization.
-
-**Reversibility:** Hard  
-**Revisit trigger:** None. This is a foundational commitment.
+**Pre-mortem:**
+Six weeks from now this entry has failed if the optimizer is modified and the fallback branch is exercised in a Phase 2 run without a diagnostic. Detectable by grepping Phase 2 output for exactly-equal weights.
 
 ---
 
-### DEC-20261014-005
 
-**Date:** 2026-10-14  
-**Type:** DATA  
-**Status:** ACTIVE  
-**Authority:** Owner  
-**Related docs:** [`data_contract_and_point_in_time_policy.md`](data_contract_and_point_in_time_policy.md)  
-**Related risks:** R-D01, R-D02  
 
-**Context:**  
-Free price sources (yfinance, Stooq) retroactively adjust prices for corporate actions. Naive use introduces lookahead.
+## Revision history
 
-**Decision:**  
-Point-in-time adjusted prices must be reconstructed from raw prices and corporate actions. If reconstruction is not feasible for a given source, affected claims are downgraded to exploratory.
-
-**Alternatives considered:**  
-- Use `auto_adjust=True` — rejected: silent lookahead, the exact failure mode the project is meant to avoid.  
-- Assume bias is small — rejected: unquantified bias is worse than no result.  
-- Downgrade all claims from the start — rejected: unnecessary if reconstruction is feasible.
-
-**Rationale:**  
-[Inversion] [Systems] This is the single most common silent corruption in retail backtesting. Requiring reconstruction makes the corruption visible.
-
-**Reversibility:** Moderate  
-**Revisit trigger:** If reconstruction proves infeasible in Phase 1, downgrade affected claims per data contract §4.4 and log the change.
-
----
-
-### DEC-20261014-006
-
-**Date:** 2026-10-14  
-**Type:** METHOD  
-**Status:** ACTIVE  
-**Authority:** Owner  
-**Related docs:** [`cost_model_and_frictions.md`](cost_model_and_frictions.md), [`benchmark_and_baseline_spec.md`](benchmark_and_baseline_spec.md)  
-
-**Context:**  
-The L1 turnover penalty has a parameter λ. The cost model has a parameter κ. Misalignment between them means the penalized baseline (B5) is not actually cost-aware.
-
-**Decision:**  
-Set λ = κ by default. This aligns the penalty with the actual cost in return units. Any deviation requires a pre-registered experiment.
-
-**Alternatives considered:**  
-- Tune λ on a validation set — rejected: introduces a hyperparameter that invites overfitting.  
-- Set λ > κ for conservatism — rejected: not principled; the penalty should reflect actual cost.  
-- Ignore alignment — rejected: renders B5 meaningless as a cost-aware baseline.
-
-**Rationale:**  
-[First Principles] [Experimental] Alignment between penalty and cost is the minimal requirement for B5 to be a fair comparison to robust cost-aware methods.
-
-**Reversibility:** Easy  
-**Revisit trigger:** If λ = κ produces degenerate behavior (e.g., no rebalancing at all), register a new experiment to explore tuned λ.
-
----
-
-### DEC-20261014-007
-
-**Date:** 2026-10-14  
-**Type:** PROTOCOL  
-**Status:** ACTIVE  
-**Authority:** Owner  
-**Related docs:** [`success_metrics_and_evaluation_protocol.md`](success_metrics_and_evaluation_protocol.md)  
-
-**Context:**  
-Walk-forward windows trade off estimation accuracy against test sample size. Too short overfits; too long reduces fold count.
-
-**Decision:**  
-Walk-forward uses a 36-month rolling estimation window, 12-month test window, and 12-month step size.
-
-**Alternatives considered:**  
-- 60-month estimation — rejected: too few folds; expensive for a short ETF history.  
-- 24-month estimation — rejected: covariance estimates too noisy.  
-- Expanding window — rejected: loses regime adaptivity; rolling is more realistic for practitioner methods.
-
-**Rationale:**  
-[Bayesian] [Experimental] 36 months gives a reasonable covariance estimate for 15–25 assets, and 12-month test windows yield multiple independent folds. Twelve-month steps give non-overlapping test periods.
-
-**Reversibility:** Moderate  
-**Revisit trigger:** If folds are too few or the results are dominated by one fold, revisit window lengths. Log the change.
-
----
-
-### DEC-20261014-008
-
-**Date:** 2026-10-14  
-**Type:** PROTOCOL  
-**Status:** ACTIVE  
-**Authority:** Owner  
-**Related docs:** [`success_metrics_and_evaluation_protocol.md`](success_metrics_and_evaluation_protocol.md), [`falsification_and_kill_criteria.md`](falsification_and_kill_criteria.md)  
-
-**Context:**  
-Multiple testing in portfolio research is severe. A method that looks significant without adjustment may be noise.
-
-**Decision:**  
-Deflated Sharpe ratio (Bailey & López de Prado, 2014) is the primary multiple-testing adjustment. Probabilistic Sharpe is reported alongside. Family-wise FDR control at q = 0.10 is applied within hypothesis families.
-
-**Alternatives considered:**  
-- Bonferroni — rejected: too conservative for a family of highly correlated trials.  
-- No adjustment — rejected: unacceptable in a project that explicitly critiques overfitting.  
-- Only probabilistic Sharpe — rejected: does not account for the number of trials.
-
-**Rationale:**  
-[Bayesian] [Experimental] Deflated Sharpe accounts for trial count, sample length, and non-normality. It is the standard in this domain.
-
-**Reversibility:** Hard (protocol)  
-**Revisit trigger:** None without a decision log entry justifying the change before, not after, results.
-
----
-
-### DEC-20261014-009
-
-**Date:** 2026-10-14  
-**Type:** COST  
-**Status:** ACTIVE  
-**Authority:** Owner  
-**Related docs:** [`cost_model_and_frictions.md`](cost_model_and_frictions.md)  
-
-**Context:**  
-Net-of-cost results depend on the assumed cost per trade. The project needs a primary cost assumption.
-
-**Decision:**  
-Baseline κ = 10 bps one-way per trade. Sensitivity evaluated at 0, 5, 10, 20, 50 bps.
-
-**Alternatives considered:**  
-- 5 bps — rejected: too optimistic for mixed ETF universe including less liquid categories.  
-- 20 bps — rejected: too pessimistic for liquid large-cap ETFs; would overstate cost drag.  
-- 10 bps with sensitivity band — chosen: conservative, defensible, and stress-tested.
-
-**Rationale:**  
-[Expected Value] [Systems] 10 bps is a reasonable mid-point for liquid ETFs, and the sensitivity band makes claims robust to the assumption rather than dependent on it.
-
-**Reversibility:** Moderate  
-**Revisit trigger:** If broker/venue actual costs become known and differ materially, revisit.
-
----
-
-### DEC-20261014-010
-
-**Date:** 2026-10-14  
-**Type:** BASELINE  
-**Status:** ACTIVE  
-**Authority:** Owner  
-**Related docs:** [`benchmark_and_baseline_spec.md`](benchmark_and_baseline_spec.md)  
-
-**Context:**  
-The comparison set determines what "beats baselines" means. Weak or cherry-picked baselines produce meaningless success.
-
-**Decision:**  
-Baseline set is B1 (1/N), B2 (risk parity), B3 (sample MVO), B4 (min variance), B5 (turnover-penalized MVO, L1).
-
-**Alternatives considered:**  
-- B1–B3 only — rejected: omits risk-based competitors (B2, B4) and the strong robust simple baseline (B5).  
-- Add Black-Litterman as baseline — rejected: it is a robust method candidate, not a baseline; belongs in method set.  
-- Add HRP as baseline — rejected: same reason; extension candidate.
-
-**Rationale:**  
-[First Principles] [Inversion] B1, B3, B4 cover the historical spectrum. B2 and B5 ensure that any robust method must beat genuinely strong, simple alternatives, not only the critique target.
-
-**Reversibility:** Moderate  
-**Revisit trigger:** If R1 tool scan reveals a standard baseline missing from the set, add it via amendment before Phase 3.
-
----
-
-### DEC-20261014-011
-
-**Date:** 2026-10-14  
-**Type:** SCOPE  
-**Status:** ACTIVE  
-**Authority:** Owner  
-**Related docs:** [`scope_and_non_goals.md`](scope_and_non_goals.md)  
-
-**Context:**  
-The MVP universe determines estimation error magnitude, covariance conditioning, and realism of results.
-
-**Decision:**  
-MVP universe is 15–25 liquid US-listed ETFs spanning equity, fixed income, commodities, and real estate, with at least 5 years of history at backtest start.
-
-**Alternatives considered:**  
-- 5–10 ETFs — rejected: too small for covariance estimation to be interesting; MVO looks artificially stable.  
-- 50+ ETFs — rejected: estimation error dominates in unrealistic ways; too close to the "dimensionality curse" failure mode the project critiques.  
-- Multi-country ETFs — rejected: introduces FX and timezone complexity; out of scope.
-
-**Rationale:**  
-[First Principles] [Systems] 15–25 assets is the sweet spot where sample covariance is meaningfully noisy but not hopeless, and where MVO's instability is genuinely observable.
-
-**Reversibility:** Moderate  
-**Revisit trigger:** If Phase 1 shows MVO is not unstable at this universe size, revisit. That would falsify H1.1 and require a pivot.
-
----
-
-## 6. How This Log Feeds Other Documents
-
-| Document | Uses the log for |
-|----------|-----------------|
-| `project_charter.md` | Amendments to mission, scope, phase gates |
-| `success_metrics_and_evaluation_protocol.md` | Any change to metrics or thresholds |
-| `falsification_and_kill_criteria.md` | Every kill, pivot, stop, and materialized trigger |
-| `data_contract_and_point_in_time_policy.md` | Any change to data sources or point-in-time rules |
-| `cost_model_and_frictions.md` | Any change to κ, execution, or cost model |
-| `benchmark_and_baseline_spec.md` | Addition or removal of baselines |
-| `experiment_registry_and_preregistration.md` | Amendments to pre-registered experiments; denominator changes |
-| `risk_register_and_premortem.md` | Materialized risks and their responses |
-| `scope_and_non_goals.md` | Extension entry, MVP promotions/demotions, charter amendments |
-
-Any of the above documents can link to `DEC-YYYYMMDD-NNN` for the reasoning behind a specific choice.
-
----
-
-## 7. Model Tags Applied
-
-- **[Information Theory]** — Compressed decision-making to a stable format and consistent IDs; eliminated narrative sprawl.
-- **[Learning Loop]** — Every closed decision becomes an opportunity to update priors; the log is the memory of the project.
-- **[Inversion]** — Pre-mortem field for larger decisions asks "how could this fail?" before the decision is acted on.
-- **[Systems]** — Append-only structure, cross-references, status field, index regeneration.
-- **[Bayesian]** — Optional expected value assessment and revisit triggers update beliefs when evidence arrives.
-
----
-
-## 8. Owner Action Checklist Before Use
-
-- [ ] Confirm or amend the seed entries in §5.
-- [ ] Confirm the entry format in §2 is usable for your workflow.
-- [ ] Confirm the rules in §3 are acceptable.
-- [ ] Add this file to the README index and status board.
-- [ ] Link to this file from every Tier 0 document that references "the decision log."
-
-Once confirmed, bump to Version 1.1, keep Status `Active`, and add a revision history row.
-
----
-
-## 9. Revision History
-
-| Date | Version | Change | Author |
-|------|---------|--------|--------|
-| 2026-10-14 | 1.0 | Initial decision log with seed entries derived from Tier 0 documents | Ken Ira Lacson Talingting |
-
----
-
-*This log exists so that the project can remember why it is the way it is. A decision not logged is a decision waiting to be silently reversed.*
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-10-14 | Initial file. DEC-20261014-000 recorded; entries 001–011 referenced. | Ken Ira Lacson Talingting |
+| 2026-10-15 | Added DEC-20261015-012 (Phase 1 exploratory status) and DEC-20261015-013 (5-doc target governance). | Ken Ira Lacson Talingting |
+| 2026-10-15 | File normalized: added header, format section, conventions, index, gap note for 001–011, and this revision history. No entry content was altered. | Ken Ira Lacson Talingting |
+| 2026-10-15 | Added DEC-20261015-014 (retraction of unrecoverable seed entries 001–011); resolved index gap note; removed the now-obsolete 001–011 index row. | Ken Ira Lacson Talingting |
+| 2026-10-15 | Added DEC-20261015-015 (code-review findings as freeze-session inputs). | Ken Ira Lacson Talingting |
+| 2026-10-15 | Added DEC-20261015-016 (SLSQP fallback diagnostic — finding 3 of 015 closed). | Ken Ira Lacson Talingting |
