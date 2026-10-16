@@ -1,12 +1,12 @@
 # Scope and Non-Goals: robustfolio
 
-**Version:** 1.1
+**Version:** 1.2
 **Status:** Draft — pending owner confirmation of proposed defaults; becomes Active on sign-off
 **Owner:** Ken Ira Lacson Talingting
 **Created:** 2026-10-14
 **Last Updated:** 2026-10-15
-**Supersedes:** 1.0 (which superseded scope sections of problem_framing.md §10 and project_charter.md §5; both are now stubs pointing here)
-**Related:** [`problem_framing.md`](problem_framing.md), [`project_charter.md`](project_charter.md), [`success_metrics_and_evaluation_protocol.md`](success_metrics_and_evaluation_protocol.md), [`benchmark_and_baseline_spec.md`](benchmark_and_baseline_spec.md), [`falsification_and_kill_criteria.md`](falsification_and_kill_criteria.md), [`cost_model_and_frictions.md`](cost_model_and_frictions.md)
+**Supersedes:** 1.1 (cross-references updated to `evaluation_protocol.md` sections per DEC-20261015-018)
+**Related:** [`problem_framing.md`](problem_framing.md), [`evaluation_protocol.md`](evaluation_protocol.md), [`decision_log.md`](decision_log.md), [`risk_register_and_premortem.md`](risk_register_and_premortem.md)
 
 ---
 
@@ -30,7 +30,7 @@ Three principles govern scope decisions.
 
 1. **Narrow by default, widen deliberately.** Every additional asset class, method, or frequency multiplies the surface area for bugs and overfitting. The default answer to "should we add X?" is no.
 2. **MVP is what completes a loop.** The MVP must be able to run a full walk-forward, net-of-cost, multiple-testing-adjusted evaluation on at least one baseline and one robust method. Nothing else is required to demonstrate or falsify the project's hypothesis.
-3. **Extensions are earned, not assumed.** An extension enters scope only if the MVP is complete and the extension is justified by a pre-registered hypothesis in [`experiment_registry_and_preregistration.md`](experiment_registry_and_preregistration.md).
+3. **Extensions are earned, not assumed.** An extension enters scope only if the MVP is complete and the extension is justified by a pre-registered hypothesis in [`evaluation_protocol.md`](evaluation_protocol.md) §12.
 
 A scope that grows without amendment is scope creep, even if each addition looks reasonable in isolation. [Systems]
 
@@ -44,7 +44,7 @@ Scope is defined at three levels. The distinction matters because different leve
 |-------|-----------|----------------|
 | **Core MVP** | Required to complete Phase 1–4 | Locked once this document is Active |
 | **Extensions** | Optional, only after MVP; require pre-registered hypothesis | Added via amendment + decision log entry |
-| **Out of Scope** | Explicitly excluded; requires charter amendment to include | Charter amendment + version bump |
+| **Out of Scope** | Explicitly excluded; requires an amendment to this document and `evaluation_protocol.md` §8 | Amendment + version bump + decision log entry |
 
 Everything not listed in Core MVP or Extensions is Out of Scope by default.
 
@@ -52,7 +52,7 @@ Everything not listed in Core MVP or Extensions is Out of Scope by default.
 
 ## 3. Core MVP
 
-The MVP is the minimum sufficient implementation to test the project's primary hypothesis ([`project_charter.md`](project_charter.md) §3). It is frozen when this document becomes Active.
+The MVP is the minimum sufficient implementation to test the project's primary hypothesis ([`problem_framing.md`](problem_framing.md) §1). It is frozen when this document becomes Active.
 
 ### 3.1 Universe
 
@@ -70,9 +70,9 @@ The MVP is the minimum sufficient implementation to test the project's primary h
 | Dimension | MVP value |
 |-----------|-----------|
 | Frequency | Daily prices, monthly decisions |
-| Source | Per [`data_contract_and_point_in_time_policy.md`](data_contract_and_point_in_time_policy.md) §2.1 |
-| Point-in-time discipline | Mandatory per data contract §4 |
-| Risk-free rate | 1-month T-bill, FRED DGS1MO |
+| Source | Per [`evaluation_protocol.md`](evaluation_protocol.md) §5.4.1 |
+| Point-in-time discipline | Mandatory per [`evaluation_protocol.md`](evaluation_protocol.md) §5.4.3 |
+| Risk-free rate | 1-month T-bill, FRED DGS1MO (per §5.4.1 and §5.5.5) |
 
 ### 3.3 Rebalance
 
@@ -121,11 +121,11 @@ The MVP is the minimum sufficient implementation to test the project's primary h
 |-----------|------------|
 | Walk-forward | MVP |
 | Purged cross-validation + embargo | MVP |
-| Net-of-cost Sharpe at all cost levels | MVP (cost levels defined in [`cost_model_and_frictions.md`](cost_model_and_frictions.md) §3.3) |
+| Net-of-cost Sharpe at all cost levels | MVP (cost levels defined in [`evaluation_protocol.md`](evaluation_protocol.md) §5.5.3) |
 | Deflated Sharpe ratio | MVP |
 | Probabilistic Sharpe ratio | MVP |
 | Block bootstrap confidence intervals | MVP |
-| Cost sensitivity bands | MVP (levels defined in [`cost_model_and_frictions.md`](cost_model_and_frictions.md) §3.3) |
+| Cost sensitivity bands | MVP (levels defined in [`evaluation_protocol.md`](evaluation_protocol.md) §5.5.3) |
 
 ### 3.9 Reporting
 
@@ -171,8 +171,8 @@ Extensions are permitted only after MVP completion and require a pre-registered 
 
 For any extension to enter scope:
 
-1. MVP is complete (Phase 4 gate passed).
-2. A pre-registered hypothesis exists in the experiment registry.
+1. MVP is complete (Phase 4 gate passed, per [`evaluation_protocol.md`](evaluation_protocol.md) §8.4).
+2. A pre-registered hypothesis exists in the experiment registry ([`decision_log.md`](decision_log.md) Appendix A, rules in [`evaluation_protocol.md`](evaluation_protocol.md) §12).
 3. The extension does not violate any non-goal in §5.
 4. A decision log entry is created with rationale and prior expected value.
 5. This document is amended with a version bump.
@@ -183,7 +183,7 @@ For any extension to enter scope:
 
 ## 5. Out of Scope
 
-Explicitly excluded. Adding any of these requires a charter amendment, not merely a scope amendment.
+Explicitly excluded. Adding any of these requires an amendment to this document and to [`evaluation_protocol.md`](evaluation_protocol.md) §8, not merely a scope amendment.
 
 ### 5.1 Asset classes and instruments
 
@@ -240,11 +240,10 @@ Other documents in `docs/` mention scope. This section defines how conflicts are
 
 | Conflicting document | Resolution |
 |---------------------|-----------|
-| `problem_framing.md` §10 | Now a stub pointing here. No conflict. |
-| `project_charter.md` §5 (Non-Goals) | Now a stub pointing here. No conflict. |
-| `benchmark_and_baseline_spec.md` §2 | Baseline set is defined there; whether each is MVP or extension is defined here. |
-| `success_metrics_and_evaluation_protocol.md` §5.5 | Now a stub pointing to the cost model doc. No conflict. |
-| [`cost_model_and_frictions.md`](cost_model_and_frictions.md) §3.3 | Cost levels are defined there. Scope marks cost sensitivity as MVP; the numeric levels are that document's authority. |
+| [`problem_framing.md`](problem_framing.md) §10 | Now a stub pointing here. No conflict. |
+| [`evaluation_protocol.md`](evaluation_protocol.md) §4.2 | Baseline set is defined there; whether each is MVP or extension is defined here. |
+| [`evaluation_protocol.md`](evaluation_protocol.md) §5.5.3 | Cost levels are defined there. Scope marks cost sensitivity as MVP; the numeric levels are that section's authority. |
+| [`evaluation_protocol.md`](evaluation_protocol.md) §8 | Phase gates and time-boxes are defined there. Scope does not override them. |
 | Any new document | Must not contradict this document. If it does, either this document or the new document is wrong. |
 
 **Rule:** Scope questions are answered here, not in the other documents. Other documents may *reference* scope but may not *define* it.
@@ -258,7 +257,7 @@ Signals that scope is creeping, and the correct response.
 | Signal | Interpretation | Response |
 |--------|---------------|----------|
 | A new method appears in code before Phase 2 gate | Silent scope expansion | Halt; register experiment or remove method |
-| A new asset class appears in a backtest | Out-of-scope universe | Halt; revert or amend charter |
+| A new asset class appears in a backtest | Out-of-scope universe | Halt; revert or amend this document and §5 of [`evaluation_protocol.md`](evaluation_protocol.md) §5.4 |
 | A new metric appears in a report | Undisclosed scope change | Report as exploratory; register future trial |
 | A new frequency appears in comparison | Out-of-scope frequency | Remove; if pursued, register as extension |
 | The "MVP" section of a report describes more than the MVP here | Definition drift | Freeze report; compare against this document |
@@ -270,7 +269,7 @@ Signals that scope is creeping, and the correct response.
 
 ## 8. What Causes This Document to Change
 
-- A charter amendment that changes the mission or non-goals.
+- An amendment to §8 of [`evaluation_protocol.md`](evaluation_protocol.md) that changes the mission or non-goals.
 - A decision to promote an extension into the MVP (unusual; requires justification).
 - A decision to demote an MVP item to an extension (also unusual; requires justification).
 - A validated finding that an out-of-scope item is actually required for the MVP loop.
@@ -280,7 +279,7 @@ Any change:
 1. Requires a decision log entry.
 2. Requires a version bump.
 3. Requires updating all documents that reference scope.
-4. Must not weaken the phase-gate discipline established in the charter.
+4. Must not weaken the phase-gate discipline established in [`evaluation_protocol.md`](evaluation_protocol.md) §8.4.
 
 ---
 
@@ -309,10 +308,10 @@ Also confirm:
 - [ ] You accept that everything not in Core MVP or Extensions is out of scope by default.
 - [ ] You accept the extension entry criteria (§4.3).
 - [ ] You accept the scope-creep detection signals (§7) and will act on them.
-- [ ] Cost levels are confirmed in [`cost_model_and_frictions.md`](cost_model_and_frictions.md) §3.3, not here.
-- [ ] `problem_framing.md` §10 and `project_charter.md` §5 are now stubs pointing here (completed 2026-10-15).
+- [ ] Cost levels are confirmed in [`evaluation_protocol.md`](evaluation_protocol.md) §5.5.3, not here.
+- [ ] `problem_framing.md` §10 is a stub pointing here (completed 2026-10-15).
 
-Once confirmed, bump to Version 1.2, set Status to `Active`, and add a revision history row.
+Once confirmed, bump to Version 1.3, set Status to `Active`, and add a revision history row.
 
 ---
 
@@ -322,6 +321,7 @@ Once confirmed, bump to Version 1.2, set Status to `Active`, and add a revision 
 |------|---------|--------|--------|
 | 2026-10-14 | 1.0 | Initial scope and non-goals document | Ken Ira Lacson Talingting |
 | 2026-10-15 | 1.1 | Replaced §3.8 cost-level row with pointer to cost model doc §3.3 (A6); updated §6 conflict table to reflect supersessions; updated §10 checklist to reflect completed supersessions; added revision history | Ken Ira Lacson Talingting |
+| 2026-10-15 | 1.2 | Updated all cross-references to retired documents per DEC-20261015-018: `project_charter.md`, `benchmark_and_baseline_spec.md`, `success_metrics_and_evaluation_protocol.md`, `falsification_and_kill_criteria.md`, `cost_model_and_frictions.md`, and `experiment_registry_and_preregistration.md` redirected to `evaluation_protocol.md` sections. §3.2 point-in-time reference redirected to §5.4.3. §4.3 registry reference redirected to `decision_log.md` Appendix A and `evaluation_protocol.md` §12. §6 conflict table rewritten. §8 charter reference redirected to §8 of the protocol. No scope content changed. | Ken Ira Lacson Talingting |
 
 ---
 

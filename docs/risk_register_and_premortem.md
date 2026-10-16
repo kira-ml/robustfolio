@@ -1,12 +1,12 @@
 # Risk Register and Pre-Mortem: robustfolio
 
-**Version:** 1.0  
-**Status:** Draft — pending owner confirmation of proposed ratings; becomes Active on sign-off  
-**Owner:** Ken Ira Lacson Talingting  
-**Created:** 2026-10-14  
-**Last Updated:** 2026-10-14  
-**Supersedes:** None  
-**Related:** [`problem_framing.md`](problem_framing.md), [`project_charter.md`](project_charter.md), [`evaluation_protocol.md`](evaluation_protocol.md), [`data_contract_and_point_in_time_policy.md`](data_contract_and_point_in_time_policy.md), [`cost_model_and_frictions.md`](cost_model_and_frictions.md), [`benchmark_and_baseline_spec.md`](benchmark_and_baseline_spec.md), [`experiment_registry_and_preregistration.md`](experiment_registry_and_preregistration.md), [`decision_log.md`](decision_log.md)
+**Version:** 1.1
+**Status:** Draft — pending owner confirmation of proposed ratings; becomes Active on sign-off
+**Owner:** Ken Ira Lacson Talingting
+**Created:** 2026-10-14
+**Last Updated:** 2026-10-15
+**Supersedes:** 1.0 (cross-references updated to `evaluation_protocol.md` sections per DEC-20261015-018)
+**Related:** [`problem_framing.md`](problem_framing.md), [`evaluation_protocol.md`](evaluation_protocol.md), [`decision_log.md`](decision_log.md), [`scope_and_non_goals.md`](scope_and_non_goals.md)
 
 ---
 
@@ -34,7 +34,7 @@ Three principles govern this register.
 2. **Rank by detectability, not only severity.** A high-impact risk that is easy to detect is less dangerous than a moderate-impact risk that is invisible.
 3. **Every risk has a trigger and an owner.** A risk without a trigger is a worry. A worry without an owner is drift.
 
-The register is the operational arm of [Inversion]. Its contents feed directly into `evaluation_protocol.md` §7–§8 and `decision_log.md`.
+The register is the operational arm of [Inversion]. Its contents feed directly into [`evaluation_protocol.md`](evaluation_protocol.md) §§7–8 and [`decision_log.md`](decision_log.md).
 
 ---
 
@@ -114,7 +114,7 @@ Risks are grouped by which part of the project they attack. This aids targeted r
 | **R-M02** | Silent p-hacking via unregistered trials | M | 3 | 5 | 5 | **75** | Append-only registry; exploratory labeling; disclosure rule | Any metric reported without a registry entry |
 | **R-M03** | Denominator suppression | M | 2 | 5 | 4 | 40 | Registry review at gate; git audit trail | Trial count in registry < number of metric-bearing runs |
 | **R-M04** | Overfitting to walk-forward folds | M | 3 | 4 | 3 | 36 | Purged CV; embargo; hold-out test period | In-sample ≈ OOS performance with no plausible cause |
-| **R-M05** | Metric definition drifts after results | M | 2 | 4 | 3 | 24 | Frozen protocol; decision log for any change | Any change to `success_metrics_and_evaluation_protocol.md` after Phase 1 begins |
+| **R-M05** | Metric definition drifts after results | M | 2 | 4 | 3 | 24 | Frozen protocol; decision log for any change | Any change to `evaluation_protocol.md` after Phase 1 begins |
 | **R-D01** | Adjusted-price lookahead | D | 4 | 5 | 5 | **100** | Raw + corporate actions reconstruction; leakage test | Adjusted prices used without reconstruction; failing leakage test |
 | **R-D02** | Survivorship bias in universe | D | 4 | 5 | 4 | **80** | Point-in-time membership reconstruction; delisted assets retained | Candidate universe matches today's live tickers exactly |
 | **R-D03** | Data source API/format change | D | 4 | 3 | 2 | 24 | Snapshot immutability; adapter isolation | Ingestion failure; schema mismatch on re-fetch |
@@ -129,23 +129,23 @@ Risks are grouped by which part of the project they attack. This aids targeted r
 | **R-E03** | Random seed not controlled | E | 2 | 3 | 2 | 12 | Seeds in registry; determinism test | Results vary between identical runs |
 | **R-E04** | Silent numeric instability | E | 3 | 3 | 4 | 36 | Condition number checks; diagonal loading documented | Large weight changes from tiny input changes |
 | **R-P01** | Goalpost-moving after results | P | 3 | 5 | 4 | **60** | Frozen protocol; decision log; version bump rule | Any threshold change after Phase 3 begins |
-| **R-P02** | Sunk-cost continuation past kill trigger | P | 4 | 4 | 3 | 48 | Sunk-cost firewall (falsification §7); time-box enforcement | "Just one more thing" after failed gate |
-| **R-P03** | Scope creep (new asset class, method, or frequency) | P | 4 | 3 | 2 | 24 | Charter §5 non-goals; amendment required | New method appearing without a registry entry |
+| **R-P02** | Sunk-cost continuation past kill trigger | P | 4 | 4 | 3 | 48 | Sunk-cost firewall ([`evaluation_protocol.md`](evaluation_protocol.md) §9); time-box enforcement | "Just one more thing" after failed gate |
+| **R-P03** | Scope creep (new asset class, method, or frequency) | P | 4 | 3 | 2 | 24 | [`scope_and_non_goals.md`](scope_and_non_goals.md) §5; amendment required | New method appearing without a registry entry |
 | **R-P04** | Documentation erosion | P | 4 | 3 | 3 | 36 | Phase-gate review; status board updates | Status board out of date; `[FILL]` remains after activation |
-| **R-P05** | Kill without decision log | P | 3 | 2 | 2 | 12 | Hard Rule 4 in charter | Owner stops work without a log entry |
+| **R-P05** | Kill without decision log | P | 3 | 2 | 2 | 12 | Hard Rule 4 in [`evaluation_protocol.md`](evaluation_protocol.md) §8.1 | Owner stops work without a log entry |
 | **R-S01** | No improvement over baselines | S | 3 | 4 | 2 | 24 | Falsification K1; stop-and-report path | Phase 3 results show no method meeting success criteria |
-| **R-S02** | Baselines too weak (fake wins) | S | 3 | 5 | 3 | 45 | `benchmark_and_baseline_spec.md`; B5 as strong baseline | Robust method beats B3 but loses to B1 or B5 |
+| **R-S02** | Baselines too weak (fake wins) | S | 3 | 5 | 3 | 45 | [`evaluation_protocol.md`](evaluation_protocol.md) §4; B5 as strong baseline | Robust method beats B3 but loses to B1 or B5 |
 | **R-S03** | Gap claim false (existing tool covers it) | S | 3 | 4 | 3 | 36 | R1 tool scan; kill trigger K3 | Tool scan reveals equivalent benchmark |
 | **R-S04** | Problem framing falsified in Phase 1 | S | 2 | 4 | 2 | 16 | Falsification H1.1, H1.2; pivot path | Sample MVO not extreme or high-turnover on primary dataset |
-| **R-S05** | Report-only-positive-results pressure | S | 2 | 4 | 3 | 24 | Charter §1; "negative result is success" language | Wording in reporting that downplays negative findings |
-| **R-H01** | Time budget exhausted before completion | H | 4 | 3 | 2 | 24 | Phase time-boxes; charter §9 | Any phase exceeding time-box |
+| **R-S05** | Report-only-positive-results pressure | S | 2 | 4 | 3 | 24 | [`problem_framing.md`](problem_framing.md) §13; "negative result is success" language | Wording in reporting that downplays negative findings |
+| **R-H01** | Time budget exhausted before completion | H | 4 | 3 | 2 | 24 | Phase time-boxes; [`evaluation_protocol.md`](evaluation_protocol.md) §8.3 | Any phase exceeding time-box |
 | **R-H02** | Motivation loss / abandonment | H | 3 | 4 | 4 | 48 | Phase gates; small deliverables; decision log | No commits for > `[PROPOSED: 3 weeks]` |
 | **R-H03** | Solo researcher blind spots | H | 4 | 3 | 4 | 48 | Reasoning partner escalation; optional external review | Owner cannot articulate why a decision was made |
-| **R-H04** | Distraction by new project ideas | H | 4 | 3 | 3 | 36 | Charter scope; decision log for any new idea | New "urgent" ideas after each gate |
+| **R-H04** | Distraction by new project ideas | H | 4 | 3 | 3 | 36 | Scope discipline; decision log for any new idea | New "urgent" ideas after each gate |
 | **R-X01** | Data source TOS change | X | 3 | 3 | 2 | 18 | Adapter isolation; alternate sources documented | Ingestion failure; legal notice |
 | **R-X02** | Compute environment loss | X | 2 | 3 | 2 | 12 | Snapshots and lockfile stored externally | Machine failure; disk corruption |
 
-**Critical (RPN ≥ 60):** R-M01, R-M02, R-D01, R-D02, R-C01, R-P01.  
+**Critical (RPN ≥ 60):** R-M01, R-M02, R-D01, R-D02, R-C01, R-P01.
 These are the risks that, if unaddressed, will most likely produce a false result or an abandoned project.
 
 ---
@@ -191,9 +191,9 @@ The pre-mortem assumes the project has already failed. It works backward to iden
 
 **Primary defenses:**
 
-- R1 literature/tool scan in Phase 0 (charter gate).
-- Strong baseline set (B5) in `benchmark_and_baseline_spec.md`.
-- Phase time-box enforcement.
+- R1 literature/tool scan in Phase 0 ([`evaluation_protocol.md`](evaluation_protocol.md) §8.4 gate).
+- Strong baseline set (B5) in [`evaluation_protocol.md`](evaluation_protocol.md) §4.
+- Phase time-box enforcement ([`evaluation_protocol.md`](evaluation_protocol.md) §8.3).
 - Unit tests per method before Phase 3.
 
 **Interpretation:** A negative result that is caused by broken tooling is not a negative result. It is an untested question.
@@ -215,7 +215,7 @@ The pre-mortem assumes the project has already failed. It works backward to iden
 
 - Small, phase-gated deliverables.
 - Time-box enforcement with decision log entry required at any stop.
-- Kill and stop-and-report explicitly framed as valid outcomes in charter §1.
+- Kill and stop-and-report explicitly framed as valid outcomes in [`problem_framing.md`](problem_framing.md) §13.
 - Biweekly or monthly review cadence.
 
 **Interpretation:** Abandonment is not the same as killing the project. Abandonment is silence. Killing is a decision. Only one of these is a learning outcome.
@@ -228,7 +228,7 @@ The pre-mortem assumes the project has already failed. It works backward to iden
 
 **Backward causes:**
 
-1. Forbidden claims (protocol §9.2) were made anyway.
+1. Forbidden claims ([`evaluation_protocol.md`](evaluation_protocol.md) §14.2) were made anyway.
 2. Confidence intervals were not reported.
 3. Cost sensitivity was reported only at 10 bps, hiding non-robustness.
 4. Exploratory results were presented as confirmatory (R-M02).
@@ -239,9 +239,9 @@ The pre-mortem assumes the project has already failed. It works backward to iden
 - `results_reporting_and_claims_policy.md` (Tier 2) — must be written before Phase 4.
 - Frozen reporting template.
 - External review (if available) before release.
-- Reasoning-partner escalation rule (charter §8).
+- Reasoning-partner escalation rule ([`evaluation_protocol.md`](evaluation_protocol.md) §8.2).
 
-**Interpretation:** Misleading claims destroy the project's credibility and are worse than an honest negative result. The charter and this register exist primarily to prevent this scenario.
+**Interpretation:** Misleading claims destroy the project's credibility and are worse than an honest negative result. The protocol and this register exist primarily to prevent this scenario.
 
 ---
 
@@ -269,7 +269,7 @@ The six critical risks warrant specific attention.
 
 **Active mitigation:**
 
-- Append-only registry.
+- Append-only registry ([`decision_log.md`](decision_log.md) Appendix A).
 - Exploratory labeling mandatory.
 - Disclosure of exploratory work in every report.
 
@@ -285,7 +285,7 @@ The six critical risks warrant specific attention.
 
 - Reconstruct point-in-time adjusted prices from raw prices + corporate actions with ex-date ≤ \( t \).
 - Run the adjusted-price leakage test before every experiment.
-- If reconstruction is not feasible, downgrade affected claims to exploratory and document the limitation in `data_contract_and_point_in_time_policy.md` §4.4.
+- If reconstruction is not feasible, downgrade affected claims to exploratory and document the limitation in [`evaluation_protocol.md`](evaluation_protocol.md) §5.4.4.
 
 **Trigger to escalate:** Use of `auto_adjust=True` or equivalent without documentation.
 
@@ -311,7 +311,7 @@ The six critical risks warrant specific attention.
 
 **Active mitigation:**
 
-- Unit test for drifted weights (see `cost_model_and_frictions.md` §4.4).
+- Unit test for drifted weights (see [`evaluation_protocol.md`](evaluation_protocol.md) §5.5.5).
 - Cross-check computed turnover against a naive sum of weight changes.
 - Report turnover at every cost level.
 
@@ -356,7 +356,7 @@ Before any gate is passed:
 
 ### 7.3 Escalation
 
-If the reasoning partner (LLM) identifies a risk whose trigger has fired or whose mitigation is missing, it must flag it. The owner decides. Silence is not consent (charter §8).
+If the reasoning partner (LLM) identifies a risk whose trigger has fired or whose mitigation is missing, it must flag it. The owner decides. Silence is not consent ([`evaluation_protocol.md`](evaluation_protocol.md) §8.2).
 
 ---
 
@@ -401,7 +401,7 @@ Also confirm:
 - [ ] You accept that materialized risks always produce a decision log entry.
 - [ ] You accept that the reasoning partner may escalate any firing trigger.
 
-Once confirmed, bump to Version 1.1, set Status to `Active`, and add a revision history row.
+Once confirmed, bump to Version 1.2, set Status to `Active`, and add a revision history row.
 
 ---
 
@@ -410,6 +410,7 @@ Once confirmed, bump to Version 1.1, set Status to `Active`, and add a revision 
 | Date | Version | Change | Author |
 |------|---------|--------|--------|
 | 2026-10-14 | 1.0 | Initial risk register and pre-mortem | Ken Ira Lacson Talingting |
+| 2026-10-15 | 1.1 | Updated cross-references to retired documents per DEC-20261015-018: `project_charter.md`, `data_contract_and_point_in_time_policy.md`, `cost_model_and_frictions.md`, `benchmark_and_baseline_spec.md`, `success_metrics_and_evaluation_protocol.md`, and `experiment_registry_and_preregistration.md` redirected to `evaluation_protocol.md` sections. Header `Related` list trimmed to retained files. §1, §5.2, §5.4, §7.3 references updated. No risk content changed. | Ken Ira Lacson Talingting |
 
 ---
 
