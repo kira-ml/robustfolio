@@ -18,6 +18,20 @@ shrinkage *and* by a factor ``T/(T-1)`` in its base. At ``T = 60`` that is a
 1.7% uniform scale difference. DEC-20261017-029 resolved this as reading (a):
 it is left as specified (the spec names the sklearn estimator) and must not be
 silently "corrected"; see the note in ``ledoit_wolf_cov``.
+
+**Fixed, and it matters more than it looks (finding F19).** Every estimator goes
+through :func:`_as_matrix`, which canonicalises the returns to a C-contiguous
+array. ``pandas`` leaves a frame's block in whichever order the last mutation
+produced, and ``DataFrame.mean()`` / ``DataFrame.cov()`` reduce over that block's
+strides -- so two frames with identical values but different layout give
+ULP-different estimates. That would falsify spec §5.4.8's bit-identical
+determinism, and it would make the leakage tests lie in the most dangerous
+direction: a test that perturbs an input series can flip a frame's layout, so the
+difference it "detects" can be a floating-point artefact of the perturbation
+rather than a use of future data. On a contiguous array ``np.cov(m,
+rowvar=False, ddof=1)`` and ``m.mean(axis=0)`` reproduce ``DataFrame.cov()`` and
+``DataFrame.mean()`` bit-for-bit, so this is a determinism fix and not a
+numerical deviation.
 """
 
 from __future__ import annotations
@@ -41,6 +55,25 @@ __all__ = [
 
 
 def _as_matrix(returns: pd.DataFrame) -> tuple[np.ndarray, list[str]]:
+    """Validate and return the returns as a **C-contiguous** ``T x N`` array.
+
+    The contiguity is not cosmetic (finding F19). A pandas frame's block sits in
+    whichever order the last mutation happened to produce -- a row-set such as
+    ``frame.loc[t] = scalar`` can leave it Fortran-ordered -- and
+    ``DataFrame.mean()`` / ``DataFrame.cov()`` reduce along the block's strides.
+    Two frames with identical values but different layout therefore give
+    ULP-different estimates. That breaks spec §5.4.8's bit-identical determinism
+    requirement, and it makes a leakage test unreliable in the worst way: the
+    test perturbs an input series, which can flip a frame's layout, so the
+    "leaked" difference it detects may be a floating-point artefact of the
+    perturbation rather than a use of future data.
+
+    Canonicalising here makes every estimator below a function of the values
+    alone. The values are unchanged in the mathematical sense and, on a
+    contiguous input, ``np.cov(m, rowvar=False, ddof=1)`` and ``m.mean(axis=0)``
+    reproduce ``pandas.DataFrame.cov()`` and ``.mean()`` bit-for-bit (verified),
+    so spec §4.2's "matching ``pandas.DataFrame.cov``" still holds exactly.
+    """
     if not isinstance(returns, pd.DataFrame):
         raise TypeError("estimators take a pandas DataFrame of monthly returns")
     if returns.isna().any().any():
@@ -50,7 +83,7 @@ def _as_matrix(returns: pd.DataFrame) -> tuple[np.ndarray, list[str]]:
         )
     if len(returns) < 2:
         raise ValueError(f"need at least 2 observations, got {len(returns)}")
-    return returns.to_numpy(dtype=float), list(returns.columns)
+    return np.ascontiguousarray(returns.to_numpy(dtype=float)), list(returns.columns)
 
 
 # --------------------------------------------------------------------------- #
@@ -58,9 +91,13 @@ def _as_matrix(returns: pd.DataFrame) -> tuple[np.ndarray, list[str]]:
 # --------------------------------------------------------------------------- #
 
 def sample_mean(returns: pd.DataFrame) -> pd.Series:
-    """Arithmetic mean of monthly simple returns (spec §4.1). Used by B3, B5, M1."""
-    _as_matrix(returns)  # reject gaps here rather than averaging over them
-    return returns.mean()
+    """Arithmetic mean of monthly simple returns (spec §4.1). Used by B3, B5, M1.
+
+    Computed from the canonical array rather than ``DataFrame.mean()`` so the
+    result depends on the values and not on the frame's memory layout (F19).
+    """
+    matrix, names = _as_matrix(returns)
+    return pd.Series(matrix.mean(axis=0), index=names)
 
 
 def equilibrium_returns(
@@ -132,9 +169,16 @@ def sample_cov(returns: pd.DataFrame) -> pd.DataFrame:
     pairs, which would quietly change the sample behind each entry and therefore
     the effective estimation window. Spec §3.3 puts gap resolution in the data
     layer, so a NaN reaching here is a bug, not an input.
+
+    Computed with ``np.cov(..., rowvar=False, ddof=1)`` on the canonical array.
+    That is the same estimator as ``DataFrame.cov()`` -- verified bit-identical
+    on contiguous input -- but it is immune to the frame's memory layout, which
+    ``DataFrame.cov()`` is not (finding F19).
     """
-    _as_matrix(returns)
-    return returns.cov()
+    matrix, names = _as_matrix(returns)
+    # np.cov returns a 0-d array for a single variable; keep the shape square.
+    cov = np.atleast_2d(np.cov(matrix, rowvar=False, ddof=1))
+    return pd.DataFrame(cov, index=names, columns=names)
 
 
 def _fit_ledoit_wolf(returns: pd.DataFrame):
@@ -194,11 +238,13 @@ def inverse_vol(returns: pd.DataFrame) -> pd.Series:
     only as an extension candidate and must not appear in the MVP comparison
     table (DEC-20261017-019 F2).
     """
-    vol = returns.std()
+    matrix, names = _as_matrix(returns)
+    # DataFrame.std() defaults to ddof=1, so this is the same estimator.
+    vol = matrix.std(axis=0, ddof=1)
     if (vol <= 0).any():
         raise ValueError("inverse_vol requires strictly positive volatilities")
     w = 1.0 / vol
-    return w / w.sum()
+    return pd.Series(w / w.sum(), index=names)
 
 
 # --------------------------------------------------------------------------- #

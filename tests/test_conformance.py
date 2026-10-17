@@ -106,6 +106,50 @@ def test_equal_weight_is_exact():
     assert np.allclose(estimators.equal_weight(frame).to_numpy(), 0.25)
 
 
+def test_estimators_are_independent_of_the_frames_memory_layout():
+    """Finding F19: the same values must give bit-identical estimates.
+
+    ``DataFrame.mean()`` and ``DataFrame.cov()`` reduce along the frame block's
+    strides, and ``pandas`` leaves that block in whichever order the last
+    mutation produced. Two frames with identical values but different layout
+    therefore gave ULP-different estimates, which would falsify spec §5.4.8's
+    bit-identical determinism and -- worse -- would let a leakage test report a
+    floating-point artefact of its own perturbation as leaked information.
+    """
+    rng = np.random.default_rng(7)
+    values = rng.normal(scale=0.05, size=(60, 6))
+    index = pd.date_range("2007-01-31", periods=60, freq="ME")
+    columns = list("ABCDEF")
+
+    canonical = pd.DataFrame(values.copy(), index=index, columns=columns)
+    # A deliberately Fortran-ordered frame holding exactly the same values.
+    fortran = pd.DataFrame(np.asfortranarray(values), index=index, columns=columns, copy=False)
+
+    assert np.array_equal(canonical.to_numpy(), fortran.to_numpy())
+    # If this fails the setup no longer differs in layout, so the test below
+    # would pass vacuously and the trigger would need re-deriving.
+    assert canonical.to_numpy().flags["C_CONTIGUOUS"]
+    assert not fortran.to_numpy().flags["C_CONTIGUOUS"]
+
+    pd.testing.assert_series_equal(
+        estimators.sample_mean(canonical), estimators.sample_mean(fortran), check_exact=True
+    )
+    pd.testing.assert_frame_equal(
+        estimators.sample_cov(canonical), estimators.sample_cov(fortran), check_exact=True
+    )
+    pd.testing.assert_series_equal(
+        estimators.inverse_vol(canonical), estimators.inverse_vol(fortran), check_exact=True
+    )
+
+
+def test_sample_cov_reproduces_pandas_bit_for_bit_on_contiguous_input():
+    """The F19 fix is a determinism fix, not a numerical deviation (spec §4.2)."""
+    rng = np.random.default_rng(11)
+    frame = pd.DataFrame(rng.normal(scale=0.04, size=(60, 5)), columns=NAMES)
+    assert estimators.sample_cov(frame).to_numpy().tobytes() == frame.cov().to_numpy().tobytes()
+    assert estimators.sample_mean(frame).to_numpy().tobytes() == frame.mean().to_numpy().tobytes()
+
+
 # --------------------------------------------------------------------------- #
 # Optimizer: constraints and the feasibility contract (spec §5.1, §5.6, §2)
 # --------------------------------------------------------------------------- #
@@ -169,6 +213,116 @@ def test_no_silent_fallback_when_acceptance_fails(correlated_cov, monkeypatch):
     monkeypatch.setattr(optimize, "ACCEPT_TOL", 0.0)
     with pytest.raises(optimize.SolverFailure, match="residual|violation"):
         optimize.mean_variance(mu, correlated_cov)
+
+
+def test_a_solver_that_says_optimal_still_has_to_pass_the_certificate(
+    correlated_cov, monkeypatch
+):
+    """Finding F17: ``status='optimal'`` is the solver's claim, not evidence.
+
+    The failure mode this check exists to catch is a solver that reports success
+    at a point which does not satisfy the optimality conditions -- the case
+    measured on the frozen universe is CLARABEL returning ``optimal`` with a KKT
+    residual of 1.2e-4. The error must therefore name the self-report, or the
+    log reads like an ordinary solver crash rather than a disagreement.
+    """
+    mu = _returns_with_strong_correlation().mean()
+    monkeypatch.setattr(optimize, "ACCEPT_TOL", 0.0)
+    with pytest.raises(optimize.SolverFailure, match=r"solver reported 'optimal'"):
+        optimize.mean_variance(mu, correlated_cov)
+
+
+def test_solutions_carry_the_solver_self_report(correlated_cov):
+    """The results must record the claim *and* the check, so they can disagree."""
+    mu = _returns_with_strong_correlation().mean()
+    solution = optimize.mean_variance(mu, correlated_cov)
+    assert solution.meta["solver_status"] == "optimal"
+    assert isinstance(solution.meta["solver_iterations"], int)
+    assert solution.meta["solver_iterations"] >= 1
+
+
+def test_certificate_accepts_the_no_trade_optimum_where_every_weight_is_a_kink():
+    """Finding F20.
+
+    When the turnover penalty makes *holding* the drifted portfolio optimal, every
+    weight sits exactly on the ``|.|`` kink at once, so there is no smooth
+    interior index from which to read the sum multiplier ``nu``. The earlier
+    certificate fell back to ``nu = 0`` there and rejected seven optimal B5
+    rebalances on the frozen universe with residuals up to 1.5e-3, while CLARABEL,
+    SCS and OSQP agreed on the objective to 1e-10 and no feasible exchange
+    improved it. The residual is not a warning sign to be tolerated; it was wrong.
+
+    Construction: with equal expected returns and an equal-variance diagonal
+    covariance, the unpenalised capped optimum is the equal-weighted portfolio.
+    Any positive turnover penalty therefore makes "do not trade" exactly optimal,
+    so the solution equals the initial holding and every weight is a kink.
+    """
+    names = ["A", "B", "C", "D"]
+    cov = diagonal_cov([0.04] * 4, names=names)
+    mu = pd.Series([0.05] * 4, index=names)
+
+    base = optimize.mean_variance(mu, cov).weights
+    assert (base > 1e-6).all() and (base < W_MAX - 1e-6).all(), "need an interior optimum"
+
+    solution = optimize.mean_variance(mu, cov, w_prev=base, turnover_penalty=0.001)
+
+    assert np.allclose(solution.weights.to_numpy(), base.to_numpy(), atol=1e-9)
+    assert solution.meta["n_at_kink"] == 4
+    # Every box-interior index is simultaneously a kink, so the certificate's
+    # "smooth interior" set -- the only source the old version had for nu -- is
+    # empty here, which is exactly what made it fall back to nu = 0.
+    assert solution.meta["n_interior"] == 4
+    assert solution.meta["n_at_floor"] == 0
+    assert solution.meta["n_at_cap"] == 0
+    assert solution.residual <= 1e-7
+
+
+def test_certificate_rejects_a_point_that_has_traded_off_the_kink():
+    """The mirror of the test above: the kink band must not become a rubber stamp.
+
+    At a kink the stationarity condition is a band of width 2*penalty, so a point
+    within it is indistinguishable from optimal. But a weight that has moved *off*
+    the kink is held to the smooth condition, which pins the multiplier exactly.
+    A perturbation must therefore be rejected, with a residual of the same order as
+    the perturbation's gradient effect -- this is the check that stops the F20 fix
+    from having traded one broken certificate for another.
+    """
+    names = ["A", "B", "C", "D"]
+    sigma = np.diag([0.04] * 4)
+    mu = np.array([0.05] * 4)
+    base = np.array([0.25] * 4)
+    penalty, cap, gamma = 0.001, W_MAX, 10.0
+
+    # Exactly on the kink: certified, with no smooth interior index to read nu from.
+    residual, meta = optimize._mvo_residual(base, mu, sigma, gamma, penalty, base, cap)
+    assert meta["n_at_kink"] == 4
+    assert residual <= optimize.ACCEPT_TOL
+
+    # Traded 1e-4 off the kink in two directions: the smooth condition binds.
+    traded = base.copy()
+    traded[0] += 1e-4
+    traded[1] -= 1e-4
+    residual, meta = optimize._mvo_residual(traded, mu, sigma, gamma, penalty, base, cap)
+    assert meta["n_at_kink"] == 2
+    assert residual > optimize.ACCEPT_TOL
+
+
+def test_risk_parity_uncapped_branch_is_accepted_too(monkeypatch):
+    """Spec §5.6. The uncapped branch used to return without calling ``_accept``.
+
+    On the frozen universe the cap binds for B2 in 154 of 168 rebalances, so the
+    remaining 14 were never acceptance-checked -- a failure could only be silent.
+    """
+    names = [f"A{i}" for i in range(8)]
+    cov = diagonal_cov([0.04] * 8, names=names)  # equal risk -> 1/8 each, cap loose
+
+    solution = optimize.risk_parity(cov)
+    assert solution.formulation == "erc"  # the uncapped branch
+    assert solution.residual <= 1e-7
+
+    monkeypatch.setattr(optimize, "_erc_residual", lambda *args, **kwargs: 1.0)
+    with pytest.raises(optimize.SolverFailure, match="residual"):
+        optimize.risk_parity(cov)
 
 
 # --------------------------------------------------------------------------- #

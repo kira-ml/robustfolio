@@ -86,22 +86,32 @@ DIAGONAL_LOADING = 1e-6
 #: violation check passes at 1e-7" (the O4 note adds "duality gap <= 1e-7"). On
 #: the frozen universe CLARABEL's *defaults* return a point whose KKT residual is
 #: ~1.2e-4 -- three orders of magnitude above the required 1e-7 -- so the default
-#: reading rejects every fold. The residual is a pure function of this tolerance:
+#: reading rejects every fold. The accuracy actually achieved is a function of
+#: this tolerance, and *not* monotonically:
 #:
-#:   ==========  ==================  ===================
-#:   tol         solver status       KKT residual
-#:   ==========  ==================  ===================
-#:   1e-8        optimal             1.2e-4   (defaults)
-#:   1e-10       optimal             4.4e-6
-#:   1e-12       optimal             5.6e-7
-#:   1e-14       optimal             1.9e-12  <- used
-#:   1e-16       optimal_inaccurate  4.4e-6   (degrades)
-#:   ==========  ==================  ===================
+#:   ==========  ===========  ==================  ==================
+#:   tol         status       worst residual      over acceptance tol
+#:   ==========  ===========  ==================  ==================
+#:   1e-8        optimal      1.2e-4              (solver defaults)
+#:   1e-12       optimal      7.9e-7              15 of 1176
+#:   1e-13       optimal      1.1e-8              0
+#:   1e-14       optimal      1.5e-11             0   <- used
+#:   1e-15       optimal      1.1e-4              41
+#:   1e-16       optimal      5.4e-3              132
+#:   ==========  ===========  ==================  ==================
 #:
-#: 1e-14 is the operating point: it clears the acceptance threshold by ~5 orders
-#: of magnitude, while going tighter *decreases* accuracy because the solver gives
-#: up and returns ``optimal_inaccurate``. The spec's intent -- that the residual
-#: check binds -- is honoured; the explicit tolerance is the only way to honour
-#: it. Both this and the "duality gap" substitution are **finding F17**, resolved
-#: as reading (a) by DEC-20261017-029.
+#: The 1e-8 row is the solver default, measured on the first fold. Every other row
+#: is the whole frozen run -- 7 methods x 168 rebalances = 1176 solves -- measured
+#: by ``scripts/certify_engine.py`` *after* the certificate fixes (findings F20 and
+#: F21). The non-monotonicity is the point: 1e-13 is three orders of magnitude
+#: worse than 1e-14 in the worst case, and both 1e-15 and 1e-16 are far worse than
+#: 1e-12. Asking the solver to be more exact is not how exactness is obtained.
+#:
+#: 1e-14 is the operating point: zero rejections across all 1176 solves and a worst
+#: residual four orders of magnitude inside the acceptance threshold, while going
+#: tighter *decreases* accuracy because the solver gives up and returns
+#: ``optimal_inaccurate``. The spec's intent -- that the residual check binds -- is
+#: honoured; the explicit tolerance is the only way to honour it. Both this and the
+#: "duality gap" substitution are **finding F17**, resolved as reading (a) by
+#: DEC-20261017-029.
 SOLVER_TOL = 1e-14

@@ -10,6 +10,9 @@ data/
 # Results (keep the CSV, ignore scratch)
 results/*.png
 results/*.tmp
+# Regenerable run artefacts. Evidence that matters is recorded in docs/ and
+# notes/ as a table, not as a generated file that can silently go stale.
+results/*.json
 
 # Python
 __pycache__/

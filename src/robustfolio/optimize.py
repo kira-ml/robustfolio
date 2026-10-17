@@ -218,15 +218,55 @@ def _mvo_residual(
     variables, which removes any dependence on their sign convention and on the
     solver used (the mandated solver exposes no duality gap -- finding F17).
 
-    ``nu`` is recovered from the indices where both box constraints are inactive
-    and the absolute-value term is smooth; the median is used so one
-    misclassified index cannot move it. ``tol`` classifies a variable as being at
-    a bound: it is the run acceptance tolerance, because a primal solution is
-    only certified to that accuracy, so a weight 2e-8 inside the cap *is* at the
-    cap for certificate purposes. If no smooth interior index exists the residual
-    is computed with ``nu = 0`` and will normally fail -- a loud failure is
-    correct (spec §5.7), but this certificate assumes at least one such index,
-    which holds for any universe of size >= 4 under the frozen cap.
+    **Recovering ``nu`` without guessing it, and without needing a subset.**
+    Write ``p = penalty`` and ``a_i = g_i - p s_i``. Each index's condition is a
+    bound on ``nu`` in one or both directions:
+
+    ==============  ================================  ============================
+    index           condition                         bound on ``nu``
+    ==============  ================================  ============================
+    interior        ``g_i - p s_i == nu``             ``nu in [a_i, a_i]``
+    interior, kink  ``g_i - p s == nu``, ``s`` free   ``nu in [g_i-p, g_i+p]``
+    at the cap      ``g_i - p s_i >= nu``             ``nu <= a_i`` (``g_i+p`` at kink)
+    at the floor    ``g_i - p s_i <= nu``             ``nu >= a_i`` (``g_i-p`` at kink)
+    ==============  ================================  ============================
+
+    The conditions hold jointly iff the largest lower bound does not exceed the
+    smallest upper bound, so the residual is half the width of that empty
+    interval (``nu`` sits at its midpoint), i.e. the min-max stationarity
+    violation over all admissible ``nu``:
+
+        ``residual = max(0, (max lower bound - min upper bound) / 2)``
+
+    This is exact, and -- unlike reading ``nu`` off a subset of the indices -- it
+    does not require any subset to be non-empty. That case is not hypothetical:
+    when the turnover penalty makes the optimum *hold* the drifted portfolio,
+    every weight sits exactly on the ``|.|`` kink simultaneously, so there is no
+    smooth interior index to read ``nu`` from. The previous version fell back to
+    ``nu = 0`` there and rejected seven optimal B5 rebalances with residuals up
+    to 1.5e-3, while CLARABEL, SCS and OSQP agreed on the objective to 1e-10 and
+    no feasible exchange improved it (finding F20).
+
+    ``tol`` classifies a variable as being at a bound and as being at a kink. It
+    is the run acceptance tolerance, because a primal solution is only certified
+    to that accuracy, so a weight 2e-8 inside the cap *is* at the cap for
+    certificate purposes.
+
+    **Limitation, stated because the certificate is what the project's central
+    claim rests on.** At a kink the stationarity condition is a *band* of width
+    ``2 * penalty``, so a solution sitting within that band of the true multiplier
+    cannot be distinguished from an optimal one. That is inherent to the
+    non-smooth L1 formulation rather than to this implementation -- for the frozen
+    problem the band is ``2 * kappa = 2e-3`` in gradient units -- and it is benign
+    in the direction that matters, because the objective is flat to the same order
+    there. Two things keep it narrow: the band applies only to weights classified
+    as *on* the kink (``|w_i - base_i| <= tol``, tol = the acceptance tolerance),
+    so a solution that has actually traded is held to the smooth condition; and
+    the certificate verifies the KKT system of the problem as posed without
+    independently bounding the objective gap. The measured evidence at the frozen
+    operating point is that it is not being satisfied vacuously: across 1,176
+    solves the worst residual is 1.49e-11, and B5's 62 ``optimal_inaccurate``
+    self-reports all certify.
     """
     n = len(w)
     g = mu - risk_aversion * (sigma @ w)
@@ -243,39 +283,36 @@ def _mvo_residual(
     at_lo = w <= tol
     at_hi = w >= cap - tol
     interior = ~(at_lo | at_hi)
-    smooth = interior & ~at_kink
 
     a = g - penalty * s_fixed
-    nu = float(np.median(a[smooth])) if smooth.any() else 0.0
+    # At a kink the subgradient is free in [-1, 1], so the index contributes a
+    # band of width 2p rather than a single value.
+    lower_at_bound = np.where(at_kink, g - penalty, a)
+    upper_at_bound = np.where(at_kink, g + penalty, a)
 
-    residual = np.zeros(n)
-    fixed = ~at_kink
+    # Floor and interior indices bound nu from below; cap and interior from above.
+    lower = -np.inf
+    upper = np.inf
+    if at_lo.any():
+        lower = max(lower, float(lower_at_bound[at_lo].max()))
+    if at_hi.any():
+        upper = min(upper, float(upper_at_bound[at_hi].min()))
+    if interior.any():
+        lower = max(lower, float(lower_at_bound[interior].max()))
+        upper = min(upper, float(upper_at_bound[interior].min()))
 
-    # interior: g_i - penalty s_i == nu
-    m = interior & fixed
-    residual[m] = np.abs(a[m] - nu)
-    # interior, at the kink of |.|: any s in [-1, 1] is allowed
-    m = interior & at_kink
-    residual[m] = np.maximum(0.0, np.abs(g[m] - nu) - penalty)
+    gap = lower - upper  # <= 0 exactly when the KKT system is satisfiable
+    value = max(0.0, 0.5 * gap) if np.isfinite(gap) else 0.0
+    nu = 0.5 * (lower + upper) if np.isfinite(lower) and np.isfinite(upper) else float("nan")
 
-    # at the cap: need g_i - penalty s_i >= nu, slack is hi_i
-    m = at_hi & fixed
-    residual[m] = np.maximum(0.0, nu - a[m])
-    m = at_hi & at_kink
-    residual[m] = np.maximum(0.0, nu - g[m] - penalty)
-
-    # at the floor: need g_i - penalty s_i <= nu, slack is lo_i
-    m = at_lo & fixed
-    residual[m] = np.maximum(0.0, a[m] - nu)
-    m = at_lo & at_kink
-    residual[m] = np.maximum(0.0, g[m] - penalty - nu)
-
-    value = float(np.max(residual)) if n else 0.0
-    return value, {
+    return float(value), {
         "nu": nu,
+        "nu_lower": float(lower),
+        "nu_upper": float(upper),
         "n_interior": int(interior.sum()),
         "n_at_cap": int(at_hi.sum()),
         "n_at_floor": int(at_lo.sum()),
+        "n_at_kink": int(at_kink.sum()),
     }
 
 
@@ -338,7 +375,16 @@ def mean_variance(
     objective = mu_v @ w - (risk_aversion / 2.0) * cp.quad_form(w, cp.psd_wrap(sigma))
     constraints = [cp.sum(w) == 1.0, w >= 0.0, w <= max_weight]
     if turnover_penalty > 0.0:
-        u = cp.Variable(n, nonneg=True)
+        # ``u`` is deliberately NOT declared ``nonneg=True``. The two constraints
+        # below already imply ``u >= |w - base| >= 0``, so the bound is redundant
+        # -- but a redundant row is not numerically inert: it changes CLARABEL's
+        # interior-point path. With the bound, rebalance B5 2015-01-31 on the
+        # frozen universe returns ``optimal_inaccurate`` after 12 iterations at a
+        # point 2.8e-11 *below* the optimum (KKT residual 5.1e-7); without it the
+        # identical problem solves to ``optimal`` in 15 iterations with KKT
+        # residual 0 (finding F21). The certificate rejected the bound's answer,
+        # which is the certificate doing its job; the fix belongs here.
+        u = cp.Variable(n)
         constraints += [u >= w - base, u >= -(w - base)]
         objective = objective - turnover_penalty * cp.sum(u)
 
@@ -350,7 +396,13 @@ def mean_variance(
     residual, meta = _mvo_residual(
         w_val, mu_v, sigma, risk_aversion, turnover_penalty, base, max_weight
     )
-    _accept(label, violation, residual)
+    # The solver's self-report, kept *beside* the certificate rather than instead
+    # of it. Recording both is what makes a disagreement visible in the results
+    # instead of only in a re-run -- finding F17 is exactly such a disagreement,
+    # where CLARABEL returns ``optimal`` at a point whose KKT residual is 1.2e-4.
+    meta["solver_status"] = problem.status
+    meta["solver_iterations"] = getattr(problem.solver_stats, "num_iters", None)
+    _accept(label, violation, residual, solver_status=problem.status)
     return Solution(
         weights=pd.Series(w_val, index=names),
         objective=float(problem.value),
@@ -489,7 +541,7 @@ def risk_parity(
     raw = _ccd_risk_budgeting(sigma, budgets)
     w = raw / raw.sum()
     if float(w.max()) <= max_weight + 1e-12:
-        return Solution(
+        solution = Solution(
             weights=pd.Series(w, index=names),
             objective=float(w @ sigma @ w),
             status="optimal",
@@ -498,6 +550,12 @@ def risk_parity(
             formulation="erc",
             meta={**load_meta, "cap": float(raw.max())},
         )
+        # This branch must be accepted on exactly the same terms as the capped one.
+        # It previously returned without calling ``_accept`` at all, so for the
+        # rebalances where the cap does not bind -- 14 of 168 on the frozen
+        # universe -- neither §5.6 check ran, and B2 was silently uncertified.
+        _accept(label, solution.max_violation, solution.residual)
+        return solution
 
     # The cap binds: find the unnormalised cap level whose normalised maximum
     # is exactly w_max. m(k) is non-decreasing in k (a looser cap on the raw
@@ -551,14 +609,22 @@ def risk_parity(
 # Acceptance
 # --------------------------------------------------------------------------- #
 
-def _accept(label: str, violation: float, residual: float) -> None:
-    """Spec §5.6 acceptance. Either check failing aborts the run."""
+def _accept(label: str, violation: float, residual: float, *, solver_status: str | None = None) -> None:
+    """Spec §5.6 acceptance. Either check failing aborts the run.
+
+    ``solver_status`` is carried into the message on purpose. The failure this
+    check exists to catch is not "the solver failed" -- it is "the solver
+    reported ``optimal`` and the solution does not satisfy the optimality
+    conditions", which is finding F17's whole point. Naming the self-report in
+    the error is what makes that disagreement legible in a log.
+    """
+    reported = f" (solver reported {solver_status!r})" if solver_status is not None else ""
     if violation > ACCEPT_TOL:
         raise SolverFailure(
-            f"{label}: max constraint violation {violation:.3e} > {ACCEPT_TOL:.0e}"
+            f"{label}: max constraint violation {violation:.3e} > {ACCEPT_TOL:.0e}{reported}"
         )
     if residual > ACCEPT_TOL:
         raise SolverFailure(
             f"{label}: optimality residual {residual:.3e} > {ACCEPT_TOL:.0e} "
-            "(stationarity / dual feasibility / complementary slackness)"
+            f"(stationarity / dual feasibility / complementary slackness){reported}"
         )

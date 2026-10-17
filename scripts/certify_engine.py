@@ -1,12 +1,18 @@
-"""Certify the engine against the frozen snapshot (spec §5.6).
+"""Certify the engine on the frozen snapshot (spec §5.6).
 
-For every monthly rebalance of the frozen out-of-sample period (2012-06 ..
-2026-05), re-estimate each constructor on its trailing 60-month window using
-only the assets eligible at that date, and check that the returned portfolio
-satisfies the optimality certificate.
+Runs the *production* walk-forward harness (``robustfolio.backtest``) for every
+method over the frozen out-of-sample period (2012-06 .. 2026-05) and checks that
+every rebalance carries a passing optimality certificate.
 
-This is the evidence behind the claim "the solve is the optimum it says it is".
-It is not an experiment (protocol §12.2): it forms no portfolio, reports no
+Why it drives the harness instead of rebuilding the rebalance loop: an earlier
+version of this script rebuilt it, and passed B5 a constant equal-weight initial
+holding. Production passes B5 the *drifted* previous holding. Those are different
+optimisation problems, so the script certified a problem the project never runs.
+It reported B5 clean (worst residual 3.8e-12) while production rejected seven
+rebalances, the worst at 1.5e-3. Evidence that the artifact under test did not
+produce is not evidence.
+
+This is not an experiment (protocol §12.2): it forms no portfolio, reports no
 strategy metric, and cannot be cited for or against any hypothesis. It prints a
 table and exits non-zero if any rebalance fails to certify.
 
@@ -22,43 +28,46 @@ import sys
 import time
 from pathlib import Path
 
-import numpy as np
-import pandas as pd
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from robustfolio import estimators, optimize  # noqa: E402
-from robustfolio.config import (  # noqa: E402
-    ESTIMATION_WINDOW,
-    GAMMA,
-    TURNOVER_PENALTY,
-)
+from robustfolio import backtest, optimize  # noqa: E402
 from robustfolio.data import load_snapshot  # noqa: E402
 
 DEFAULT_SNAPSHOT = "yahoo-usetf-2007-01-01_2026-09-30-2026-10-17-2ad06139"
-OOS_START = pd.Timestamp("2012-06-01")
-OOS_END = pd.Timestamp("2026-05-31")
 
-#: The methods that go through a solver. B1 is arithmetic and has no certificate.
-METHODS = ("B2", "B3", "B4", "B5", "M1", "M2")
+#: Protocol §13.1: 168 monthly rebalances, in 14 folds of 12 months.
+EXPECTED_REBALANCES = 168
+EXPECTED_FOLDS = 14
 
 
-def build_jobs(train: pd.DataFrame) -> dict:
-    """The solver-backed constructors, each on its own trailing-60-month window."""
-    mu = estimators.sample_mean(train)
-    cov = estimators.sample_cov(train)
-    shrunk = estimators.ledoit_wolf_cov(train)
-    posterior = estimators.black_litterman_returns(mu, cov, gamma=GAMMA)
-    w_prev = estimators.equal_weight(train)
+def summarise(result) -> dict:
+    """Certificate and structure of one method's run."""
+    diagnostics = result.diagnostics
+    residual = diagnostics["residual"].astype(float)
+    violation = diagnostics["max_violation"].astype(float)
+    iterations = diagnostics["solver_iterations"]
+    worst_month = result.weights.index[residual.values.argmax()]
+    # B1 is arithmetic: it forms no covariance, so it records no condition number.
+    cond = diagnostics["cond"] if "cond" in diagnostics.columns else None
     return {
-        "B2": lambda: optimize.risk_parity(cov),
-        "B3": lambda: optimize.mean_variance(mu, cov),
-        "B4": lambda: optimize.minimum_variance(cov),
-        "B5": lambda: optimize.mean_variance(
-            mu, cov, w_prev=w_prev, turnover_penalty=TURNOVER_PENALTY
-        ),
-        "M1": lambda: optimize.mean_variance(mu, shrunk),
-        "M2": lambda: optimize.mean_variance(posterior, cov),
+        "method": result.method,
+        "rebalances": int(len(residual)),
+        "folds": int(result.folds.nunique()),
+        "first_rebalance": result.weights.index[0].date().isoformat(),
+        "last_rebalance": result.weights.index[-1].date().isoformat(),
+        "universe_min": int(diagnostics["n_assets"].min()),
+        "universe_max": int(diagnostics["n_assets"].max()),
+        "worst_residual": float(residual.max()),
+        "worst_residual_at": worst_month.date().isoformat(),
+        "n_over_acceptance": int((residual > optimize.ACCEPT_TOL).sum()),
+        "worst_violation": float(violation.max()),
+        "cond_min": None if cond is None else float(cond.min()),
+        "cond_max": None if cond is None else float(cond.max()),
+        "formulations": {str(k): int(v) for k, v in
+                         diagnostics["formulation"].value_counts().items()},
+        "max_solver_iterations": None if iterations.isna().all() else int(iterations.max()),
+        "solver_statuses": {str(k): int(v) for k, v in
+                            diagnostics["solver_status"].fillna("none").value_counts().items()},
     }
 
 
@@ -69,91 +78,95 @@ def main() -> int:
     args = parser.parse_args()
 
     snapshot = load_snapshot(args.snapshot)
-    returns = snapshot.monthly_total_returns()
-    months = returns.index
-    test_months = months[(months >= OOS_START) & (months <= OOS_END)]
-
-    record = {
-        name: {"worst_residual": 0.0, "worst_at": None, "worst_violation": 0.0, "failures": []}
-        for name in METHODS
-    }
-    condition_numbers: list[float] = []
-    universe_sizes: set[int] = set()
-    box_constrained = 0
-    n_nan = 0
     started = time.time()
 
-    for t in test_months:
-        window = months[months < t][-ESTIMATION_WINDOW:]
-        train = returns.loc[window, sorted(snapshot.eligible(t))]
-        if train.isna().any().any():
-            # A gap inside the estimation window would be a data-layer defect,
-            # not something to paper over here (spec §3.3).
-            n_nan += 1
-            continue
-        universe_sizes.add(train.shape[1])
-        condition_numbers.append(float(np.linalg.cond(estimators.sample_cov(train).to_numpy())))
-
-        for name, job in build_jobs(train).items():
-            entry = record[name]
-            try:
-                solution = job()
-            except optimize.SolverFailure as exc:
-                entry["failures"].append({"month": t.date().isoformat(), "error": str(exc)})
-                continue
-            if name == "B2" and solution.formulation == "erc_box_constrained":
-                box_constrained += 1
-            if solution.residual > entry["worst_residual"]:
-                entry["worst_residual"] = solution.residual
-                entry["worst_at"] = t.date().isoformat()
-            entry["worst_violation"] = max(entry["worst_violation"], solution.max_violation)
+    summaries: list[dict] = []
+    failures: list[dict] = []
+    for method in backtest.METHOD_IDS:
+        try:
+            summaries.append(summarise(backtest.run_method(snapshot, method)))
+        except optimize.SolverFailure as exc:
+            failures.append({"method": method, "error": str(exc)})
 
     elapsed = time.time() - started
-    total_failures = sum(len(entry["failures"]) for entry in record.values())
+    solves = sum(entry["rebalances"] for entry in summaries)
 
-    print(f"snapshot   : {args.snapshot}")
-    print(f"rebalances : {len(test_months)} ({test_months[0].date()} .. {test_months[-1].date()}), "
-          f"{len(test_months) // 12} folds")
-    print(f"universe   : {sorted(universe_sizes)} assets")
-    print(f"cond(sigma) : {min(condition_numbers):.3e} .. {max(condition_numbers):.3e}")
-    print(f"risk parity: box-constrained on {box_constrained}/{len(test_months)} rebalances")
-    print(f"gaps       : {n_nan} rebalances skipped")
-    print(f"elapsed    : {elapsed:.1f}s")
+    # --- structural checks ------------------------------------------------- #
+    problems: list[str] = []
+    if not failures:
+        for entry in summaries:
+            if entry["rebalances"] != EXPECTED_REBALANCES:
+                problems.append(f"{entry['method']}: {entry['rebalances']} rebalances, "
+                                f"expected {EXPECTED_REBALANCES} (protocol §13.1)")
+            if entry["folds"] != EXPECTED_FOLDS:
+                problems.append(f"{entry['method']}: {entry['folds']} folds, "
+                                f"expected {EXPECTED_FOLDS} (protocol §13.1)")
+            if entry["first_rebalance"] != summaries[0]["first_rebalance"]:
+                problems.append(f"{entry['method']}: first rebalance "
+                                f"{entry['first_rebalance']} disagrees with "
+                                f"{summaries[0]['first_rebalance']}")
+            if entry["last_rebalance"] != summaries[0]["last_rebalance"]:
+                problems.append(f"{entry['method']}: last rebalance "
+                                f"{entry['last_rebalance']} disagrees with "
+                                f"{summaries[0]['last_rebalance']}")
+            if entry["n_over_acceptance"]:
+                problems.append(f"{entry['method']}: {entry['n_over_acceptance']} "
+                                f"rebalances over the acceptance tolerance")
+
+    print(f"snapshot      : {args.snapshot}")
+    print(f"acceptance    : residual and violation <= {optimize.ACCEPT_TOL:.0e} (spec 5.6)")
+    print(f"solver        : cvxpy + CLARABEL, all tolerances {optimize.SOLVER_TOL:.0e} (finding F17)")
+    print(f"solves        : {solves} certified in {elapsed:.1f}s")
     print()
-    print(f"{'method':<7}{'worst residual':>16}{'at':>13}{'worst violation':>18}{'failures':>10}")
-    for name in METHODS:
-        entry = record[name]
-        print(
-            f"{name:<7}{entry['worst_residual']:>16.3e}"
-            f"{(entry['worst_at'] or '-'):>13}{entry['worst_violation']:>18.3e}"
-            f"{len(entry['failures']):>10}"
-        )
+
+    header = ("method", "rebalances", "folds", "universe", "worst residual", "at",
+              "worst viol", "iters", "over")
+    print("%-7s%11s%7s%10s%16s%13s%12s%7s%6s" % header)
+    for entry in summaries:
+        print("%-7s%11d%7d%10s%16.3e%13s%12.3e%7s%6d"
+              % (entry["method"], entry["rebalances"], entry["folds"],
+                 f"{entry['universe_min']}..{entry['universe_max']}",
+                 entry["worst_residual"], entry["worst_residual_at"],
+                 entry["worst_violation"],
+                 "-" if entry["max_solver_iterations"] is None
+                 else entry["max_solver_iterations"],
+                 entry["n_over_acceptance"]))
+    print()
+
+    for entry in summaries:
+        condition = ("cond n/a" if entry["cond_min"] is None
+                     else f"cond {entry['cond_min']:.2e}..{entry['cond_max']:.2e}")
+        print(f"  {entry['method']}: {entry['formulations']}  "
+              f"solver said {entry['solver_statuses']}  {condition}")
 
     if args.json:
         args.json.parent.mkdir(parents=True, exist_ok=True)
         args.json.write_text(
-            json.dumps(
-                {
-                    "snapshot": args.snapshot,
-                    "rebalances": len(test_months),
-                    "universe_sizes": sorted(universe_sizes),
-                    "cond_min": min(condition_numbers),
-                    "cond_max": max(condition_numbers),
-                    "risk_parity_box_constrained": box_constrained,
-                    "elapsed_seconds": elapsed,
-                    "methods": record,
-                },
-                indent=2,
-            )
-            + "\n",
+            json.dumps({
+                "snapshot": args.snapshot,
+                "acceptance_tolerance": optimize.ACCEPT_TOL,
+                "solver_tolerance": optimize.SOLVER_TOL,
+                "elapsed_seconds": elapsed,
+                "solves": solves,
+                "methods": summaries,
+                "structural_problems": problems,
+                "failures": failures,
+            }, indent=2) + "\n",
             encoding="utf-8",
         )
         print(f"\nwrote {args.json}")
 
-    if total_failures:
-        print(f"\nFAILED: {total_failures} rebalance(s) did not certify")
+    if failures:
+        print("\nFAILED to certify:")
+        for failure in failures:
+            print(f"  {failure['method']}: {failure['error']}")
         return 1
-    print("\nAll rebalances certified.")
+    if problems:
+        print("\nFAILED structural checks:")
+        for problem in problems:
+            print(f"  {problem}")
+        return 1
+    print("\nAll rebalances certified; structure matches protocol 13.1.")
     return 0
 
 
