@@ -58,6 +58,7 @@ Each entry uses the following fields:
 | DEC-20261017-025 | 2026-10-17 | GOVERNANCE | ACTIVE | Build the immutable PIT snapshot; pass the §5.4.8 leakage suite; record findings F10–F12 |
 | DEC-20261017-026 | 2026-10-17 | GOVERNANCE | ACTIVE | Confirm F10/F11 (rf conventions); register Test B and Test D; raise F13 (DSR trial count) and F14 (Test C period) |
 | DEC-20261017-027 | 2026-10-17 | GOVERNANCE | ACTIVE | Resolve F13 (N = 1 confirmed) and F14 (Test C windows {36, 60} at the frozen anchor); register Test C |
+| DEC-20261017-028 | 2026-10-17 | GOVERNANCE | ACTIVE | Rule the design diagnostics non-experimental; resolve F15 (report rho, no amendment); retract the "underpowered" claim |
 
 **Gap note (001–011):** Resolved by DEC-20261015-014. The seed entries referenced in DEC-20261014-000 were not written and are not recoverable. They are treated as never having existed in this log.
 
@@ -963,6 +964,59 @@ Six weeks from now this entry has failed in one of four ways. (a) Test C's two-p
 
 ---
 
+### DEC-20261017-028
+
+**Date:** 2026-10-17
+**Type:** GOVERNANCE
+**Status:** ACTIVE
+**Authority:** Owner
+**Related docs:** `notes/power_and_effective_bets_2026-10-17.md` (v1.0 → v1.1, recorded by this entry), `scripts/diagnostics_power.py`, `evaluation_protocol.md` (v2.4, Frozen §4.3, §6.1–§6.3, §12.2, §12.6.4, §12.9, §13.1), `decision_log.md` Appendix A, `docs/README.md` (v1.10), DEC-20261017-026, DEC-20261017-027
+**Related risks:** R-M01, R-M02, R-E04, R-S02
+
+**Context:**
+DEC-20261017-027 completed the registry. The next question was whether the registered tests can detect the effect they exist to detect. That question needed no model and no harness — only the eigen-spectrum of the covariance and the sampling theory of Sharpe *differences* — so it was answered before any experiment ran, which is the point. It also changed a conclusion reached in discussion earlier the same day, so it is recorded rather than left in chat.
+
+**Decision:**
+1. **Ruling (§12.2): the design diagnostics are not an experiment and not a registry entry.** `scripts/diagnostics_power.py` forms no portfolio, produces no strategy return series and reports no performance metric; every number is a property of the data or of the test design, and the values would be identical if `M1`/`M2` had never been proposed. It cannot be cited for or against H1–H3 and does not count toward any denominator. Recorded so that a later reader cannot mistake it for an unregistered run.
+2. **`notes/power_and_effective_bets_2026-10-17.md` v1.0 adopted as a design input** (v1.1 as of this entry).
+3. **F15 raised and resolved — reading (a): design diagnostic, no amendment.** ρ(candidate, best baseline) must be reported in the **design/detectability appendix** accompanying any Test D result, and a null result with ρ < 0.98 at the §6.2 threshold is labelled **UNDERPOWERED / inconclusive**, not negative. It is **not** added to the registered metric set: §12.6.4's "any … metric" is read as protecting the decision-relevant metrics, and ρ cannot support or defeat a claim. `EXP-H2-20261017-001` is therefore **not amended** and its family size stays **N = 1**.
+4. **A correction is recorded.** The claim made in discussion that the project is "underpowered for a 0.2 Sharpe claim" is **retracted** as too pessimistic: the paired design detects the §6.2 threshold at ≥ 80% power for ρ ≥ 0.98, and the level test's ≈ 0.67 requirement is cleared by the candidates' realised Sharpes (0.06–1.09, median 0.45). The design is silent only about improvements below ≈ 0.13.
+5. **Three measured facts are recorded as inputs to the problem framing and to the eventual writeup:**
+   - the universe carries **`N_part` 3.14 / `N_ent` 5.03** independent directions overall, stable per fold at 2.45–3.91 / 4.13–5.71, with the market factor at 50.5% of variance and 6 factors needed for 90%;
+   - **12 of the 18** sample eigenvalues fall below the Marchenko–Pastur lower edge (0.452) for an *independent* 18 × 168 panel, the smallest being **85× below it** — so the H1 premise is **supported by the data rather than assumed**;
+   - under the null the §6.3 fold gate passes **21.2%** of the time (≥ 9 of 14, independent folds; higher with the positive fold correlation), so it is a **weak discriminator** and must not be presented as independent evidence.
+6. **No frozen document is amended.** The ρ requirement lands in a design appendix, not in the spec's §8 reporting interface. `evaluation_protocol.md` (v2.4), `model_and_method_spec.md` (v1.1) and `scope_and_non_goals.md` (v1.4) are unchanged. If ρ is later wanted inside the *required* report, that is a separate versioned spec amendment.
+
+**Alternatives considered:**
+- **Treat ρ as a registered secondary metric and amend pre-run (reading b).** Rejected — §12.6.4 read literally raises the denominator to N = 2 for adding a statistic that can only make the report *more* honest, so the more transparent the reporting the higher the bar. Recorded because the reading is defensible and its perversity is the reason it was rejected, not because it is unreasonable.
+- **Leave ρ unreported.** Rejected — a null would then be published without its power caveat, and an underpowered test would read as evidence of no effect. That is the §12.10 failure mode wearing a confirmatory label.
+- **Put ρ into the Frozen spec's §8 reporting interface.** Deferred, not rejected — it would require a versioned amendment to a Frozen document for a statistic that is not decision-bearing. Revisit if ρ ever enters a decision rule.
+- **Omit the retraction because the claim was only made in conversation.** Rejected — the log records retractions elsewhere (DEC-20261015-014), and an analysis whose errors are not logged is not an analysis.
+- **Build the diagnostics inside the Phase 2 harness.** Rejected — it would have delayed the one output that is independent of how Test D lands, and it would put the diagnostic inside the thing it is meant to check.
+
+**Rationale:**
+[First Principles] The decisive quantities — the eigen-spectrum of Σ and the sampling variance of a Sharpe difference — are properties of the data and of the test, not of any method. They were therefore computable before the harness existed, and being computable early is what makes them useful.
+[Inversion] The failure mode is not an uninformative result but an **uninterpretable** one: a null that cannot be distinguished from an underpowered test. ρ is the quantity that separates them.
+[Bayesian Updating] The earlier claim was updated by its own arithmetic and the update is recorded. A project that demands calibrated uncertainty from its model must apply the same standard to its own prose.
+[Goodhart's Law] Reading (b) makes success harder to declare *and* easier to look rigorous — the shape of a rule that gets worked around. Reading (a) leaves the restriction where the protocol put it (decision-relevant metrics) and adds the diagnostic outside it.
+[Baselines and Opportunity Cost] The whole diagnostic is one script and one note with no model, and it yields a result that survives either Test D outcome. That is a better return per unit of effort than any further protocol work.
+
+**Reversibility:** Soft. The §12.2 ruling and the F15 resolution are append-only. If ρ is later wanted inside the required report, a versioned spec amendment supersedes point 6 without disturbing anything else.
+
+**Revisit trigger:**
+Test D returns a null with ρ < 0.98 → the result is labelled underpowered and the §6.2 threshold, not the method, becomes the finding. Or Test D returns ρ < 0.95 → the minimal-difference design did not deliver the expected correlation and the power assumption in the registration's field 4 is revisited on new evidence. Or ρ enters a decision rule → point 6's deferral expires.
+
+**Expected value assessment:**
+- Probability ρ lands ≥ 0.98 for the best candidate/baseline pair: moderate (~60%) — the one-component difference makes high correlation likely but not certain.
+- Probability the effective-bets figure (3–5 directions, not 18 assets) changes how a reader interprets the eventual result: high (~85%).
+- Probability the Marchenko–Pastur comparison was necessary to establish the H1 premise rather than assert it: high (~80%).
+- Probability the fold gate proves decision-relevant despite the 0.212 null rate: low (~15%).
+
+**Pre-mortem:**
+Six weeks from now this entry has failed in one of four ways. (a) Test D is reported without ρ, so a null is read as "no effect" — detectable by checking that the design appendix accompanies the result. (b) The 21.2% fold-gate rate is quoted as if it implicated the DSR adjustment — detectable because the two are conjunctive and only §6.1 controls Type I. (c) The effective-bets figure is quoted as "the universe has 3 assets" rather than "3–5 effective directions among 18 candidates" — detectable by requiring the candidate count to travel with the effective count. (d) The diagnostic is quietly re-run with a different ρ assumption until the power looks good — detectable because the assumption is written down in the note's §3(b) and changing it is an amendment.
+
+---
+
 ## Appendix A — Experiment Registry (Ledger)
 
 This appendix is the append-only ledger of pre-registered experiments. Registry *rules* (what counts as an experiment, ID format, denominator rules, invalidation rules) live in `evaluation_protocol.md` §12 and, until Phase C completes, in `experiment_registry_and_preregistration.md`. This appendix holds the *entries*.
@@ -1221,6 +1275,8 @@ This appendix is the migration record for the open items in `docs/TODO.md` (v1.1
 
 **Update 2026-10-17 (DEC-20261017-027).** Both findings are closed. **F13:** `N = 1` is **owner-confirmed**, so `EXP-H2-20261017-001` stands exactly as registered and the §12.11 family-size risk is closed. **F14:** Test C runs windows **{36, 60}** over the frozen 2012-06…2026-05 period; the **120-month arm is dropped** because the universe did not exist before 2007, so a 120-month window has no feasible start at the frozen anchor. The spec's three-arm decision rule is restated for two arms, and the reduced strength of a two-point sweep is recorded as a limitation. **Test C registered** as `EXP-X-20261017-002` (family X, 2 arms, both reported). All three Tests B/C/D are now pre-registered; none has been executed. No Tier-0 value changed.
 
+**Update 2026-10-17 (DEC-20261017-028).** Design diagnostics, run before any experiment and recorded as **not an experiment and not a registry entry** (protocol §12.2): `notes/power_and_effective_bets_2026-10-17.md` v1.0 (v1.1 by the entry) plus `scripts/diagnostics_power.py`. Measured: the 18 candidates carry only **3–5 independent directions** (`N_part` 3.14 / `N_ent` 5.03; per-fold 2.45–3.91 / 4.13–5.71) rather than 18; **12 of 18** sample eigenvalues fall below the Marchenko–Pastur lower edge (0.452) for an independent 18 × 168 panel, the smallest by **85×**, so the H1 premise is **supported by the data rather than assumed**; and the §6.3 fold gate passes **21.2%** of the time under the null (≥ 9 of 14). **Finding F15 raised and resolved (reading a)**: ρ(candidate, best baseline) is reported in a **design/detectability appendix**, not added to the registered metric set, so `EXP-H2-20261017-001` is **not amended** and keeps **N = 1**. The earlier claim that the project is "underpowered for a 0.2 Sharpe claim" is **retracted** — the paired design detects the §6.2 threshold at ≥ 80% power for ρ ≥ 0.98. No frozen document amended; the remaining appendix items still open are unchanged (**E2**, **E3**, **E5**, **E7**).
+
 ---
 
 ## Revision history
@@ -1244,6 +1300,7 @@ This appendix is the migration record for the open items in `docs/TODO.md` (v1.1
 | 2026-10-17 | Added DEC-20261017-025 (immutable PIT snapshot built; §5.4.8 leakage suite passes — 14 passed, 1 vacuous skip; findings F10–F12 recorded; Gate 1 data blockers closed). Created `notes/snapshot_and_leakage_evidence_2026-10-17.md`; added the snapshot builder, the PIT reader and the leakage suite to `src/`/`scripts/`/`tests/`. Updated Appendix B with the DEC-025 update note. | Ken Ira Lacson Talingting |
 | 2026-10-17 | Added DEC-20261017-026 (F10/F11 confirmed as recorded; first registry entries: `EXP-X-20261017-001` Test B and `EXP-H2-20261017-001` Test D, N = 1; findings F13 and F14 raised — Test C not registered). Introduced the §12.4 pre-registration template in Appendix A; updated Appendix A index and the scaffold note, and Appendix B with the DEC-026 update note. | Ken Ira Lacson Talingting |
 | 2026-10-17 | Added DEC-20261017-027 (F13 resolved — N = 1 owner-confirmed, Test D stands as registered; F14 resolved — Test C windows {36, 60} at the frozen 2012-06…2026-05 period, 120-month arm dropped as infeasible; `EXP-X-20261017-002` Test C registered). Updated Appendix A index and scaffold note, Appendix B note, and the B/C/D spec §9 addendum. All three Tests B/C/D now pre-registered; none executed. | Ken Ira Lacson Talingting |
+| 2026-10-17 | Added DEC-20261017-028 (design diagnostics ruled non-experimental under §12.2; effective-bets and power figures recorded; F15 raised and resolved — report ρ in a design appendix, no amendment, `N = 1` unchanged; the "underpowered" claim retracted). Created `notes/power_and_effective_bets_2026-10-17.md` and `scripts/diagnostics_power.py`. Updated the Appendix B note. No frozen document amended. | Ken Ira Lacson Talingting |
 
 ---
 

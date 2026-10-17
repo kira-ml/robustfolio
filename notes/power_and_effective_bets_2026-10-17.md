@@ -1,12 +1,12 @@
 # Power and effective bets — design diagnostics — 2026-10-17
 
 **Status:** Design diagnostic. **Not an experiment and not a registry entry** (see §0).
-**Version:** 1.0
+**Version:** 1.1
 **Owner:** Ken Ira Lacson Talingting
 **Authority:** [`evaluation_protocol.md`](../docs/evaluation_protocol.md) §4.3, §5.2, §6.1–§6.3, §12.2, §13.1; [`model_and_method_spec.md`](../docs/model_and_method_spec.md) §1
 **Reproduce:** `python scripts/diagnostics_power.py --json results/diagnostics_power.json --figure results/diagnostics_power.png`
 **Snapshot:** `yahoo-usetf-2007-01-01_2026-09-30-2026-10-17-2ad06139`
-**Pending:** a decision-log entry recording this note as an input and raising finding **F15** (§6).
+**Recorded by:** DEC-20261017-028 — this note is an input; the diagnostics are ruled **not an experiment and not a registry entry** (§0), and finding **F15** is resolved (§6).
 
 ---
 
@@ -137,7 +137,7 @@ Both are true, and they pull in opposite directions. **Which dominates is exactl
 
 ## 6. Finding F15 — a Sharpe difference is uninterpretable without ρ
 
-**Raised by this note. Owner decision required.**
+**Raised by this note; resolved by DEC-20261017-028 — reading (a) adopted: reported as a design diagnostic, no amendment, `N = 1` unchanged.**
 
 Test D's power depends on ρ, the return correlation between each robust candidate and the best baseline. It is *not* currently a registered output. Without it, a null result cannot be distinguished from an underpowered one — which is the difference between "we tested it and it failed" and "we could not have told either way."
 
@@ -148,7 +148,7 @@ Governance question this raises: is restating a reported statistic an "amendment
 * **(a) Design diagnostic, no amendment.** ρ is a detectability input reported in a design appendix, the same class of object as the numbers in this note — it cannot support or defeat a claim, so it does not change the registered metric set. Denominator stays `N = 1`. *Recommended.*
 * **(b) Registered secondary metric, pre-run amendment.** Treated literally: adding a reported metric changes the metric set, so it is an amendment, which under §12.6.4 counts as a new trial and raises the denominator to `N = 2` — making success *harder* for adding a diagnostic that only makes the report more honest.
 
-Reading (b) has the perverse property that the more transparent the reporting, the higher the bar. Surfaced rather than resolved for that reason.
+Reading (b) has the perverse property that the more transparent the reporting, the higher the bar. Surfaced rather than resolved for that reason. **Resolution (DEC-20261017-028): reading (a).** ρ is reported in the design/detectability appendix and is not added to the registered metric set, so `EXP-H2-20261017-001` is not amended and keeps `N = 1`. If ρ is later wanted inside the *required* report, that is a separate versioned amendment to `model_and_method_spec.md` §8.
 
 ---
 
@@ -178,3 +178,4 @@ The correct statement is narrower and more useful: **the design is powered for t
 | Version | Date | Change | Author |
 |---------|------|--------|--------|
 | 1.0 | 2026-10-17 | Initial design diagnostics: effective bets (`N_part` 3.14, `N_ent` 5.03, MP comparison), level-test MDE ≈ 0.67, paired-difference power table, fold-gate null rate 0.212. Finding F15 raised. Corrected the earlier "underpowered" claim. | Ken Ira Lacson Talingting |
+| 1.1 | 2026-10-17 | Recorded by DEC-20261017-028 as an input: diagnostics ruled non-experimental under §12.2, and F15 resolved — ρ reported in a design appendix, no amendment, `N = 1` unchanged. Header and §6 updated; no measured value changed. | Ken Ira Lacson Talingting |
