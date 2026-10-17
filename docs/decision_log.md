@@ -50,6 +50,7 @@ Each entry uses the following fields:
 | DEC-20261015-017 | 2026-10-15 | GOVERNANCE | ACTIVE | Execute Phase A relocations; adopt 6-doc target set |
 | DEC-20261015-018 | 2026-10-15 | GOVERNANCE | ACTIVE | Execute Phase C spec merges; retire source files |
 | DEC-20261017-019 | 2026-10-17 | GOVERNANCE | ACTIVE | Record audit findings (fair-comparison defect, baseline-set mismatch, parameter drift) as freeze-session inputs; repair doc integrity |
+| DEC-20261017-020 | 2026-10-17 | GOVERNANCE | ACTIVE | Define Tests B/C/D (resolves F6); produce freeze worksheet; record findings N1–N3 |
 
 **Gap note (001–011):** Resolved by DEC-20261015-014. The seed entries referenced in DEC-20261014-000 were not written and are not recoverable. They are treated as never having existed in this log.
 
@@ -546,6 +547,55 @@ The freeze session must address F1–F8. If the freeze completes and none of F1�
 **Pre-mortem:**
 Six weeks from now this entry has failed if (a) `evaluation_protocol.md` is `Frozen` while `inverse_vol` still bypasses the box constraint (F1) or while B2/B4 remain unimplemented but listed as MVP (F2); or (b) `docs/README.md` still asserts that `model_and_method_spec.md` is referenced by the protocol (F5d) after the method spec is written. Both are detectable by grepping the code for `max_weight` call-sites and by grepping the protocol for `model_and_method_spec`.
 
+### DEC-20261017-020
+
+**Date:** 2026-10-17
+**Type:** GOVERNANCE
+**Status:** ACTIVE
+**Authority:** Owner
+**Related docs:** `decision_log.md` (DEC-20261015-012, -015, -017, -018, DEC-20261017-019), `evaluation_protocol.md` (§4.2, §5.2, §7, §8.4, §18), `problem_framing.md` (§4.1, §14), `scope_and_non_goals.md` §4.3, `notes/freeze_worksheet_2026-10-17.md` (new), `notes/tests_BCD_spec_2026-10-17.md` (new)
+**Related risks:** R-S02, R-S03, R-D02, R-P01
+
+**Context:**
+DEC-20261017-019 recorded finding F6: "Tests B/C/D" are referenced eight times in `problem_framing.md` §14 and DEC-20261015-012 as the planned resolution of the cap-artifact / window-artifact / real-effect question, but were specified nowhere. The freeze worksheet (TODO item D1) was also outstanding. This entry records the production of both artifacts and three further findings surfaced while producing them.
+
+**Decision:**
+1. **F6 is resolved.** Tests B, C, and D are specified in `notes/tests_BCD_spec_2026-10-17.md`, with a common configuration, per-test decision rules, family assignment (B and C: family X, exploratory, non-counting; D: families H2/H3, counting), and a selection firewall that prevents a B/C sweep from choosing Test D's configuration.
+2. **The freeze worksheet is produced** at `notes/freeze_worksheet_2026-10-17.md`. It restates every `[PROPOSED]` value in `evaluation_protocol.md` §18 and every finding from DEC-20261015-015 and DEC-20261017-019 with a recommended value, rationale, and source tag.
+3. **The recommendations in the worksheet are proposals, not decisions.** They become binding only when the owner confirms them at the freeze session. This entry freezes none of them.
+4. **Three new findings (N1–N3) are recorded** as additional freeze-session inputs.
+
+**Findings (new):**
+
+- **N1 — Gate 0 is not met as written.** `evaluation_protocol.md` §8.4 requires the R1 scan to document "≥10 relevant open-source tools, papers, or repositories." The Phase 0 scan (`problem_framing.md` §4.1) names four (`cvxportfolio`, `PyPortfolioOpt`, `Riskfolio-Lib`, `skfolio`). Under the protocol's own exit criteria, Gate 0 has not been passed. *Recommendation:* extend the scan to ≥10 rather than relax the criterion — the criterion is the defense against a false gap claim (§8.6 K3, R-S03).
+- **N2 — H1.1 is unreachable under an enforced cap.** If the freeze adopts a uniform `w_max = 0.30` (freeze worksheet §2, resolving F1), then no method's maximum weight can exceed 0.40, and H1.1's test — "max absolute weight > 0.40 in ≥1 fold" — cannot be satisfied by any capped model. H1.1 must be redefined to test the **uncapped** sample MVO, with the capped variant reported as a separate treatment. Without this, the framing's primary premise check fails for a definitional reason, not an empirical one.
+- **N3 — The fixed universe is survivorship-biased.** `data.py`'s 15-ticker universe consists of instruments alive *today*, which is exactly R-D02's escalation trigger ("universe membership matches today's live tickers exactly"). §5.4.7 requires a point-in-time candidate list. All 15 incepted before 2007 and none delisted in-sample, so the contract's delisting rules are never exercised and the universe carries an unquantified upward bias. *Recommendation:* reconstruct a point-in-time candidate list, or explicitly downgrade affected claims to universe-conditional and record the limitation in §5.4.7.
+
+**Alternatives considered:**
+- **Freeze the protocol in this session using the worksheet.** Rejected. The worksheet is input; the freeze is judgment; they are separate sessions (`freeze_inputs_2026-10-15.md` §6). The owner has not yet confirmed the values.
+- **Leave Tests B/C/D undefined and defer to the freeze.** Rejected. Tests B and C are themselves diagnostics that inform the freeze's window and cap choices; defining them earlier is what lets the freeze reconcile F1 and F3 coherently.
+- **Fold N1–N3 into DEC-20261017-019.** Rejected. Entries are append-only; 019 was written before these findings existed.
+- **Treat the worksheet recommendations as decided.** Rejected. Nothing is frozen until §18 is signed; treating proposals as decided is the Goodhart failure mode the worksheet's own header warns against.
+
+**Rationale:**
+[First Principles] A freeze decision requires the complete set of decisions to be visible in one place with their dependencies. The worksheet makes the §18 checklist decision-ready instead of a list of unchecked boxes.
+[Inversion] N2 is the clearest instance: adding a constraint (the cap) silently disables the very hypothesis (H1.1) the constraint-set change was meant to make fair. The failure is definitional, and it was invisible until the cap rule and the H1.1 threshold were read together.
+[Goodhart's Law] "Get the protocol frozen" is a process metric. Freezing unsatisfiable contracts (F8) or unreachable hypotheses (N2) satisfies the metric while defeating its purpose. The worksheet exists to surface both before the status flips.
+
+**Reversibility:** Soft. Both artifacts are working inputs; the freeze session may revise or discard any recommendation, and the Tests B/C/D specification may be re-scoped there.
+
+**Revisit trigger:**
+At the freeze session: every recommendation must be accepted, replaced, or declined with a reason; F6's specification must be confirmed or revised before any post-freeze registration references it; N1 must be resolved (scan extended or criterion amended) before Gate 0 is declared passed.
+
+**Expected value assessment:**
+- Probability the worksheet reduces freeze-session time by consolidating §18 into one sheet: high (~80%).
+- Probability at least one worksheet recommendation is revised at the freeze: high (~70%) — expected, and the reason recommendations are not decisions.
+- Probability N2 would have caused a spurious H1.1 failure had it not been caught: moderate (~50%) if the cap is adopted uniformly and H1.1 is left unchanged.
+- Probability N3 is left unresolved and every result carries an unquantified survivorship bias: moderate (~40%) without an explicit freeze-session decision.
+
+**Pre-mortem:**
+Six weeks from now this entry has failed if (a) the worksheet's recommendations are quoted as decided values while §18 is still unsigned; or (b) Tests B and C have run and one of their arms was used to select Test D's configuration, defeating the firewall in `tests_BCD_spec_2026-10-17.md` §5. (a) is detectable by checking `evaluation_protocol.md` Status against any citation of a worksheet value; (b) is detectable by confirming that Test D's registered window and cap equal the frozen §5.2/§4.3 values.
+
 ---
 
 ## Appendix A — Experiment Registry (Ledger)
@@ -626,6 +676,7 @@ This appendix is the migration record for the open items in `docs/TODO.md` (v1.1
 | 2026-10-15 | Added DEC-20261015-017 (Phase A relocations; 6-doc target). Added Appendix A (Experiment Registry Ledger) scaffold with EXP-H1-20261015-001 pointer. Fixed Index table formatting (gap note moved below table). Added Supersession note for DEC-20261015-013. Updated Conventions 3 and 5 to reflect registry relocation and exploratory non-counting. | Ken Ira Lacson Talingting |
 | 2026-10-15 | Added DEC-20261015-018 (Phase C spec merges; source-file retirement). Added this row. | Ken Ira Lacson Talingting |
 | 2026-10-17 | Added DEC-20261017-019 (audit findings F1–F8 as freeze-session inputs; documentation-integrity repairs). Added the missing DEC-20261015-018 Index row. Created Appendix B (absorbed items from retired `docs/TODO.md`). | Ken Ira Lacson Talingting |
+| 2026-10-17 | Added DEC-20261017-020 (Tests B/C/D defined — resolves F6; freeze worksheet produced; findings N1–N3). | Ken Ira Lacson Talingting |
 ---
 
 *This log exists to make decisions explicit, dated, and reviewable. Its append-only discipline is the reason it can be trusted. If the log is edited to hide a gap, the log is worthless. If the log records its gaps, the log is the project's strongest artifact.*
