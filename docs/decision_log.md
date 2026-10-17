@@ -57,6 +57,7 @@ Each entry uses the following fields:
 | DEC-20261017-024 | 2026-10-17 | GOVERNANCE | ACTIVE | Confirm the point-in-time candidate universe (18 ETFs); accept the residual survivorship limitation |
 | DEC-20261017-025 | 2026-10-17 | GOVERNANCE | ACTIVE | Build the immutable PIT snapshot; pass the §5.4.8 leakage suite; record findings F10–F12 |
 | DEC-20261017-026 | 2026-10-17 | GOVERNANCE | ACTIVE | Confirm F10/F11 (rf conventions); register Test B and Test D; raise F13 (DSR trial count) and F14 (Test C period) |
+| DEC-20261017-027 | 2026-10-17 | GOVERNANCE | ACTIVE | Resolve F13 (N = 1 confirmed) and F14 (Test C windows {36, 60} at the frozen anchor); register Test C |
 
 **Gap note (001–011):** Resolved by DEC-20261015-014. The seed entries referenced in DEC-20261014-000 were not written and are not recoverable. They are treated as never having existed in this log.
 
@@ -912,6 +913,56 @@ Six weeks from now this entry has failed in one of four ways. (a) Test D is exec
 
 ---
 
+### DEC-20261017-027
+
+**Date:** 2026-10-17
+**Type:** GOVERNANCE
+**Status:** ACTIVE
+**Authority:** Owner
+**Related docs:** `evaluation_protocol.md` (v2.4, Frozen §5.2, §12.6, §12.7, §12.9), `notes/tests_BCD_spec_2026-10-17.md` (§3 amended, §9 addendum), `decision_log.md` Appendix A (`EXP-X-20261017-002`), `docs/README.md` (v1.9), DEC-20261015-014, DEC-20261017-026
+**Related risks:** R-M01, R-M02, R-E04, R-S02
+
+**Context:**
+DEC-20261017-026 registered Test B and Test D and raised two findings that blocked the third registration. Both are questions of *measurement*, not of data: neither could be settled by reading the frozen documents, and both were raised with the convenient answer (N = 1; a period chosen to make the sweep work) separated from the correct one. The owner has answered both.
+
+**Decision:**
+1. **F13 resolved: `N = 1` confirmed.** The DSR trial count for `EXP-H2-20261017-001` is 1, per §12.6 and DEC-20261015-014 (the denominator is the count of registered **confirmatory trials**, of which Test D is the first). Reporting the best of `M1`/`M2` is a *reporting* choice within one registration, not two trials. **The registration stands exactly as written — no amendment is required**, so the risk that §12.11 attaches to a corrected family size is closed.
+2. **F14 resolved: Test C runs windows `{36, 60}` over the frozen out-of-sample period 2012-06 … 2026-05.** The 120-month arm is **dropped**, not deferred. Both arms therefore share an identical period, satisfying the B/C/D spec §1 "identical period" rule exactly, and remain comparable with Tests B and D. The 60-month arm reproduces Test D's `B3`/`B5` configuration under the same data and period, giving a free internal consistency check.
+3. **Rationale for dropping rather than relocating the 120-month arm.** A 120-month estimation window needs 120 months of history before its first out-of-sample month. The confirmed universe's latest inception is `HYG` (2007-04), so the earliest possible first OOS month is 2017-06 and the arm exists only by moving the whole of Test C five years later than the frozen protocol. That is not a free choice: it would make Test C's evidence base different from the protocol's for a diagnostic whose entire purpose is to characterise the *frozen* 60-month setting. A defect removed by discarding the defective arm is preferable to a deviation carried for an exploratory result.
+4. **The spec's §3 decision rule is amended** for two arms (persists at both → not a window artifact; only at 60 → artifact; only at 36 → inverted, Phase 1 not reproduced). Recorded in the B/C/D spec §9 and restated verbatim in the registration's field 5.
+5. **Test C registered** — `EXP-X-20261017-002`, family **X** (§12.6.2: non-counting, 2 arms, both reported).
+6. **Limitation recorded.** Two arms cannot distinguish a monotone window trend from a threshold effect, and the 36-month arm sits below the frozen 60-month recommendation, so the sweep tests sensitivity *downward* only. The window sweep is therefore weaker evidence than a three-arm sweep would have been; the condition-number diagnostic in the same entry carries the complementary part of the answer. This is stated so that a later reader does not read a two-point "not a window artifact" verdict as strong.
+7. **No Tier-0 contract value changed.** §5.2's frozen 60-month window is untouched; only an exploratory diagnostic's arm list changed.
+
+**Alternatives considered:**
+- **Relocate all three arms to the common window 2017-06…2026-05** (keeps the 120-month arm; arms mutually comparable). Rejected — abandons 2012-06…2017-05 and makes Test C's period differ from Tests B/D and from the frozen protocol, for a purely exploratory verdict.
+- **Report three separate single-arm diagnostics over their own maximal periods.** Rejected — no comparable number answers the question the test exists to answer; the closest of the three options to the §12.10 exploratory failure mode.
+- **Keep the 120-month arm and let its OOS start later than the others.** Rejected — this is option 1 by another name, and it makes the arms non-comparable, which §1 forbids.
+- **Set `N = 2` for Test D to be conservative.** Rejected — §12.6 and DEC-20261015-014 define the denominator as registered confirmatory trials; adopting 2 would inflate the denominator to buy conservatism, which is the same error as deflating it to buy significance. If a two-candidate selection needs its own correction, that is a *method* finding (a §12.7 definition gap), not a denominator change — and it is recorded as such in F13's closure below.
+- **Leave Test C unregistered indefinitely.** Rejected — an unregistered diagnostic that later informs anything is a §12.10 violation waiting to happen.
+
+**Rationale:**
+[Inversion] Both findings were settled by asking which error the *frozen rules* were written to prevent: F13 by refusing to trade a denominator for convenience in either direction, F14 by refusing to carry a deviation that exists only to keep a weak arm alive.
+[First Principles] The universe's 2007 inception is a hard constraint, not a preference. A 120-month window at a 2012-06 anchor is arithmetically impossible, so the choice was never "which window" but "which period" — and the protocol already owns the period.
+[Goodhart's Law] Test C is exploratory and cannot support a success claim; its only failure mode is being *cited* as if it could. Making it explicitly weaker (two arms, an inverted verdict available, a recorded limitation) reduces that risk rather than raising it.
+[Information Theory] Discarding the infeasible arm removes a parameter whose value would have been determined by an unrelated constraint, which is noise dressed as a dimension.
+
+**Reversibility:** Soft. Test C is append-only and unexecuted; dropping the 120-month arm is a decision about a registration, not about data or code. If the universe is ever extended with a pre-2007 instrument, a *new* registration can add the arm at the frozen anchor.
+
+**Revisit trigger:**
+An amended or extended universe makes a 120-month window feasible at the 2012-06 anchor → register a new Test C with three arms rather than editing this one. Or Test C returns a "window artifact" verdict at 60 months → the §5.2 window recommendation is reopened (a protocol matter, per §16), not silently accepted. Or Test D's results show the `M1`/`M2` selection mattered → open the §12.7 definition gap as a method finding.
+
+**Expected value assessment:**
+- Probability `N = 1` is the value ultimately used in the confirmatory DSR: high (~90%) — now owner-confirmed rather than merely registered.
+- Probability Test C's two-arm sweep produces a decisive verdict (artifact / not) rather than an ambiguous one: moderate (~50%); the recorded limitation anticipates the ambiguous case.
+- Probability the dropped 120-month arm would have changed Test C's verdict had it been feasible: low-to-moderate (~30%).
+- Probability the 60-month arm reproduces Test D's `B3` numbers exactly: high (~95%) — same snapshot, same window, same cap, same cost model; a mismatch would indicate a harness defect, which is the point of the check.
+
+**Pre-mortem:**
+Six weeks from now this entry has failed in one of four ways. (a) Test C's two-point sweep is cited as "the window artifact was ruled out" — detectable by checking the limitation in point 6 is quoted alongside any such claim. (b) The dropped 120-month arm is quietly reintroduced during implementation because it is easy once a longer history is fetched — detectable by diffing the harness's arm list against the registration. (c) `N = 1` is revisited *after* Test D's results are known — detectable because §12.9 permits pre-run amendment only, and this entry records the confirmation date. (d) The restated decision rule for two arms is applied with "all three windows" language left in the code or the report — detectable by grepping the harness and report text for the three-arm phrasing.
+
+---
+
 ## Appendix A — Experiment Registry (Ledger)
 
 This appendix is the append-only ledger of pre-registered experiments. Registry *rules* (what counts as an experiment, ID format, denominator rules, invalidation rules) live in `evaluation_protocol.md` §12 and, until Phase C completes, in `experiment_registry_and_preregistration.md`. This appendix holds the *entries*.
@@ -926,6 +977,7 @@ This appendix is the append-only ledger of pre-registered experiments. Registry 
 |--------|------|--------|--------|-------|
 | EXP-H1-20261015-001 | 2026-10-15 | X (exploratory) | ARCHIVED | Phase 1 smoke test (retroactively logged per DEC-20261015-012) |
 | EXP-X-20261017-001 | 2026-10-17 | X (exploratory) | REGISTERED | Test B — cap-sensitivity sweep (cap-artifact diagnostic) |
+| EXP-X-20261017-002 | 2026-10-17 | X (exploratory) | REGISTERED | Test C — window sensitivity, windows {36, 60} (window-artifact diagnostic) |
 | EXP-H2-20261017-001 | 2026-10-17 | H2 / H3 (confirmatory) | REGISTERED | Test D — confirmatory evaluation of the robust methods (H2.4); N = 1 at registration |
 
 ### EXP-H1-20261015-001
@@ -939,7 +991,7 @@ This appendix is the append-only ledger of pre-registered experiments. Registry 
 
 **No further entries exist as of 2026-10-15.** The first confirmatory registration will be appended after `evaluation_protocol.md` reaches `Frozen`.
 
-**Superseded in part (2026-10-17, DEC-20261017-026).** The protocol is `Frozen` and the first registrations are appended below: `EXP-X-20261017-001` (Test B, exploratory) and `EXP-H2-20261017-001` (Test D, confirmatory). Test C is **not** registered — see finding F14 in DEC-20261017-026.
+**Superseded in part (2026-10-17, DEC-20261017-026 / -027).** The protocol is `Frozen` and the first registrations are appended below: `EXP-X-20261017-001` (Test B, exploratory), `EXP-X-20261017-002` (Test C, exploratory, windows {36, 60}), and `EXP-H2-20261017-001` (Test D, confirmatory, N = 1). Test C's window sweep was reduced from {36, 60, 120} to {36, 60} by finding F14 (DEC-20261017-027): the 120-month arm has no feasible start at the frozen anchor, since the universe did not exist before 2007.
 
 ### EXP-X-20261017-001
 
@@ -993,6 +1045,64 @@ This appendix is the append-only ledger of pre-registered experiments. Registry 
 **7. What would invalidate this experiment.** Any §12.11 condition; additionally: an arm whose cap is not applied uniformly; a differing OOS period, universe, cost model, or constraint handling between arms (Tests B/C/D spec §1 — "any deviation invalidates the comparison"); use of the arms to select Test D's configuration (firewall §5).
 
 **8. Pre-registration signature.** Author: Ken Ira Lacson Talingting. Date: 2026-10-17. Git commit at registration: `1b71e13` (the code state this registration was written against). Registry version at registration: `decision_log.md` v1.3, Appendix A scaffold.
+
+**Results:** pending execution.
+**Conclusion:** pending.
+**Decision:** pending.
+
+---
+
+### EXP-X-20261017-002
+
+**Status:** REGISTERED (not executed)
+**Registered date:** 2026-10-17
+**Family:** X (exploratory — **non-counting**; §12.6.2)
+**Related hypotheses:** H3-family diagnostic (window artifact). Companion to `EXP-H2-20261017-001`.
+**Related decision triggers:** §5.2 estimation window. Not a §8.6 kill trigger.
+**Related decision log entries:** DEC-20261017-020 (spec), DEC-20261017-026 (F14 raised), DEC-20261017-027 (F14 resolved; this registration)
+
+**1. Hypothesis.** The Phase 1 underperformance of the shrinkage and turnover-penalized methods is specific to the **60-month** estimation window.
+*Direction:* the underperformance is absent (or reverses) at a shorter window.
+*Effect size of interest:* a sign change in `ΔB` (penalized/shrinkage minus `B3`) between the 36- and 60-month arms.
+*Prior probability:* moderate (~40%). Phase 1's instability is consistent with a short, noisy estimation window, but Phase 1 also changed the cap and the cost treatment at the same time.
+*Falsifiable:* yes — pre-committed decision rule on `ΔB` across the two arms (field 5).
+
+**2. Methods compared.** Baselines `B1` (1/N), `B2` (risk parity), `B3` (sample MVO), `B4` (min variance), `B5` (turnover-penalized MVO, λ = κ). No robust methods (Test D owns those).
+
+**3. Parameters.**
+| Parameter | Value |
+|---|---|
+| Universe | the snapshot's `universe_pit.csv` — 18 confirmed candidates; eligible 18 → 17 after 2021-11 (F12) |
+| Snapshot ID (SHA-256) | `yahoo-usetf-2007-01-01_2026-09-30-2026-10-17-2ad06139` (`2ad0613913df9065b62ba2291abc391402c1eb13d36937ba8c2bbc09d637d707`) |
+| Data | point-in-time adjusted, raw + corporate actions (§5.4.1) |
+| **Swept parameter** | rolling estimation window `∈ {36, 60}` months |
+| **Period rule (F14)** | **both arms share the identical out-of-sample period 2012-06 … 2026-05** (168 months, 14 folds), so the arms are directly comparable and consistent with Tests B and D. The 120-month arm is **dropped**: the universe did not exist before 2007, so a 120-month window has no feasible start at the frozen anchor (DEC-20261017-027). |
+| Test window / step | 12 months / 12 months, non-overlapping (§5.2) |
+| Rebalance | monthly, last trading day (§5.5.4) |
+| Constraints | Σw = 1; 0 ≤ w_i ≤ **0.30** — the frozen value, held fixed across arms so the window is the only varying factor (§4.3) |
+| Cost levels | 0 / 5 / 10 / 20 / 50 bps; headline 10 bps (§5.5.3) |
+| Turnover penalty | λ = κ = 0.001 monthly |
+| γ | 10 (`B3`, `B5`) |
+| Random seeds | `SEED = 20261017` (spec O6/O7); no other stochastic component |
+| Solver | `cvxpy` / `CLARABEL` convex QP, no fallback |
+
+**4. Evaluation protocol.** Protocol **v2.4 (Frozen)**; method spec **v1.1 (Frozen)**.
+*Primary metric:* net Sharpe at 10 bps, per arm. *Secondary:* `ΔB` per arm; net-Sharpe ranking per arm; **condition number of the sample covariance** at each window (the dispersion diagnostic, which is the same question the window sweep asks — see the B/C/D spec §9).
+*Statistical test:* **descriptive only.** Family X cannot support success claims (§12.6.2, §12.10).
+*Confidence level:* 90% block-bootstrap intervals.
+*Multiple-testing family size at registration:* **N/A** — family X does not count. 2 arms, **both reported**.
+
+**5. Decision rule (restated for two arms; DEC-20261017-027).** The spec's original rule was written for three windows and is amended here to match the two feasible arms:
+- Underperformance present at **both** 36 and 60 months → **not** a window artifact; the frozen window stands.
+- Underperformance present at **60 months only** → **window artifact**; the §5.2 60-month recommendation is called into question and the window becomes a swept dimension for a re-frozen protocol.
+- Underperformance present at **36 months only** → report as **inverted**: the effect is not attributable to the longer window, and the Phase 1 observation is not reproduced.
+- **In every case:** if an arm reveals a configuration where a robust method meets §6.4, that configuration is **not** adopted; it becomes the hypothesis for a new, separately pre-registered experiment, with the Test C arms (2) counted as prior trials in that experiment's denominator (B/C/D spec §5, rules 1–3).
+
+**6. Cost and time estimate.** 2 arms × 14 folds × 5 methods. Smaller than Test B. Estimated wall-clock: **under 10 minutes** single-threaded, plus one snapshot read.
+
+**7. What would invalidate this experiment.** Any §12.11 condition; additionally: the two arms using different out-of-sample periods, universes, cost models, or caps (B/C/D spec §1); the cap varying with the window; use of the arms to select Test D's configuration (firewall §5).
+
+**8. Pre-registration signature.** Author: Ken Ira Lacson Talingting. Date: 2026-10-17. Git commit at registration: `ca4364c`. Registry version at registration: `decision_log.md` v1.3, Appendix A with the §12.4 template.
 
 **Results:** pending execution.
 **Conclusion:** pending.
@@ -1109,6 +1219,8 @@ This appendix is the migration record for the open items in `docs/TODO.md` (v1.1
 
 **Update 2026-10-17 (DEC-20261017-026).** **F10 and F11 confirmed as recorded** (`geometric`, `prior_month`) — no code change, so no new snapshot. The first registrations are written: `EXP-X-20261017-001` (Test B, family X, non-counting) and `EXP-H2-20261017-001` (Test D, family H2/H3, counting, **N = 1**). **Test C is not registered**: finding **F14** — the window sweep {36, 60, 120} has no common evaluation period (first feasible OOS 2010-06 / 2012-06 / 2017-06), so its arms are not comparable and the spec's "identical period" rule cannot be met without an owner decision. Finding **F13** — whether a single registration that reports the best of several candidate methods (`M1`, `M2`) should carry `N = 1` or `N = 2` in the DSR — is recorded for the owner; it must be amended before execution if changed (§12.9).
 
+**Update 2026-10-17 (DEC-20261017-027).** Both findings are closed. **F13:** `N = 1` is **owner-confirmed**, so `EXP-H2-20261017-001` stands exactly as registered and the §12.11 family-size risk is closed. **F14:** Test C runs windows **{36, 60}** over the frozen 2012-06…2026-05 period; the **120-month arm is dropped** because the universe did not exist before 2007, so a 120-month window has no feasible start at the frozen anchor. The spec's three-arm decision rule is restated for two arms, and the reduced strength of a two-point sweep is recorded as a limitation. **Test C registered** as `EXP-X-20261017-002` (family X, 2 arms, both reported). All three Tests B/C/D are now pre-registered; none has been executed. No Tier-0 value changed.
+
 ---
 
 ## Revision history
@@ -1131,6 +1243,7 @@ This appendix is the migration record for the open items in `docs/TODO.md` (v1.1
 | 2026-10-17 | Added DEC-20261017-024 (point-in-time candidate universe confirmed — 18 ETFs anchored 2012-06; residual survivorship limitation accepted as documented). Updated Appendix B with the DEC-024 update note. | Ken Ira Lacson Talingting |
 | 2026-10-17 | Added DEC-20261017-025 (immutable PIT snapshot built; §5.4.8 leakage suite passes — 14 passed, 1 vacuous skip; findings F10–F12 recorded; Gate 1 data blockers closed). Created `notes/snapshot_and_leakage_evidence_2026-10-17.md`; added the snapshot builder, the PIT reader and the leakage suite to `src/`/`scripts/`/`tests/`. Updated Appendix B with the DEC-025 update note. | Ken Ira Lacson Talingting |
 | 2026-10-17 | Added DEC-20261017-026 (F10/F11 confirmed as recorded; first registry entries: `EXP-X-20261017-001` Test B and `EXP-H2-20261017-001` Test D, N = 1; findings F13 and F14 raised — Test C not registered). Introduced the §12.4 pre-registration template in Appendix A; updated Appendix A index and the scaffold note, and Appendix B with the DEC-026 update note. | Ken Ira Lacson Talingting |
+| 2026-10-17 | Added DEC-20261017-027 (F13 resolved — N = 1 owner-confirmed, Test D stands as registered; F14 resolved — Test C windows {36, 60} at the frozen 2012-06…2026-05 period, 120-month arm dropped as infeasible; `EXP-X-20261017-002` Test C registered). Updated Appendix A index and scaffold note, Appendix B note, and the B/C/D spec §9 addendum. All three Tests B/C/D now pre-registered; none executed. | Ken Ira Lacson Talingting |
 
 ---
 

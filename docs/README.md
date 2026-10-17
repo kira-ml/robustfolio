@@ -1,6 +1,6 @@
 # robustfolio Documentation Index
 
-**Version:** 1.8
+**Version:** 1.9
 **Status:** Active
 **Last Updated:** 2026-10-17
 
@@ -27,7 +27,7 @@ The active documentation set is seven files. All other Tier 0 documents have bee
 
 | # | Document | Version | Status | Purpose | Last Updated |
 |---|----------|---------|--------|---------|--------------|
-| 1 | [`README.md`](README.md) | 1.8 | Active | Index and status board | 2026-10-17 |
+| 1 | [`README.md`](README.md) | 1.9 | Active | Index and status board | 2026-10-17 |
 | 2 | [`problem_framing.md`](problem_framing.md) | 2.4 | Foundational | Problem statement, stakeholders, causal model, references | 2026-10-17 |
 | 3 | [`scope_and_non_goals.md`](scope_and_non_goals.md) | 1.4 | **Active** | Authoritative scope: MVP, extensions, out-of-scope | 2026-10-17 |
 | 4 | [`evaluation_protocol.md`](evaluation_protocol.md) | 2.4 | **Frozen** | Metrics, protocol, thresholds, hypotheses, triggers, firewalls, governance, baselines, data contract, cost model, registry rules | 2026-10-17 |
@@ -39,7 +39,15 @@ The active documentation set is seven files. All other Tier 0 documents have bee
 
 **Gate 1 status (2026-10-17).** Both data blockers are closed: the point-in-time candidate universe is confirmed (DEC-20261017-024) and the §5.4.8 leakage suite passes against an immutable snapshot (DEC-20261017-025: 14 passed, 1 skipped as vacuous in-sample). The risk-free conventions (**F10**, **F11**) are owner-confirmed (`geometric` conversion, prior-month alignment) and stamped into every snapshot manifest (DEC-20261017-026).
 
-**Experiment registry status (2026-10-17).** Appendix A of [`decision_log.md`](decision_log.md) now holds the first registrations: `EXP-X-20261017-001` (Test B, exploratory) and `EXP-H2-20261017-001` (Test D, confirmatory, **N = 1**). Test C is **not** registered — finding **F14**: its window sweep {36, 60, 120} has no common out-of-sample period, so the arms are not comparable as specified. Finding **F13** (the DSR trial count for a multi-method registration) is recorded and must be answered before Test D executes (§12.9 permits pre-run amendment).
+**Experiment registry status (2026-10-17).** Appendix A of [`decision_log.md`](decision_log.md) holds all three pre-registrations, none executed:
+
+| ID | Test | Family | Counting | Configuration |
+|----|------|--------|----------|---------------|
+| `EXP-X-20261017-001` | B | X (exploratory) | no | cap sweep `w_max ∈ {0.20, 0.30, 0.40, 1.00}`, uniform |
+| `EXP-X-20261017-002` | C | X (exploratory) | no | window sweep `{36, 60}`, both at 2012-06…2026-05 |
+| `EXP-H2-20261017-001` | D | H2 / H3 (confirmatory) | **yes** | frozen config; **N = 1** at registration |
+
+Two findings from the registration round are closed: **F13** (the DSR trial count for a multi-method registration) resolved as `N = 1`, owner-confirmed; **F14** (Test C's window sweep had no common evaluation period) resolved as `{36, 60}` at the frozen anchor, with the infeasible 120-month arm dropped — the universe did not exist before 2007. Both are recorded in DEC-20261017-026/027, and the B/C/D spec's §9 addendum carries the reduced-strength limitation of a two-point sweep.
 
 **Retired 2026-10-15 (merged per DEC-20261015-017 and DEC-20261015-018):** `project_charter.md` (→ `evaluation_protocol.md` §8; mission → `problem_framing.md`; scope → `scope_and_non_goals.md`); `benchmark_and_baseline_spec.md` (→ §4); `data_contract_and_point_in_time_policy.md` (→ §5.4); `cost_model_and_frictions.md` (→ §5.5); `experiment_registry_and_preregistration.md` (rules → §12; ledger → `decision_log.md` Appendix A); `TODO.md` (→ `decision_log.md` Appendix B). Historical content preserved in git history.
 
@@ -100,6 +108,7 @@ The following documents are referenced by other documents but do not exist yet.
 | 2026-10-17 | 1.6 | Added the point-in-time candidate universe as a working input: [`../notes/pit_universe_2026-10-17.md`](../notes/pit_universe_2026-10-17.md) v1.0 Confirmed (18 ETFs, anchor 2012-06 — DEC-20261017-024) plus its machine-readable list. `risk_register_and_premortem.md` → v1.3 (R-D02 resolution). Gate 1 is now blocked only on the §5.4.8 leakage suite. | Ken Ira Lacson Talingting |
 | 2026-10-17 | 1.7 | Added the snapshot and leakage-suite evidence record as a working input (`../notes/snapshot_and_leakage_evidence_2026-10-17.md`) and a **Gate 1 status** paragraph: both data blockers closed — the §5.4.8 leakage suite passes against snapshot `…-2ad06139` (14 passed, 1 vacuous skip) per DEC-20261017-025. Findings F10/F11 (unpinned risk-free conventions) recorded and pending owner confirmation; F12 records that the §5.4.2 liquidity floor makes the eligible universe 18 → 17 after 2021-11. | Ken Ira Lacson Talingting |
 | 2026-10-17 | 1.8 | F10/F11 **owner-confirmed** (`geometric`, `prior_month`) — Gate 1 status paragraph updated; evidence record → v1.1. Added an **Experiment registry status** paragraph: the first Appendix A registrations (`EXP-X-20261017-001` Test B, `EXP-H2-20261017-001` Test D with N = 1), and the two open findings F13 (DSR trial count) and F14 (Test C's window sweep has no common period, so Test C is not registered). DEC-20261017-026. | Ken Ira Lacson Talingting |
+| 2026-10-17 | 1.9 | Registry status completed: all three tests pre-registered in Appendix A. F13 resolved (`N = 1`, owner-confirmed); F14 resolved (Test C windows `{36, 60}` at the frozen 2012-06…2026-05 period; the 120-month arm dropped as infeasible). Registry paragraph replaced with a table; B/C/D spec §9 addendum updated. DEC-20261017-027. | Ken Ira Lacson Talingting |
 
 ---
 
