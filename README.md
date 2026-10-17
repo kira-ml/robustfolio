@@ -1,192 +1,104 @@
 # robustfolio
 
-> A reproducible, open-source benchmark for turnover-aware, robust portfolio rebalancing — with honest net-of-cost out-of-sample results and documented negative findings.
+**Does a robust, turnover-aware portfolio construction method beat a plain one out-of-sample, net of transaction costs — once you adjust for having tried more than one?**
 
-**Status:** Phase 0 — Problem Validation, closing. The Tier 0 documentation set is consolidated to six files and the evaluation protocol is pending freeze. An exploratory Phase 1 smoke test exists and is explicitly non-confirmatory (DEC-20261015-012).
+This repository is the benchmark that answers that question under a pre-registered, frozen evaluation protocol. It is built to produce an *honest* answer rather than a favourable one: the hypothesis, the metrics, the thresholds, and the decision rule were all fixed and dated before the results were computed, and a clean "no" is a successful outcome here.
 
-[![Phase](https://img.shields.io/badge/phase-0%20problem%20validation-blue)]()
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![Status](https://img.shields.io/badge/status-pre--alpha-lightgrey)]()
-
----
-
-## What This Is
-
-`robustfolio` investigates a specific, practical problem in systematic investing:
-
-> Portfolio construction methods that rely on historical estimates of expected returns and covariance are highly sensitive to estimation error. Under realistic transaction costs, this sensitivity produces unstable weights, excessive turnover, and degraded net-of-cost out-of-sample performance.
-
-The project builds a **reproducible benchmark** that:
-
-- Compares robust, turnover-aware portfolio construction methods against strong, simple baselines.
-- Evaluates everything **net of transaction costs** and **out-of-sample**, using walk-forward validation.
-- Adjusts for **multiple testing** using deflated Sharpe and probabilistic Sharpe.
-- Reports **negative results** with the same rigor as positive ones.
-
-The project's primary objective is falsifiable:
-
-> Determine whether any robust, turnover-aware method delivers materially better net-of-cost out-of-sample risk-adjusted return than simple baselines, after adjusting for multiple testing.
-
-A clean negative result — a well-documented "no, it doesn't" — is a **successful outcome** by this project's definition. Inflated positive results are not.
+[![protocol](https://img.shields.io/badge/protocol-v2.4%20frozen-blue)](docs/evaluation_protocol.md)
+[![spec](https://img.shields.io/badge/spec-v1.1%20frozen-blue)](docs/model_and_method_spec.md)
+[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 ---
 
-## Why It Matters
+## Result
 
-Most portfolio optimization libraries optimize in-sample or ignore costs entirely. Many student and research projects report gross Sharpe ratios without realistic cost assumptions. Practitioners need transparent, reproducible benchmarks to compare methods.
+> **Exploratory, non-confirmatory** (DEC-20261015-012). These numbers may not be cited for or against any hypothesis. The registered confirmatory test (`EXP-H2-20261017-001`) has not been executed; see [Limitations](#limitations) and findings F24–F26.
 
-The base rates are sobering:
+**Neither robust method was successful under the frozen decision rule.** Over 168 out-of-sample months on a point-in-time universe of 18 US ETFs, the best baseline was `B3` — plain sample-covariance, sample-mean MVO, the method the project set out to critique.
 
-- A large fraction of published factor and portfolio strategies fail out-of-sample after costs.
-- Simple equal-weight (1/N) often outperforms complex optimization out-of-sample.
-- Robustness, not sophistication, is usually the binding constraint.
+| Method | Net Sharpe @ 10 bps | 90% bootstrap CI | Gross (diagnostic only) |
+|---|---|---|---|
+| `B1` equal weight (1/N) | 0.5482 | [0.153, 1.002] | 0.5527 |
+| `B2` risk parity (ERC) | 0.4519 | [0.017, 0.974] | 0.4592 |
+| **`B3` sample MVO — best baseline** | **0.7896** | [0.331, 1.318] | 0.8151 |
+| `B4` minimum variance | 0.1820 | [-0.253, 0.751] | 0.1953 |
+| `B5` turnover-penalised MVO | 0.7843 | [0.316, 1.316] | 0.7926 |
+| `M1` shrinkage-covariance MVO | 0.7860 | [0.327, 1.298] | 0.8077 |
+| `M2` Bayesian (Black–Litterman) MVO | **0.8538** | [0.426, 1.369] | 0.8791 |
 
-This project treats those findings as **priors to be tested**, not as universal laws.
+Net Sharpe is the **only** metric allowed to decide whether a method beats a baseline (protocol §2). `M2`'s advantage over `B3` is **+0.064** against a materiality bar of **0.20** (§6.2), and its probabilistic Sharpe ratio against `B3` is **0.587** against a bar of **0.95** (§6.1). Both candidates therefore return **FAILURE** under §6.4 — `M1` at −0.004 and `M2` at +0.064.
 
----
+The part worth reading closely: both candidates *pass* the deflated Sharpe p-value (0.0032 and 0.0017), because the DSR is measured against a **zero** benchmark. They fail the PSR, because that is measured against the **best baseline**. §6.1 requires both, and the first run is a live demonstration of why.
 
-## What This Project Is NOT
+**This is not an underpowered null.** The candidates' return series correlate with the best baseline at ρ = 0.9845 and 0.9856, which is inside the region where the design diagnostic found the paired comparison adequately powered for the §6.2 threshold. The paired differences are +0.4% and +0.6% a year. The effect is absent, not invisible.
 
-Explicitly out of scope. Reading this list is itself a project survival mechanism.
-
-- Not a high-frequency or intraday trading system.
-- Not an options, futures, or derivatives toolkit.
-- Not a live trading or execution engine.
-- Not a proprietary alpha research platform.
-- Not a general-purpose backtesting framework for all asset classes.
-- Not a commercial portfolio optimizer.
-- Not a market-timing or wealth-management tool.
-- Not a place to make absolute return claims.
-
-If the benchmark is useful, those are separate projects built on top of it — not part of it.
+The deliverable is the **apparatus**, not the number: a leakage-tested walk-forward engine, a numerical certificate, a pre-registered decision rule, and a report that prints the comparison it failed on.
 
 ---
 
-## Current Status
+## Reproduce it
 
-**Phase 0 — Problem Validation.**
+```bash
+git clone https://github.com/kira-ml/robustfolio.git && cd robustfolio
+python -m pip install -e .
 
-The Tier 0 documentation set has been consolidated from twelve files to six (DEC-20261015-017, DEC-20261015-018). The evaluation protocol is drafted and **pending freeze**; the freeze is the binding constraint on Phase 1.
+# 1. Build an immutable point-in-time snapshot from the tracked universe definition.
+#    Downloads daily prices + corporate actions from Yahoo Finance and freezes them.
+python scripts/build_snapshot.py --end 2026-09-30 --retrieval-date 2026-10-17
 
-An **exploratory Phase 1 smoke test** ran on 2026-10-15. It exercised the walk-forward harness end to end, but it was not pre-registered and is **non-confirmatory** (DEC-20261015-012). Its numbers may be used to scope diagnostics only; they may not be cited for or against any hypothesis.
+# 2. Regenerate the headline number and every table behind it.
+python scripts/run_experiment.py --out results/run       # defaults to the newest snapshot on disk
 
-| Artifact | Status |
-|----------|--------|
-| Tier 0 documentation set (6 files) | Consolidated; protocol pending freeze |
-| Exploratory walk-forward harness | Exists (non-confirmatory) |
-| Data ingestion pipeline (point-in-time) | Not started — harness uses adjusted Yahoo data |
-| MVP baselines (B1–B5) | Partial — B1, B3, B5 only; B2 and B4 missing |
-| Robust method implementations | Not started |
-| Evaluation metrics (DSR, PSR, CVaR, CIs) | Not started |
-| Public release | Not started |
+# 3. Verify the engine and the leakage discipline independently.
+python scripts/certify_engine.py                          # 7 methods x 168 rebalances, KKT certificate
+python -m pytest -q                                       # 134 passed, 1 skipped
+```
 
-The next milestone is **freezing `docs/evaluation_protocol.md`**, the gated entry to Phase 1: Data and Baselines.
+Step 2 writes `manifest.json` (snapshot id, git commit, protocol and spec versions, seed, environment), `outcomes.csv`, `decisions.csv`, `calibration.csv`, `design.csv`, `folds_<M>.csv`, and `report.md`.
+
+Yahoo Finance revises history. The snapshot is immutable once built and every snapshot is identified by a content hash, so a rebuild with a different retrieval date is a **different** snapshot and may produce slightly different numbers. The frozen snapshot behind the table above is `yahoo-usetf-2007-01-01_2026-09-30-2026-10-17-2ad06139`.
+
+---
+
+## What is built
+
+| Component | State |
+|---|---|
+| Evaluation protocol | **Frozen** v2.4 — metrics, thresholds, hypotheses, registry rules, firewalls |
+| Method spec | **Frozen** v1.1 — estimators, optimizer, harness, metric definitions |
+| Universe | 18 US ETF candidates, point-in-time eligibility (17–18 eligible at each rebalance), anchored 2012-06 |
+| Methods | 5 baselines (`B1`–`B5`) + 2 robust treatments (`M1`, `M2`), differing in exactly one component from `B3` |
+| Walk-forward harness | 60-month rolling estimation, 12-month non-overlapping test blocks, monthly rebalance, 168 OOS months / 14 folds |
+| Optimizer | CVXPY + CLARABEL, **no fallback path**, every rebalance certified by a primal KKT residual against a frozen tolerance |
+| Engine certificate | 7 methods × 168 rebalances = **1,176 solves, zero rejections**; worst KKT residual `1.49e-11` vs `1e-7` acceptance |
+| Leakage suite | protocol §5.4.8 — 14 pass, 1 recorded skip (the survivorship test is vacuous in-sample; see below) |
+| Tests | 134 passed, 1 skipped |
+
+---
+
+## Limitations
+
+These are the honest ones, not a disclaimer. The full list is in the report and in [`docs/decision_log.md`](docs/decision_log.md).
+
+- **The headline run is exploratory.** It is not pre-registered as confirmatory and cannot be cited for or against any hypothesis (DEC-20261015-012). Worse, validating the report generator required executing the frozen configuration, so the registered confirmatory test's answer has already been observed — **it would now be a reproduction, not a blind test** (finding F26).
+- **168 out-of-sample months and 18 ETF candidates** (17–18 eligible at any rebalance). This sample can separate roughly a 0.13–0.20 net Sharpe difference between these highly correlated strategies, and not much less.
+- **The cost model is a flat 10 bps with no market impact, capacity, taxes, or regime dependence.** Costs cannot reach the optimizer: each rebalance is solved once and every cost level is derived from that single turnover series, so a cost level cannot influence the weights it prices.
+- **Survivorship is argued by construction, not measured.** The survivorship test (§5.4.8 test 2) is vacuous in-sample: no confirmed candidate delisted between 2012-06 and 2026-05 (§5.4.5).
+- **Data provenance is Yahoo Finance**, frozen into an immutable snapshot with a quality report. It is not an institutional point-in-time vendor feed.
+- **Two specification readings are disclosed, not silent.** §7.8 leaves the object of its prediction interval undefined, so only the *return* half is reported (coverage 81.5–87.0%); the volatility half is deliberately **not** implemented. §6.3's "advantage" is not pinned to a metric, so fold wins use net Sharpe and the concentration clause uses per-fold mean return — **and that reading decides the verdict here** (findings F24, F25).
+- **Not investment advice, and not a claim of tradable alpha.** Nothing here is a live trading system, and no absolute return claim is made (protocol §14.2).
 
 ---
 
 ## Documentation
 
-All project contracts, protocols, and decision records live in [`docs/`](docs/). The active set is six files:
+The contracts live in [`docs/`](docs/) and are the authority: **if this README and the docs disagree, the docs win.**
 
-- [`docs/README.md`](docs/README.md) — Documentation index and status board
-- [`docs/problem_framing.md`](docs/problem_framing.md) — The real problem, stakeholders, causal model
-- [`docs/scope_and_non_goals.md`](docs/scope_and_non_goals.md) — What is and is not in scope
-- [`docs/evaluation_protocol.md`](docs/evaluation_protocol.md) — Metrics, baselines, data contract, cost model, registry rules, governance
-- [`docs/risk_register_and_premortem.md`](docs/risk_register_and_premortem.md) — Failure modes and pre-mortem
-- [`docs/decision_log.md`](docs/decision_log.md) — Why the project is the way it is (and the experiment registry, Appendix A)
-
-Working inputs that are **not** contracts live in [`notes/`](notes/).
-
-The docs are versioned. Frozen documents may not be modified after seeing experimental results without a decision log entry and a version bump.
-
----
-
-## Operating Principles
-
-These principles govern every decision in the project. They are not marketing — they are enforcement mechanisms.
-
-1. **Falsification before optimization.** Every claim must have a test that could prove it wrong.
-2. **Point-in-time or nothing.** No lookahead, no survivorship bias, no retroactive adjustments.
-3. **Net of cost, out of sample, multiple-testing aware.** Gross, in-sample, and unadjusted numbers are diagnostic only.
-4. **Pre-register before running.** Every experiment is registered with its hypothesis and decision rule before execution.
-5. **Negative results are first-class.** A clean "no" is a successful outcome.
-6. **Kill decisions are free.** Continuing past the evidence is the actual failure mode.
-7. **Narrow by default.** Scope grows only by amendment, never by drift.
-
-If these read like constraints rather than values, that is deliberate. They exist because the alternative has been tried many times and usually fails.
-
----
-
-## Roadmap (Phase Gates)
-
-The project proceeds through gated phases. Each gate is a go/no-go decision. A phase cannot begin until the previous gate is passed.
-
-| Phase | Name | Entry criteria | Exit criteria |
-|-------|------|----------------|---------------|
-| 0 | Problem Validation | Charter active | Literature and tool scan complete; Tier 0 contracts drafted |
-| 1 | Data & Baselines | Contracts frozen | Data pipeline works; baselines reproduce; MVO instability confirmed |
-| 2 | Robust Methods | Gate 1 passed | Robust methods implemented and unit-tested; no leakage |
-| 3 | Evaluation | Gate 2 passed | Walk-forward results with multiple-testing adjustment |
-| 4 | Reporting & Release | Gate 3 passed | Reproducible report; honest conclusion; public release |
-| 5 | Extensions (optional) | Gate 4 passed and justified | Scoped, pre-registered extension |
-
-A gate may be passed with a documented **negative** result. It may not be passed by relaxing the evaluation protocol after seeing results.
-
----
-
-## Repository Structure
-
-```
-robustfolio/
-├── README.md                       ← you are here
-├── LICENSE                         ← MIT
-├── pyproject.toml                  ← package metadata
-├── requirements.txt                ← Phase 1 dependencies (unpinned)
-├── docs/                           ← the 6-file contract set
-│   ├── README.md                   ← documentation index and status board
-│   ├── problem_framing.md
-│   ├── scope_and_non_goals.md
-│   ├── evaluation_protocol.md
-│   ├── risk_register_and_premortem.md
-│   └── decision_log.md
-├── notes/                          ← non-contract working inputs (freeze inputs, DSR inputs)
-├── src/robustfolio/                ← exploratory walk-forward implementation
-├── scripts/                        ← Phase 1 experiment and diagnostics
-├── data/                           ← local cache and (planned) snapshots — git-ignored
-└── results/                        ← experiment outputs
-```
-
-`tests/` (unit, integration, leakage) does not exist yet; it is required by the Phase 1 gate and will be added before any confirmatory experiment.
-
----
-
-## Getting Started
-
-**There is nothing to install yet.** The project is in Phase 0; the Python package in `src/robustfolio/` is an exploratory harness, not a released tool.
-
-Read the documentation in this order:
-
-1. [`docs/problem_framing.md`](docs/problem_framing.md) — what problem is being solved
-2. [`docs/scope_and_non_goals.md`](docs/scope_and_non_goals.md) — what is and is not in scope
-3. [`docs/evaluation_protocol.md`](docs/evaluation_protocol.md) — how success is measured and what would falsify it
-4. [`docs/risk_register_and_premortem.md`](docs/risk_register_and_premortem.md) — how the project fails
-
-If you want to contribute to the documentation phase, open an issue.
-
----
-
-## Contributing
-
-Contribution guidelines will be added in `docs/open_source_and_license_policy.md` before Phase 4.
-
-For now:
-
-- **Issues are welcome** for factual errors, unclear documentation, or questions about the problem framing.
-- **Pull requests to frozen documents** require a decision log entry explaining why the change is not goalpost-moving.
-- **Pull requests to draft documents** are welcome but should reference the relevant decision log entry or issue.
-- **Contributions that add scope** (new asset classes, new methods, new frequencies) require a charter amendment; they will not be accepted as drive-by PRs.
-
-The project's discipline is intentional. Contributions that weaken it will be declined with a rationale, not silently.
+- [`docs/evaluation_protocol.md`](docs/evaluation_protocol.md) — frozen metrics, thresholds, hypotheses, registry and firewalls
+- [`docs/model_and_method_spec.md`](docs/model_and_method_spec.md) — frozen method, estimator, optimizer and metric definitions
+- [`docs/problem_framing.md`](docs/problem_framing.md) · [`docs/scope_and_non_goals.md`](docs/scope_and_non_goals.md)
+- [`docs/risk_register_and_premortem.md`](docs/risk_register_and_premortem.md) — how this project fails
+- [`docs/decision_log.md`](docs/decision_log.md) — every governance decision, the experiment registry, and findings F1–F26
 
 ---
 
@@ -194,20 +106,4 @@ The project's discipline is intentional. Contributions that weaken it will be de
 
 MIT. See [`LICENSE`](LICENSE).
 
----
-
-## Citation
-
-A citation will be provided once a public release exists. Until then, please link to this repository.
-
----
-
-## Why "robustfolio"
-
-*Robust* because the binding constraint in practice is usually not sophistication but robustness to estimation error, non-stationarity, and frictions. *Folio* because the object of study is the portfolio, not the signal.
-
-The name is a reminder of what the project is actually about.
-
----
-
-*This README is the front door. The real project lives in [`docs/`](docs/). If this README and the docs ever disagree, the docs win.*
+*Robust*, because the binding constraint in practice is rarely sophistication and usually robustness to estimation error, non-stationarity, and frictions. *Folio*, because the object of study is the portfolio, not the signal.
