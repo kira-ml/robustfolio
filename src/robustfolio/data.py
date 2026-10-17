@@ -234,6 +234,16 @@ MANIFEST_FILE = "manifest.json"
 
 SNAPSHOT_FILES = (PRICE_FILE, ACTIONS_FILE, RF_FILE, UNIVERSE_FILE, QUALITY_FILE)
 
+#: The files the *bundle* hash covers -- deliberately excludes the quality
+#: report, because the quality report embeds the snapshot id, which is derived
+#: from the bundle hash. Including it would be circular.
+#:
+#: ``manifest.json``'s ``sha256`` map covers all of :data:`SNAPSHOT_FILES`, so a
+#: verifier that recomputes the bundle hash from that map gets a different answer
+#: and would reject every valid snapshot (finding F27). Both sets are verified;
+#: they are verified against different expected values.
+BUNDLE_FILES = (PRICE_FILE, ACTIONS_FILE, RF_FILE, UNIVERSE_FILE)
+
 
 def sha256_file(path: Path) -> str:
     h = hashlib.sha256()
@@ -241,6 +251,47 @@ def sha256_file(path: Path) -> str:
         for chunk in iter(lambda: fh.read(1 << 20), b""):
             h.update(chunk)
     return h.hexdigest()
+
+
+def bundle_hash(hashes: dict[str, str]) -> str:
+    """Content hash of a snapshot, derived from its per-file hashes.
+
+    One definition, used in three places: the snapshot builder stamps it into
+    ``manifest.json`` and into the snapshot id, and the release packer recomputes
+    it to check that a manifest's recorded hashes *produce* the recorded bundle
+    hash rather than merely accompanying it. That check is what makes the
+    snapshot id's 8 hex characters meaningful instead of decorative.
+    """
+    blob = json.dumps(sorted(hashes.items()), sort_keys=True)
+    return hashlib.sha256(blob.encode("utf-8")).hexdigest()
+
+
+def snapshot_digests(path: Path) -> dict[str, str]:
+    """Per-file SHA-256 for every file a snapshot is defined to contain."""
+    digests = {}
+    for name in SNAPSHOT_FILES:
+        target = Path(path) / name
+        if not target.exists():
+            raise SnapshotError(f"missing snapshot file: {target}")
+        digests[name] = sha256_file(target)
+    return digests
+
+
+def bundle_digests(path: Path) -> dict[str, str]:
+    """Per-file SHA-256 over :data:`BUNDLE_FILES` only (see finding F27).
+
+    This is the set the bundle hash is defined over. Recomputing a bundle hash
+    from :func:`snapshot_digests` -- the five-file map -- yields a different,
+    wrong answer, which is why the two sets are separate functions rather than a
+    subset taken at each call site.
+    """
+    digests = {}
+    for name in BUNDLE_FILES:
+        target = Path(path) / name
+        if not target.exists():
+            raise SnapshotError(f"missing snapshot file: {target}")
+        digests[name] = sha256_file(target)
+    return digests
 
 
 @dataclass

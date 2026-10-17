@@ -6,6 +6,7 @@ This repository is the benchmark that answers that question under a pre-register
 
 [![protocol](https://img.shields.io/badge/protocol-v2.4%20frozen-blue)](docs/evaluation_protocol.md)
 [![spec](https://img.shields.io/badge/spec-v1.1%20frozen-blue)](docs/model_and_method_spec.md)
+[![CI](https://github.com/kira-ml/robustfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/kira-ml/robustfolio/actions/workflows/ci.yml)
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 ---
@@ -34,6 +35,14 @@ The part worth reading closely: both candidates *pass* the deflated Sharpe p-val
 
 The deliverable is the **apparatus**, not the number: a leakage-tested walk-forward engine, a numerical certificate, a pre-registered decision rule, and a report that prints the comparison it failed on.
 
+![Cumulative net excess return and drawdown, seven methods, walk-forward out-of-sample](docs/figures/equity_curve.png)
+
+*Run `EXP-X-20261017-003`, net of 10 bps one-way cost, exploratory. Cumulative net **excess** return is the path of the primary metric's input, not an investable return. It is shown because a null is easier to trust when the sample is visible: all seven are the same strategy family on the same 18 instruments, and the four front-runners — `B3`, `B5`, `M1`, `M2` — are visually bundled while spanning 0.784 to 0.854 on the metric, a 0.07 spread their intervals cannot separate. Regenerate with `python scripts/make_figures.py --run results/EXP-X-20261017-003`.*
+
+![Net Sharpe at 10 bps per method with its 90% bootstrap interval](docs/figures/net_sharpe_ci.png)
+
+*The same run's primary metric. `M2` leads the best baseline by +0.064 against a 0.20 bar, and every interval overlaps `B3`'s. The DSR p-values (0.0032, 0.0017) are measured against zero; the PSR (0.495, 0.587) against `B3` — §6.1 requires both.*
+
 ---
 
 ## Reproduce it
@@ -41,22 +50,54 @@ The deliverable is the **apparatus**, not the number: a leakage-tested walk-forw
 ```bash
 git clone https://github.com/kira-ml/robustfolio.git && cd robustfolio
 python -m pip install -e .
-
-# 1. Build an immutable point-in-time snapshot from the tracked universe definition.
-#    Downloads daily prices + corporate actions from Yahoo Finance and freezes them.
-python scripts/build_snapshot.py --end 2026-09-30 --retrieval-date 2026-10-17
-
-# 2. Regenerate the headline number and every table behind it.
-python scripts/run_experiment.py --out results/run       # defaults to the newest snapshot on disk
-
-# 3. Verify the engine and the leakage discipline independently.
-python scripts/certify_engine.py                          # 7 methods x 168 rebalances, KKT certificate
-python -m pytest -q                                       # 134 passed, 1 skipped
 ```
 
-Step 2 writes `manifest.json` (snapshot id, git commit, protocol and spec versions, seed, environment), `outcomes.csv`, `decisions.csv`, `calibration.csv`, `design.csv`, `folds_<M>.csv`, and `report.md`.
+**Exact reproduction** — the frozen snapshot, which is the input the table above was computed from. It is a 1.67 MB asset on the Releases page:
 
-Yahoo Finance revises history. The snapshot is immutable once built and every snapshot is identified by a content hash, so a rebuild with a different retrieval date is a **different** snapshot and may produce slightly different numbers. The frozen snapshot behind the table above is `yahoo-usetf-2007-01-01_2026-09-30-2026-10-17-2ad06139`.
+```bash
+# The asset, named for its content hash:
+#   robustfolio-snapshot-yahoo-usetf-2007-01-01_2026-09-30_2026-10-17-2ad06139.tar.gz
+#   SHA-256 28e1d9073844d43be2b256bc7b1ba6c6cf4d050e50703472e206d5ca4052f11e
+curl -LO https://github.com/kira-ml/robustfolio/releases/download/v1.0.0/<asset-from-the-release-page>
+python scripts/pack_snapshot.py --verify <asset> --extract-to data/snapshots
+
+# Regenerate the headline number and every table behind it.
+python scripts/run_experiment.py --out results/run
+
+# Re-run every method from the archive and assert it equals the published table.
+# Tolerance is exactly zero; this prints EXACT or a non-zero exit.
+python scripts/verify_release.py --archive <asset> --run results/run
+
+# The headline figure, from the run directory alone.
+python scripts/make_figures.py --run results/run
+```
+
+**Independent checks** — no data download, no network:
+
+```bash
+python scripts/certify_engine.py    # 7 methods x 168 rebalances, KKT certificate
+python -m pytest -q                 # 150 passed, 1 skipped
+```
+
+`run_experiment.py` writes `manifest.json` (snapshot id, git commit, protocol and spec versions, seed, environment), `outcomes.csv`, `decisions.csv`, `calibration.csv`, `design.csv`, `folds_<M>.csv`, `net_excess_returns.csv`, and `report.md`.
+
+**Rebuilding the snapshot is not reproduction.** Yahoo Finance revises history, so `scripts/build_snapshot.py --end 2026-09-30 --retrieval-date <another date>` produces a *different* snapshot with a different content hash and slightly different numbers. That is why the frozen snapshot ships as an asset, and why the archive's digest is published: exact reproduction means the same input, not a similar one.
+
+---
+
+## Using the harness on your own data
+
+The seam is the **snapshot directory**. A snapshot is five files, and the data layer verifies every hash in `manifest.json` before it will read anything, so nothing downstream can be silently fed a different panel:
+
+| File | Contents |
+|---|---|
+| `prices_raw.parquet` | `DatetimeIndex` × `MultiIndex` columns `(field, ticker)`, fields `close`/`open`/`high`/`low`/`volume`; **unadjusted** prices |
+| `actions.parquet` | `ticker`, `ex_date`, `kind`, `value` — splits and dividends, applied at their ex-date |
+| `rf_dgs1mo.parquet` | `date`, `dgs1mo` — the risk-free series, aligned prior-month and annualised geometrically |
+| `universe_pit.csv` | `ticker`, `first_eligible`, `last_eligible`, `source_note` — **what makes eligibility point-in-time**; a ticker outside its window is absent, not forward-filled |
+| `manifest.json` | per-file SHA-256, content hash, snapshot id, retrieval date, source |
+
+Everything else is generic: `backtest.run_method(snapshot, method_id)` runs one method through the walk-forward loop and returns its per-rebalance record, and `report.build_report(...)` turns a set of those into the table above. `scripts/build_snapshot.py` is the only file that knows how to *produce* a snapshot, and it is the only file you need to change to point the benchmark at a different price panel.
 
 ---
 
@@ -72,7 +113,9 @@ Yahoo Finance revises history. The snapshot is immutable once built and every sn
 | Optimizer | CVXPY + CLARABEL, **no fallback path**, every rebalance certified by a primal KKT residual against a frozen tolerance |
 | Engine certificate | 7 methods × 168 rebalances = **1,176 solves, zero rejections**; worst KKT residual `1.49e-11` vs `1e-7` acceptance |
 | Leakage suite | protocol §5.4.8 — 14 pass, 1 recorded skip (the survivorship test is vacuous in-sample; see below) |
-| Tests | 134 passed, 1 skipped |
+| Tests | 150 passed, 1 skipped — including the leakage suite, release-packaging integrity, and the documentation index |
+| Release chain | Frozen snapshot packs to a deterministic 1.67 MB archive with a published SHA-256; `verify_release.py` re-runs the harness from the archive and asserts equality with the published table at zero tolerance |
+| Continuous integration | Hermetic suite green on a fresh clone; full reproduction when the release asset is present |
 
 ---
 
@@ -87,6 +130,7 @@ These are the honest ones, not a disclaimer. The full list is in the report and 
 - **Data provenance is Yahoo Finance**, frozen into an immutable snapshot with a quality report. It is not an institutional point-in-time vendor feed.
 - **Two specification readings are disclosed, not silent.** §7.8 leaves the object of its prediction interval undefined, so only the *return* half is reported (coverage 81.5–87.0%); the volatility half is deliberately **not** implemented. §6.3's "advantage" is not pinned to a metric, so fold wins use net Sharpe and the concentration clause uses per-fold mean return — **and that reading decides the verdict here** (findings F24, F25).
 - **Not investment advice, and not a claim of tradable alpha.** Nothing here is a live trading system, and no absolute return claim is made (protocol §14.2).
+- **The verification path itself had two bugs, and both produced plausible numbers.** The first snapshot verifier rejected *every* valid snapshot, because `manifest.json`'s hash map lists five files while the content hash is derived from four (finding F27). The first comparison of the archived snapshot against the published table reported a `8.3e-17` mismatch on `B4`, because `pandas.read_csv` is lossy by one ULP at its default settings — only `float_precision="round_trip"` is exact (finding F28). Neither error was in the artefact. Both were found only because the expected answer was known to 17 digits, and both are now pinned by tests.
 
 ---
 
@@ -98,7 +142,7 @@ The contracts live in [`docs/`](docs/) and are the authority: **if this README a
 - [`docs/model_and_method_spec.md`](docs/model_and_method_spec.md) — frozen method, estimator, optimizer and metric definitions
 - [`docs/problem_framing.md`](docs/problem_framing.md) · [`docs/scope_and_non_goals.md`](docs/scope_and_non_goals.md)
 - [`docs/risk_register_and_premortem.md`](docs/risk_register_and_premortem.md) — how this project fails
-- [`docs/decision_log.md`](docs/decision_log.md) — every governance decision, the experiment registry, and findings F1–F26
+- [`docs/decision_log.md`](docs/decision_log.md) — every governance decision, the experiment registry, and findings F1–F29
 
 ---
 

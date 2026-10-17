@@ -15,7 +15,6 @@ Snapshots are git-ignored; the confirmed candidate list they embed is not
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import subprocess
 import sys
@@ -43,11 +42,6 @@ def _git_commit() -> str:
 def _last_day_of_previous_month(today: date | None = None) -> pd.Timestamp:
     today = pd.Timestamp(today or date.today())
     return (today.replace(day=1) - pd.Timedelta(days=1)).normalize()
-
-
-def _bundle_hash(hashes: dict[str, str]) -> str:
-    blob = json.dumps(sorted(hashes.items()), sort_keys=True)
-    return hashlib.sha256(blob.encode("utf-8")).hexdigest()
 
 
 def _quality_report(snapshot_id: str, prices: pd.DataFrame, actions: pd.DataFrame,
@@ -188,11 +182,9 @@ def build(universe_csv: Path, start: str, end: str, retrieval_date: str,
     )
 
     data_hashes = {
-        name: data_mod.sha256_file(staging / name)
-        for name in (data_mod.PRICE_FILE, data_mod.ACTIONS_FILE, data_mod.RF_FILE,
-                     data_mod.UNIVERSE_FILE)
+        name: data_mod.sha256_file(staging / name) for name in data_mod.BUNDLE_FILES
     }
-    bundle = _bundle_hash(data_hashes)
+    bundle = data_mod.bundle_hash(data_hashes)
     hash8 = bundle[:8]
     snapshot_id = f"yahoo-{asset_class}-{start}_{end}-{retrieval_date}-{hash8}"
 

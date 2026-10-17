@@ -1,0 +1,84 @@
+name: CI
+
+# What this workflow is for
+# ------------------------
+# The claim this repository makes is "check these numbers", so the thing worth
+# automating is not "does the code import" but "does the executable definition of
+# leakage still fail when leakage is present". The leakage suite is the reason
+# this workflow exists.
+#
+# The suite is green on a fresh clone by construction: tests that need the frozen
+# snapshot skip with an explanatory reason (see tests/conftest.py), because a CI
+# that is red until you download 2.4 MB teaches people to ignore CI. When the
+# frozen snapshot *is* available -- as a release asset -- the second half of this
+# workflow fetches it and runs the whole thing, including the reproduction.
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  # Frozen inputs. If the snapshot is ever rebuilt, these two lines are the only
+  # ones that change, and the snapshot id changes with the content by design.
+  RELEASE_TAG: v1.0.0
+  SNAPSHOT_ASSET: robustfolio-snapshot-yahoo-usetf-2007-01-01_2026-09-30-2026-10-17-2ad06139.tar.gz
+  SNAPSHOT_ID: yahoo-usetf-2007-01-01_2026-09-30-2026-10-17-2ad06139
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    # One interpreter, not a matrix. The environment is frozen on purpose (the
+    # solver tolerance and the bootstrap seed are part of the result), so a
+    # second Python version would test a configuration nobody quotes numbers from.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Fetch the frozen snapshot (optional)
+        id: snapshot
+        # Optional by design: absent on a fresh clone, present once the release
+        # exists. The un-flagged tests below then stop skipping, so the same job
+        # covers both the hermetic suite and the end-to-end reproduction.
+        continue-on-error: true
+        run: |
+          mkdir -p data/snapshots
+          curl -fsSL -o /tmp/snapshot.tar.gz \
+            "https://github.com/${{ github.repository }}/releases/download/${RELEASE_TAG}/${SNAPSHOT_ASSET}"
+          python scripts/pack_snapshot.py \
+            --verify /tmp/snapshot.tar.gz --extract-to data/snapshots
+          echo "ok=true" >> "$GITHUB_OUTPUT"
+
+      - name: Confirm the snapshot is the frozen one, not merely present
+        if: steps.snapshot.outputs.ok == 'true'
+        run: python scripts/pack_snapshot.py --verify-dir "data/snapshots/${SNAPSHOT_ID}"
+
+      - name: Tests
+        run: python -m pytest -q
+
+      - name: One command regenerates the number
+        if: steps.snapshot.outputs.ok == 'true'
+        # The résumé-bar item, executed rather than asserted. Certification runs
+        # too: a solver failure must break the build, not appear as a result.
+        run: python scripts/run_experiment.py --out /tmp/run
+
+      - name: Figures render from the published artefacts alone
+        if: steps.snapshot.outputs.ok == 'true'
+        run: python scripts/make_figures.py --run /tmp/run
+
+      - name: Upload the run directory
+        if: steps.snapshot.outputs.ok == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: exploratory-run
+          path: /tmp/run
+          retention-days: 14

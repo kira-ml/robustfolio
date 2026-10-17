@@ -605,6 +605,7 @@ class Report:
     folds: dict[str, pd.DataFrame]
     calibration: pd.DataFrame | None = None
     design: pd.DataFrame | None = None
+    net_excess_returns: pd.DataFrame | None = None
     notes: list[str] = field(default_factory=list)
 
     def write(self, directory: Path) -> dict[str, Path]:
@@ -618,6 +619,18 @@ class Report:
         written["manifest"] = manifest_path
 
         tables = {"outcomes": self.outcomes, "decisions": self.decisions}
+        if self.net_excess_returns is not None:
+            # Published so that the headline figure, and any statistic a reader
+            # prefers to ours, can be computed from the run directory alone
+            # rather than by re-running the harness. It holds net *excess*
+            # returns, because that is the series the primary metric is defined
+            # on (spec §2): a figure drawn from anything else would illustrate a
+            # different quantity from the one in the table above it. ``to_csv``
+            # writes float64 at full round-tripping precision; the trap is on
+            # the *reader* side, where ``pandas.read_csv`` defaults to a parser
+            # that is lossy by one ULP (finding F28). Read it with
+            # ``float_precision="round_trip"`` to compare, not to plot.
+            tables["net_excess_returns"] = self.net_excess_returns
         if self.calibration is not None:
             tables["calibration"] = self.calibration
         if self.design is not None:
@@ -670,6 +683,12 @@ def build_report(
         else None
     )
     design = design_diagnostics(results, decisions, rf=rf, headline_bps=headline_bps)
+    net_excess_returns = pd.DataFrame(
+        {
+            method: _excess(result.net_returns(headline_bps), rf)
+            for method, result in results.items()
+        }
+    ).sort_index()
     return Report(
         manifest=manifest(
             snapshot_id,
@@ -700,6 +719,7 @@ def build_report(
         folds=folds,
         calibration=calibration,
         design=design,
+        net_excess_returns=net_excess_returns,
         notes=[
             "F15/design: rho(candidate, best baseline) is reported in the design/"
             "detectability table and is NOT a registered metric; the DSR family size "
@@ -716,6 +736,13 @@ def build_report(
             "DSR with the registered family size N = 1 evaluates PSR at SR_0 = 0 by "
             "the frozen O6 convention (spec §7.10); the general formula has no "
             "finite N = 1 limit.",
+            "Auxiliary artefact: net_excess_returns.csv holds the monthly net excess "
+            "portfolio return series of every method at the headline cost -- the exact "
+            "series the primary metric is defined on, so the headline figure and any "
+            "statistic a reader prefers can be recomputed from the run directory alone. "
+            "It is a disclosure, not a registered metric. Compare it with "
+            "float_precision='round_trip' -- pandas' default parser is lossy by one ULP "
+            "(finding F28).",
         ],
     )
 
