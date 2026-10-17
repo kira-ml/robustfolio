@@ -69,6 +69,47 @@ BOOTSTRAP_BLOCK_MEAN = 6
 #: Bootstrap replications (protocol §13.1).
 BOOTSTRAP_REPS = 2000
 
+#: Confidence levels: 90% for reporting, 95% for decision thresholds
+#: (protocol §13.1). Two constants because the protocol really does use two.
+CI_LEVEL_REPORT = 0.90
+CI_LEVEL_DECISION = 0.95
+
+#: Registered multiple-testing family size for the confirmatory family
+#: (protocol §12.6; finding F13 resolved as N = 1 by DEC-20261017-027).
+DSR_FAMILY_SIZE = 1
+
+#: Euler-Mascheroni constant, as named in the DSR definition (spec §7.10).
+EULER_MASCHERONI = 0.5772156649015329
+
+# --- decision thresholds (protocol §6; confirmed at freeze) ----------------- #
+
+#: §6.1 statistical significance: DSR p-value below this, with SR* = SR_0...
+DSR_PVALUE_MAX = 0.05
+
+#: ...and PSR above this, with SR* = the best baseline's observed Sharpe.
+PSR_MIN = 0.95
+
+#: §6.2 economic materiality: minimum net-Sharpe improvement over the best
+#: baseline at the headline cost level.
+MATERIALITY_SHARPE_GAP = 0.20
+
+#: §6.2: turnover may not exceed this multiple of the best baseline's.
+MATERIALITY_TURNOVER_MULTIPLE = 2.0
+
+#: §6.2: maximum drawdown may not be worse than the best baseline's by more
+#: than this, in absolute return terms (5 percentage points).
+MATERIALITY_DRAWDOWN_SLACK = 0.05
+
+#: §6.3 robustness: the advantage must hold at this many of the five §5.5.3
+#: cost levels.
+ROBUSTNESS_COST_LEVELS = 3
+
+#: §6.3: and in this fraction of walk-forward folds (>= 60% of 14 folds = 9),
+#: and no single fold may contribute more than this fraction of the total
+#: advantage.
+ROBUSTNESS_FOLD_FRACTION = 0.60
+ROBUSTNESS_FOLD_SHARE_MAX = 0.40
+
 # --- solver acceptance ----------------------------------------------------- #
 
 #: Acceptance tolerance: max constraint violation and the optimality residual

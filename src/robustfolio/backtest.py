@@ -95,10 +95,15 @@ class BacktestResult:
         return self.gross_returns - self.cost_drag(cost_bps)
 
     def annualized_turnover(self) -> float:
-        """§7.2: ``12 * mean_t turnover_t``, one-way, from the single canonical series."""
-        if self.turnover.empty:
-            return float("nan")
-        return float(12.0 * self.turnover.mean())
+        """§7.2: ``12 * mean_t turnover_t``, one-way, from the single canonical series.
+
+        Delegates to :func:`robustfolio.metrics.annualized_turnover` so the
+        formula is written once; this accessor exists only so a caller holding a
+        ``BacktestResult`` does not need to import the metrics module.
+        """
+        from .metrics import annualized_turnover
+
+        return annualized_turnover(self.turnover)
 
     def fold_returns(self, cost_bps: float = 10.0) -> pd.Series:
         """Net return compounded within each fold, indexed by fold id.
