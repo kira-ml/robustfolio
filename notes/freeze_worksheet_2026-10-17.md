@@ -271,4 +271,44 @@ This file is input. The freeze is judgment. The two are separate sessions.
 
 ---
 
+## 13. Freeze-session outcome (2026-10-17)
+
+**All recommendations in §0 were accepted by the owner on 2026-10-17** and written into `evaluation_protocol.md` v2.3 (`Frozen`) under DEC-20261017-021. This worksheet is now a confirmed record of the decisions and their rationale; it remains a working input, not a contract.
+
+Confirmed values, as frozen:
+
+| Item | Frozen value |
+|------|--------------|
+| Estimation window | 60 months, rolling, re-estimated monthly |
+| Test window / step | 12 / 12 months |
+| §5.3 purged CV | scoped to hyperparameter selection only; embargo 1 month; inert if nothing is tuned |
+| §6.1 | DSR p < 0.05 (`SR* = SR_0`); PSR > 0.95 (`SR* = SR_best_baseline`) |
+| §6.2 / §6.3 | ΔSharpe ≥ 0.20; turnover ≤ 2×; MDD within +5pp / ≥3 cost levels; ≥60% of folds; no fold > 40% |
+| §7 H1.1 | 0.40, tested on the **uncapped** optimizer |
+| §7 H1.2 | turnover ratio > 2.0 |
+| §4.2 | baseline set B1–B5; `inverse_vol` and other extensions not promoted |
+| §4.3 | `w_max = 0.30`, uniform across all methods; γ = 10 (scale-verified; balance point ≈ 12.3) |
+| §4.4 B2 | CCD risk budgeting; ε = 1e-6 |
+| §4.4 B5 | λ = κ = 0.001; convex QP with auxiliary variables |
+| §5.4.1 | two-tier: raw unadjusted + corporate actions + snapshots |
+| §5.4.2 | point-in-time candidate list (target 15–25); 60-month history; $5M ADV |
+| §5.4.5 | delisting −100% default, flagged untested; PIT list required |
+| §5.4.6 | forward-fill ≤3 days; missing rf forward-fill ≤1 month then FRED; never zero |
+| §5.4.9 | content-addressed cache; confirmatory runs read snapshots |
+| §5.5.1 / §5.5.3 | impact term off; κ = 10 bps baseline (0/5/10/20/50) |
+| §5.5.4 | signals through close t−1; execute close t−1; hold month t |
+| §5.5.5 | single R_f for gross and net Sharpe |
+| §5.5.6 | λ = κ; tuned λ is an extension |
+| §8.3 / §8.4 | time-boxes confirmed; Gate 0 requires the ≥10-item R1 scan and the protocol Frozen |
+| §8.6 K7 | 3 invalidations |
+| §12.8 | q = 0.10 (convention) |
+| §13.1 | block 6; 2000 replications |
+| §14.3 | 1-week decision time-box |
+
+**Verification performed at the freeze.** The γ scale check was run read-only on the Phase 1 monthly-returns cache (232 months, 15 assets): equal-weight monthly return 0.00445, monthly variance 0.000721, so the term-balance point is γ ≈ 12.3 and γ = 10 gives a return:risk ratio of ≈ 1.23:1. The check also gave the sample-covariance condition number (10,803), which independently supports the 60-month window over 36.
+
+**No `src/` or `scripts/` file was modified.** DEC-20261015-015's pre-freeze source freeze remained in force throughout.
+
+---
+
 **End of freeze worksheet.**

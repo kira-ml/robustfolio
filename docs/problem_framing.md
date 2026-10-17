@@ -1,6 +1,6 @@
 # Problem Framing: Robust, Turnover-Aware Portfolio Rebalancing
 
-**Version:** 2.3
+**Version:** 2.4
 **Status:** Foundational, falsifiable problem contract
 **Project:** `robustfolio`
 **License:** MIT (see repository root)
@@ -126,11 +126,35 @@ The primary decision this project supports:
 
 **Hypothesis, partially validated by the Phase 0 scan.** The individual techniques (shrunk covariance, Bayesian returns, turnover penalties, ex-ante cost modeling, multi-period optimization) are well studied in the literature. What does not exist is a single reproducible, open-source benchmark that runs them head-to-head under one walk-forward protocol with multiple-testing-aware metrics and publishes the full result — positive, negative, or mixed.
 
-**Phase 0 scan result:**
+**Phase 0 scan result (extended 2026-10-17; satisfies the §8.4 Gate 0 ≥10-item criterion — DEC-20261017-020 finding N1).**
 
-- `cvxportfolio` (Boyd et al.) provides a cost-aware, multi-period optimizer, but not a benchmark comparison.
-- `PyPortfolioOpt`, `Riskfolio-Lib`, and `skfolio` each provide subsets of the methods, but no comparison study.
-- No published paper packages the full comparison with reproducible code.
+*Open-source tools and repositories:*
+
+| # | Item | What it covers | Which part of the gap remains |
+|---|------|----------------|-------------------------------|
+| 1 | `cvxportfolio` (Boyd et al.) | Cost-aware, multi-period convex optimization with transaction costs | No walk-forward benchmark; no cross-family comparison |
+| 2 | `PyPortfolioOpt` | Classical optimizers, shrinkage estimators, returns models | Library only; no head-to-head benchmark |
+| 3 | `Riskfolio-Lib` | Broad method set incl. risk parity, CVaR, HRP, shrinkage | Library only; no frozen protocol, no multiple-testing adjustment |
+| 4 | `skfolio` | scikit-learn-compatible portfolio models with cross-validation | Model toolkit; no net-of-cost comparison across families |
+| 5 | `universal-portfolios` (Marigold) | Online portfolio-selection algorithms benchmarked against 1/N | Compares online-learning algorithms only; not cost-aware/shrinkage MVO |
+| 6 | `bt` (pmorissette) | Flexible backtesting with rebalancing and transaction costs | A backtesting engine, not a method comparison |
+| 7 | `ffn` (pmorissette) | Performance and drawdown analytics | Metrics only; no portfolio construction |
+| 8 | `mlfinlab` (Hudson & Thames) | López de Prado tooling: purged CV, PSR/DSR, feature importance | Tooling; no method benchmark |
+| 9 | `quantstats` / `empyrical` | Sharpe, drawdown, tail statistics | Metrics only |
+| 10 | `PortfolioAnalytics` (R, braverock) | Constraint/objective optimization, risk budgets | R rather than Python; no walk-forward net-of-cost comparison |
+| 11 | `riskparityportfolio` (R, Pfaff) | Risk-parity and risk-budgeting solvers | Single method family |
+| 12 | `deepdow` | Deep-learning portfolio allocation | ML return prediction; out of scope (§5.3) |
+
+*Papers and benchmark studies:*
+
+| # | Item | What it covers | Which part of the gap remains |
+|---|------|----------------|-------------------------------|
+| 13 | DeMiguel, Garlappi & Uppal (2009) | 1/N vs 14 optimization models out-of-sample | No multiple-testing adjustment; limited cost treatment; pre-2010 methods |
+| 14 | Chopra & Ziemba (1993) | Relative impact of errors in means/variances/covariances | Analytical, not an empirical net-of-cost benchmark |
+| 15 | Harvey, Liu & Zhu (2016) | Multiple-testing haircuts for the cross-section | Factor tests, not portfolio-construction methods |
+| 16 | Boyd, Busseti, Diamond, et al. (2017) | Multi-period trading via convex optimization | A single method line, not a cross-family benchmark under a frozen protocol |
+
+**Scan coverage: 16 items (12 tools/repositories + 4 papers).** No scanned item packages the full head-to-head comparison of cost-aware, shrinkage + turnover-constrained, and robust methods against the B1–B5 baseline set under one walk-forward protocol with multiple-testing-aware metrics and a published reproducible result. The gap hypothesis (H4.1, H4.2) remains not falsified.
 
 **Refined contribution claim:** a reproducible, cost-aware, walk-forward benchmark that operationalizes the post-2009 literature's proposed fixes (ex-ante costs, shrinkage plus turnover constraints, robust optimization) under one protocol and reports the outcome honestly. The contribution is the packaging and reproducibility, not a novel method.
 
@@ -252,7 +276,7 @@ Scope is not duplicated here. Any conflict between this document and the scope d
 
 Before building the full solution, validate that the problem is real and worth solving. These are the Phase 1 gates.
 
-1. **Literature and tool scan.** Completed 2026-10-15. See §4.1.
+1. **Literature and tool scan.** Completed 2026-10-15; extended 2026-10-17 to 16 items. See §4.1.
 2. **Simple experiments show sample MVO produces extreme weights and high turnover on the primary dataset.** Phase 1 empirical gate. See [`evaluation_protocol.md`](evaluation_protocol.md) §7 H1.1 and H1.2. **Status: not falsified (exploratory) 2026-10-15.** See `decision_log.md` DEC-20261015-012.
 3. **Baselines such as 1/N and risk parity are robust and often competitive, confirming robustness is a key challenge.** **Status: not falsified (exploratory) 2026-10-15.** See `decision_log.md` DEC-20261015-012.
 4. **A minimal turnover penalty reduces turnover without destroying net performance in preliminary tests.** **Status: not passed at 232 months.** Turnover reduced, but net Sharpe fell below unpenalized MVO. See §14.
@@ -304,7 +328,7 @@ Not yet written. Failure-mode and pre-mortem content will be added as a section 
 - **H1.1, H1.2 not falsified.** Sample MVO produces extremal weights (unconstrained max 0.599, capped at boundary 0.400) and ~7.5× the turnover of 1/N. This is a diagnostic signal, not a finding.
 - **Remedy hypothesis not supported in the 60/0.40/10bps configuration.** Shrinkage and turnover penalty underperform even unpenalized MVO at 232 months in this configuration. This is not the framing's prediction. §7's leverage-point claim remains a hypothesis. Whether the underperformance is a cap artifact, a window artifact, or a real effect is unresolved — Tests B/C/D.
 - **Base rate reproduced (exploratory).** 1/N beats every optimizer net of cost in this configuration. Consistent with DeMiguel et al. (2009), who estimated ~3000 months are needed for MVO to reliably beat 1/N.
-- **Open question (unresolved):** is the shrinkage/penalty underperformance a box-cap artifact, a window-length artifact, or a real effect? Planned Tests B/C/D will resolve this before Phase 2 begins.
+- **Open question (unresolved):** is the shrinkage/penalty underperformance a box-cap artifact, a window-length artifact, or a real effect? Tests B/C/D — now specified in [`../notes/tests_BCD_spec_2026-10-17.md`](../notes/tests_BCD_spec_2026-10-17.md) — will resolve this under the frozen protocol (`evaluation_protocol.md` v2.3, Frozen 2026-10-17), before Phase 2 begins.
 
 ---
 
@@ -329,6 +353,7 @@ Not yet written. Failure-mode and pre-mortem content will be added as a section 
 | 2026-10-15 | 2.1 | Qualified §3.1 Sharpe-erosion example; inverted §4 gap claim from assertion to hypothesis (§4.1); moved §9 (evaluation), §10 (scope), §12 (pre-mortem) to their authoritative documents and left stubs; trimmed §11 items 1 and 5 to pointers; added revision history | Ken Ira Lacson Talingting |
 | 2026-10-15 | 2.2 | Updated §0 and §9 cross-references to reflect deletion of `success_metrics_and_evaluation_protocol.md` and `falsification_and_kill_criteria.md` (merged into `evaluation_protocol.md`); rewrote §4.1 with Phase 0 scan result and refined contribution claim; downgraded §7 bottleneck and leverage-point claims to hypotheses; updated §11 status per Phase 1; replaced §12 stub with accurate note; added §14 Phase 1 finding; added this row | Ken Ira Lacson Talingting |
 | 2026-10-15 | 2.3 | §14 retitled and relabeled as exploratory per DEC-20261015-012; §11 items 2–3 downgraded from "passed" to "not falsified (exploratory)" | Ken Ira Lacson Talingting |
+| 2026-10-17 | 2.4 | Extended the §4.1 Phase 0 scan from 4 to 16 items (12 tools/repos + 4 papers), satisfying the `evaluation_protocol.md` §8.4 Gate 0 ≥10-item criterion (DEC-20261017-020 finding N1). Updated §11 item 1 and the §14 open question to record that Tests B/C/D are specified and the protocol is frozen. | Ken Ira Lacson Talingting |
 
 ---
 

@@ -1,10 +1,10 @@
 # Evaluation Protocol: robustfolio
 
-**Version:** 2.2
-**Status:** Draft — Phase A and Phase C merges applied; pending owner confirmation of `[PROPOSED]` values and freeze
+**Version:** 2.3
+**Status:** Frozen — owner-confirmed 2026-10-17. Changes require a decision log entry, a version bump, and the §16 discipline.
 **Owner:** Ken Ira Lacson Talingting
 **Created:** 2026-10-14 (as `success_metrics_and_evaluation_protocol.md`)
-**Last Updated:** 2026-10-15
+**Last Updated:** 2026-10-17
 **Supersedes:** `success_metrics_and_evaluation_protocol.md` v1.1 and `falsification_and_kill_criteria.md` v1.1 (merged per execution TODO item B1); `project_charter.md` §6–9 (relocated per DEC-20261015-017, Phase A); `benchmark_and_baseline_spec.md`, `data_contract_and_point_in_time_policy.md`, `cost_model_and_frictions.md`, and `experiment_registry_and_preregistration.md` (spec sections) merged per DEC-20261015-018, Phase C
 **Related:** [`problem_framing.md`](problem_framing.md), [`scope_and_non_goals.md`](scope_and_non_goals.md), [`risk_register_and_premortem.md`](risk_register_and_premortem.md), [`decision_log.md`](decision_log.md)
 
@@ -65,7 +65,7 @@ where \( R_{\text{net}} = R_{\text{gross}} - c(\Delta w) \) is the monthly net r
 
 **Decision use:** The primary metric is the *only* metric allowed to determine whether a robust method beats a baseline. All other metrics are diagnostic or constraint-checking.
 
-**Freeze-session note (DEC-20261015-015, finding 1).** The Phase 1 code computed "gross Sharpe" without subtracting the risk-free rate, while computing "net Sharpe" with it. As frozen, both gross and net Sharpe must use the same \( R_f \) convention, defined in §5.5.5. The freeze session must resolve this finding before Status flips to `Frozen`.
+**Risk-free rate convention (frozen 2026-10-17; resolves DEC-20261015-015 finding 1).** Both gross and net Sharpe subtract the same \( R_f \) — the 1-month T-bill defined in §5.5.5. The Phase 1 practice, in which "gross Sharpe" omitted \( R_f \) while "net Sharpe" included it, is superseded. `Cost drag` is \( \text{Gross Sharpe} - \text{Net Sharpe} \) under the *same* \( R_f \) series.
 
 ---
 
@@ -121,31 +121,32 @@ All baselines share the following conventions.
 
 - **Universe:** as defined in §5.4.2.
 - **Rebalance frequency:** monthly (last trading day of the month).
-- **Estimation window:** `[PROPOSED: 36 months rolling]` for B2, B3, B4, B5. B1 uses no estimation.
+- **Estimation window:** 60 months, rolling, for B2, B3, B4, B5. B1 uses no estimation. Frozen 2026-10-17 (supersedes the proposed 36); window length is also a swept dimension in Tests B/C/D.
 - **Constraints:** fully invested, long-only, no leverage.
   - \( \sum_i w_i = 1 \)
   - \( w_i \ge 0 \)
-  - \( w_i \le w_{\max} \) where \( w_{\max} = \text{[PROPOSED: 0.30]} \)
-- **Risk aversion:** \( \gamma = \text{[PROPOSED: 5]} \) for B3 and B5.
+  - \( w_i \le w_{\max} \) where \( w_{\max} = 0.30 \), **applied uniformly to every method, including B1 and B2** (frozen 2026-10-17; resolves DEC-20261017-019 finding F1).
+- **Risk aversion:** \( \gamma = 10 \) for B3 and B5. Frozen 2026-10-17 (supersedes the proposed 5 and the Phase 1 code's 1.0). Derivation: on the MVP universe the monthly term-balance point \( 2\bar{\mu}_p / (\bar{w}^\top \Sigma \bar{w}) \approx 12.3 \) at equal weight, so \( \gamma = 10 \) keeps the return and risk terms of comparable magnitude. \( \gamma \in \{5, 10, 20\} \) is a swept dimension.
+- **Turnover penalty:** \( \lambda = \kappa \) for B5 (§4.4, §5.5.6).
 - **Covariance estimator:** sample covariance unless otherwise specified.
 - **Expected return estimator:** sample mean (arithmetic, monthly) for B3 and B5.
 - **Cost model:** proportional \( \kappa \) bps per one-way turnover, per §5.5.
-- **Execution:** close of rebalance date (§5.5.4).
+- **Execution:** signals through the close of month \( t-1 \); execute at that close; hold through month \( t \) (§5.5.4).
 - **Point-in-time:** all inputs satisfy §5.4.3.
 
 ### 4.4 Baseline specifications
 
 **B1 — Equal weight (1/N).** \( w_i = 1/N \) for all \( i \in U_t \). No inputs, no optimization. Turnover determined entirely by drifted weights and universe changes. Role: the primary benchmark. A robust method that cannot beat 1/N net of costs has not demonstrated practical value. Falsification relevance: if no robust method beats B1 net of costs, the primary objective is likely falsified (see §8.6 K1).
 
-**B2 — Risk parity (equal risk contribution).** Solve for \( w \) such that \( w_i (\Sigma w)_i = w_j (\Sigma w)_j \) for all \( i,j \), subject to \( \sum w_i = 1 \), \( w_i \ge 0 \), \( w_i \le w_{\max} \). Inputs: sample covariance, 36 months rolling. Convex; solved via standard risk-budgeting algorithm (Spinu, 2013) or scipy-based iterative solver. Implementation note: diagonal loading \( \epsilon I \) with \( \epsilon = \text{[PROPOSED: 1e-6]} \) if \( \Sigma \) is near-singular.
+**B2 — Risk parity (equal risk contribution).** Solve for \( w \) such that \( w_i (\Sigma w)_i = w_j (\Sigma w)_j \) for all \( i,j \), subject to \( \sum w_i = 1 \), \( w_i \ge 0 \), \( w_i \le w_{\max} \). Inputs: sample covariance, 60 months rolling. Solved via cyclic-coordinate-descent risk budgeting (Spinu, 2013; Griveau-Billion, Richard, & Roncalli, 2013); a convex log-barrier formulation is an acceptable equivalent. Diagonal loading \( \epsilon I \) with \( \epsilon = 10^{-6} \) if \( \Sigma \) is near-singular. Convergence check: \( \max_{i,j} |\text{RC}_i - \text{RC}_j| < 10^{-8} \). Frozen 2026-10-17 (resolves the §18 §4.4-B2 item).
 
-**B3 — Sample mean-variance optimization (MVO).** \( \max_w \ w^\top \mu - \frac{\gamma}{2} w^\top \Sigma w \) subject to constraints above. Inputs: sample mean and covariance over 36 months rolling. QP; document solver and tolerance. The critique target. Demonstrating that B3 fails out-of-sample is expected and serves as a baseline sanity check, not as a novel finding. **Caveat:** if B3 does *not* show extreme weights or high turnover on the primary dataset, the problem framing premise is weakened. This is a Phase 1 exit criterion.
+**B3 — Sample mean-variance optimization (MVO).** \( \max_w \ w^\top \mu - \frac{\gamma}{2} w^\top \Sigma w \) subject to constraints above. Inputs: sample mean and covariance over 60 months rolling. QP; document solver and tolerance. The critique target. Demonstrating that B3 fails out-of-sample is expected and serves as a baseline sanity check, not as a novel finding. **Caveat:** if B3 does *not* show extreme weights or high turnover on the primary dataset, the problem framing premise is weakened. This is a Phase 1 exit criterion. Weight extremeness is assessed on the **uncapped** B3 (see §7 H1.1); the capped B3 is the primary treatment.
 
-**B4 — Minimum variance.** \( \min_w \ w^\top \Sigma w \) subject to constraints. Equivalent to MVO with \( \mu = 0 \). Inputs: sample covariance, 36 months rolling. Diagonal loading as in B2.
+**B4 — Minimum variance.** \( \min_w \ w^\top \Sigma w \) subject to constraints. Equivalent to MVO with \( \mu = 0 \). Inputs: sample covariance, 60 months rolling. Diagonal loading as in B2.
 
-**B5 — Turnover-penalized MVO (L1).** \( \max_w \ w^\top \mu - \frac{\gamma}{2} w^\top \Sigma w - \lambda \| w - w^- \|_1 \) subject to constraints. Inputs: \( \mu \), \( \Sigma \), \( \gamma \) as in B3; \( \lambda = \text{[PROPOSED: equal to baseline \( \kappa \) = 10 bps = 0.001 in monthly return units]} \); \( w^- \) = drifted weights from the previous period (see §5.5.5). Convex QP with auxiliary variables \( u_i \ge |w_i - w_i^-| \). The strongest simple robust baseline. Any robust method that does not beat B5 net of costs is not adding practical value beyond a simple penalty.
+**B5 — Turnover-penalized MVO (L1).** \( \max_w \ w^\top \mu - \frac{\gamma}{2} w^\top \Sigma w - \lambda \| w - w^- \|_1 \) subject to constraints. Inputs: \( \mu \), \( \Sigma \), \( \gamma \) as in B3; \( \lambda = \kappa = 0.001 \) (baseline \( \kappa \) = 10 bps, expressed in monthly return units per unit of one-way turnover); \( w^- \) = drifted weights from the previous period (see §5.5.5). Solved as a convex QP with auxiliary variables \( u_i \ge |w_i - w_i^-| \) (linear constraints), not by subgradient descent. The strongest simple robust baseline. Any robust method that does not beat B5 net of costs is not adding practical value beyond a simple penalty. Frozen 2026-10-17.
 
-**Freeze-session note (DEC-20261015-015, finding 2).** In Phase 1, `TURNOVER_PENALTY = 0.1` was scale-dominated: it was ~2× the return term and ~20× the risk term in the monthly objective. The Phase 1 result is a statement about λ=0.1 specifically, not about turnover penalties as a class. The freeze session must specify a principled λ, either λ = κ or a documented alternative, and state the units.
+**Resolution (frozen 2026-10-17; DEC-20261015-015 finding 2).** Phase 1 used `TURNOVER_PENALTY = 0.1`, which was scale-dominated (~2× the return term and ~20× the risk term in the monthly objective); its result is a statement about λ = 0.1, not about turnover penalties as a class. The frozen value is λ = κ = 0.001 in monthly return units per unit of one-way turnover, solved as a convex QP. A tuned λ is a registered extension, not MVP.
 
 ### 4.5 Expected behavior (priors)
 
@@ -200,20 +201,22 @@ Every baseline result must report: baseline ID and name; exact inputs used (esti
 
 ### 5.2 Walk-forward
 
-- **Procedure:** Rolling or expanding estimation window; fixed test window; step forward in time; repeat.
-- **Estimation window:** `[PROPOSED: 36 months rolling]`. Owner to confirm.
-- **Test window:** `[PROPOSED: 12 months]`. Owner to confirm.
-- **Step size:** `[PROPOSED: 12 months]`. Owner to confirm.
-- **Rebalance frequency:** Monthly (baseline).
+- **Procedure:** Rolling estimation window; fixed test window; step forward in time; repeat.
+- **Estimation window:** 60 months, **rolling**.
+- **Test window:** 12 months.
+- **Step size:** 12 months (non-overlapping test folds).
+- **Rebalance frequency:** monthly.
+- **Re-estimation frequency:** monthly (each rebalance re-estimates on the trailing 60 months).
 - **No overlap** between training and test returns.
 
-**Freeze-session note (DEC-20261015-015, finding 4d).** The Phase 1 harness used an expanding-within-test training set (`train + test.iloc[:t]`), which is neither pure rolling nor pure expanding. The freeze session must specify which convention is adopted and adjust this subsection accordingly.
+**Convention (frozen 2026-10-17; resolves DEC-20261015-015 finding 4d).** The frozen convention is **pure rolling**: at each rebalance the estimation window is the trailing 60 months, and weights are re-estimated monthly. The Phase 1 harness's expanding-within-test training set (`train + test.iloc[:t]`) is superseded and must not be used in confirmatory runs. Rolling is the more conservative choice under non-stationarity ([`problem_framing.md`](problem_framing.md) §5). An expanding variant is a registered sensitivity dimension only.
 
 ### 5.3 Purged cross-validation and embargo
 
-- For any hyperparameter selection, use purged k-fold CV with an embargo between training and test folds.
-- **Purge:** Remove training observations whose label window overlaps the test window.
-- **Embargo:** `[PROPOSED: 1 month]` gap between training and test. Owner to confirm.
+**Scope (frozen 2026-10-17).** Walk-forward (§5.2) is the **sole evaluation structure**. Purged k-fold CV applies **only** if a method requires fitted hyperparameters, and then only within training data, never touching the test folds. If no method is tuned — the default, since all MVP parameters are frozen here — this subsection is inert.
+
+- **Purge:** Remove training observations whose label window overlaps the validation window.
+- **Embargo:** 1 month gap between training and validation.
 - Reference: López de Prado (2018), *Advances in Financial Machine Learning*, Ch. 7.
 
 ### 5.4 Data contract and point-in-time discipline
@@ -228,14 +231,16 @@ This section owns the data contract. It absorbs content previously in `data_cont
 
 #### 5.4.1 Allowed sources
 
+**Frozen 2026-10-17 (the two-tier contract; resolves DEC-20261017-019 finding F8).** The primary path is point-in-time reconstruction from raw data. Vendor-adjusted series are permitted only under the downgrade clause in §5.4.4.
+
 | Purpose | Source | Access | Point-in-time quality |
 |---------|--------|--------|----------------------|
-| Adjusted daily prices | `[PROPOSED: Yahoo Finance via yfinance]` | Free | Retroactive; must be reconstructed (§5.4.4) |
-| Raw daily prices | `[PROPOSED: Yahoo Finance via yfinance]` | Free | Real-time at retrieval; reliable after snapshot |
-| Corporate actions | `[PROPOSED: Yahoo Finance / Stooq]` | Free | Reasonable for large-cap |
-| Risk-free rate (1-month T-bill) | `[PROPOSED: FRED DGS1MO]` | Free | Point-in-time |
-| ETF / equity metadata | `[PROPOSED: Yahoo Finance / SEC EDGAR]` | Free | Reasonable |
-| Universe definition | `[PROPOSED: fixed historical candidate list + delisted members]` | Free / manual | Must be reconstructed point-in-time |
+| Raw daily prices (unadjusted) | Yahoo Finance via `yfinance`, `auto_adjust=False` | Free | Real-time at retrieval; reliable after snapshot |
+| Corporate actions (splits, dividends) | Yahoo Finance actions / Stooq | Free | Reasonable for large-cap |
+| Adjusted daily prices | **Derived** at evaluation time from raw + actions (§5.4.4) | — | Point-in-time by construction |
+| Risk-free rate (1-month T-bill) | FRED `DGS1MO` | Free | Point-in-time |
+| ETF / equity metadata | Yahoo Finance / SEC EDGAR | Free | Reasonable |
+| Universe definition | Reconstructed historical candidate list + delisted members (§5.4.7) | Free / manual | Must be reconstructed point-in-time |
 
 **Forbidden sources:** any source whose historical values are retroactively adjusted without a raw alternative; any source whose free tier has undocumented revision history; any source whose TOS prohibits research use; any proprietary or paid data without explicit budget approval.
 
@@ -243,9 +248,9 @@ This section owns the data contract. It absorbs content previously in `data_cont
 
 #### 5.4.2 Universe definition
 
-- **Asset class:** `[PROPOSED: US-listed ETFs spanning equity, fixed income, commodities, real estate]`.
-- **Candidate universe size:** `[PROPOSED: 15–25 liquid ETFs]`.
-- **Minimum history at backtest start:** `[PROPOSED: 5 years]`.
+- **Asset class:** US-listed ETFs spanning equity, fixed income, commodities, real estate.
+- **Candidate universe size:** the candidate list is the point-in-time list reconstructed per §5.4.7 (target 15–25 liquid ETFs). The count is fixed at reconstruction and is not expanded mid-backtest.
+- **Minimum history at backtest start:** 60 months (frozen 2026-10-17; matches the estimation window).
 - **Currency:** USD only.
 - **Instrument type:** long-only, unlevered ETFs.
 - **Delisted handling:** any candidate that delisted during the backtest is retained up to its delisting date, then excluded. Delisting returns are included.
@@ -253,8 +258,8 @@ This section owns the data contract. It absorbs content previously in `data_cont
 **Eligibility at time \( t \)** using only information available at \( t \):
 
 1. It is a member of the candidate universe at \( t \).
-2. It has at least `[PROPOSED: 36 months]` of consecutive valid price history ending at \( t \).
-3. Its average daily dollar volume over trailing `[PROPOSED: 3 months]` exceeds `[PROPOSED: $5 million]`.
+2. It has at least 60 months of consecutive valid price history ending at \( t \) (frozen 2026-10-17; supersedes the proposed 36, which was shorter than the estimation window).
+3. Its average daily dollar volume over trailing 3 months exceeds $5 million.
 4. Its price at \( t \) is positive and not flagged as erroneous (§5.4.6).
 
 Universe expansions require a §8 amendment and a new pre-registered experiment. Silent expansion invalidates results.
@@ -288,7 +293,7 @@ If raw unadjusted series is unavailable, adjusted series may be used only if the
 | Cash dividend | Add to return on ex-date; do not adjust price retroactively for return calculation |
 | Special dividend | Treated as cash dividend; document and flag |
 | Merger / acquisition | Asset removed at effective date; terminal value added to returns |
-| Delisting | Asset removed at delisting date; delisting return added (assume `[PROPOSED: -100%]` if unavailable, flag as limitation) |
+| Delisting | Asset removed at delisting date; delisting return added. If unavailable, the conservative default is −100%, flagged. This default is untested on the MVP universe (no candidate delists in-sample) — see §5.4.7. |
 | Ticker change | Reconciled in metadata; same asset |
 | ETF inception | Asset enters only after inception and eligibility rules are satisfied |
 
@@ -298,14 +303,14 @@ Any action not covered above must be documented before use.
 
 | Case | Policy |
 |------|--------|
-| Isolated missing day | Forward-fill up to `[PROPOSED: 3 consecutive days]`; mark as imputed |
+| Isolated missing day | Forward-fill up to 3 consecutive days; mark as imputed |
 | Extended gap (> 3 days) | Treat asset ineligible for the gap window; exclude from rebalance |
-| Missing risk-free rate | Use last observed value; flag |
+| Missing risk-free rate | Forward-fill up to 1 month; if still missing, use the FRED `DGS1MO` value directly. Never substitute zero. |
 | Missing corporate action | Halt; reconcile before proceeding |
 
 Price jumps not explained by corporate actions are flagged and reviewed. Volume spikes not explained by events are flagged but retained. Manual overrides require a decision log entry and a data-quality note in the snapshot.
 
-**Freeze-session note (DEC-20261015-015, finding 4c).** The Phase 1 code substituted zero for missing risk-free rate months via `.fillna(0.0)`. The freeze session must specify the missing-rf policy explicitly, replacing silent substitution.
+**Missing-rf policy (frozen 2026-10-17; resolves DEC-20261015-015 finding 4c).** The Phase 1 `.fillna(0.0)` substitution is forbidden: a zero risk-free rate overstates Sharpe in high-rate months. The frozen policy is forward-fill up to 1 month, then the FRED `DGS1MO` value directly; the rf is always observable, so no fallback to zero is ever legitimate.
 
 Every snapshot has a companion quality report listing: missing values imputed, outliers flagged, corporate actions applied, universe membership changes, unresolved issues.
 
@@ -316,6 +321,8 @@ Every snapshot has a companion quality report listing: missing values imputed, o
 3. Delisting returns are included.
 4. No asset is dropped from the candidate list because it no longer exists today.
 5. The candidate list must be reconstructed from point-in-time evidence (archived ETF screens, historical fund lists, SEC filings).
+
+**Frozen 2026-10-17 (resolves DEC-20261017-020 finding N3).** A point-in-time candidate list is **required**. A universe consisting of instruments still listed today is a textbook survivorship artifact (the R-D02 escalation trigger) and is not permitted in a confirmatory run. Building the list is a Gate-1 data task; until it exists, any result is universe-conditional and the limitation is recorded here. If a point-in-time list cannot be reconstructed, affected claims are downgraded to exploratory per §5.4.4.
 
 If point-in-time universe membership cannot be reconstructed, the limitation is documented and affected claims are downgraded.
 
@@ -341,7 +348,7 @@ Every derived dataset records: the snapshot ID it derives from; the transformati
 
 Snapshots are append-only. Corrections create a new snapshot; old ones are retained.
 
-**Freeze-session note (DEC-20261015-015, finding 4a).** The Phase 1 cache returns stale data if the cache file exists and is stale. The freeze session must specify a cache invalidation policy (or declare this out of scope for Phase 2).
+**Cache policy (frozen 2026-10-17; resolves DEC-20261015-015 finding 4a).** The cache is a development convenience only and is **content-addressed** by `(source, tickers, date-range, retrieval parameters)`. A changed key misses the cache; a matching key reuses it. A **confirmatory run must read an immutable snapshot, not the live cache.** The Phase 1 cache, which returned stale data whenever the cache file merely existed, is superseded.
 
 #### 5.4.10 What invalidates a result
 
@@ -402,7 +409,7 @@ R_{\text{net}}(t) = R_{\text{gross}}(t) - C(t)
 
 Annualized turnover = sum of monthly turnover over 12 months. **One-way** throughout. Any two-way usage must be labeled.
 
-**Freeze-session note (DEC-20261015-015, finding 4b).** The Phase 1 code contained a dead `metrics.annualized_turnover` function using a different turnover definition than `realized_turnover`. The freeze session must ensure a single canonical turnover definition is used in Phase 2 code, and this subsection's formula is that definition.
+**Canonical turnover (frozen 2026-10-17; resolves DEC-20261015-015 finding 4b).** \( \text{Turnover}(t) = \sum_i |w_i(t) - w_i(t^-)| \) is the single canonical definition, one-way, annualized ×12. The Phase 1 code's dead `metrics.annualized_turnover` (a different definition) is deleted in the Phase 2 rewrite; the `realized_turnover` definition is the only one used.
 
 #### 5.5.3 Cost parameter \( \kappa \)
 
@@ -421,12 +428,13 @@ Annualized turnover = sum of monthly turnover over 12 months. **One-way** throug
 #### 5.5.4 Execution timing
 
 - **Rebalance frequency:** monthly.
-- **Rebalance date:** last trading day of the month.
-- **Signal computation:** based on data through the close of the rebalance date.
-- **Execution price:** `[PROPOSED: close of the rebalance date]`.
-- **Cost application:** costs applied at the rebalance date, deducted from that period's return.
+- **Rebalance date:** last trading day of month \( t-1 \).
+- **Signal computation:** from data through the close of that date (weights for month \( t \) use only information available through the close of \( t-1 \)).
+- **Execution price:** close of the rebalance date — the same close used for signals. The month-\( t \) return is realized over month \( t \) on the held weights.
+- **Cost application:** costs applied at the rebalance date, deducted from the following period's return.
+- **No-lookahead rule:** a method's month-\( t \) weight may not use any month-\( t \) return.
 
-The choice must be consistent across all methods and documented in every registry entry.
+The choice must be consistent across all methods and documented in every registry entry. Frozen 2026-10-17 (supersedes the Phase 1 convention, which used an expanding-within-test training set — see §5.2).
 
 #### 5.5.5 Drifted weights and risk-free rate convention
 
@@ -438,7 +446,7 @@ w_i(t^-) = \frac{w_i(t-1) \cdot (1 + r_i(t))}{\sum_j w_j(t-1) \cdot (1 + r_j(t))
 
 This must be computed correctly. A common bug is to treat pre-rebalance weights as equal to post-rebalance weights from the prior period, which understates turnover and costs. See `risk_register_and_premortem.md` R-C01.
 
-**Risk-free rate convention (freeze-session input).** For all Sharpe ratios, gross and net, \( R_f \) is the 1-month T-bill yield as observed at \( t \), converted to a monthly rate. The same \( R_f \) series is used for both gross and net Sharpe. `Cost drag` is defined as the difference between gross Sharpe and net Sharpe under the *same* \( R_f \) convention. This resolves DEC-20261015-015 finding 1.
+**Risk-free rate convention (frozen 2026-10-17; resolves DEC-20261015-015 finding 1).** For all Sharpe ratios, gross and net, \( R_f \) is the 1-month T-bill yield as observed at \( t \), converted to a monthly rate. The same \( R_f \) series is used for both gross and net Sharpe. `Cost drag` is defined as the difference between gross Sharpe and net Sharpe under the *same* \( R_f \) convention. Missing rf is handled per §5.4.6 (never zero).
 
 #### 5.5.6 Cost-aware vs cost-penalized
 
@@ -449,7 +457,7 @@ Two distinct approaches:
 
 Both are in scope. Each must be labeled clearly. A method that is cost-aware but uses cost-penalized language (or vice versa) is mislabeled and will be flagged.
 
-For the turnover-penalized objective \( \max_w \ w^\top \mu - \frac{\gamma}{2} w^\top \Sigma w - \lambda \| w - w^- \|_1 \), under the proportional cost model \( \lambda = \kappa \) aligns the penalty with the actual cost. In practice \( \lambda \) may be tuned above \( \kappa \). The units of \( \lambda \) are monthly return per unit of one-way turnover.
+For the turnover-penalized objective \( \max_w \ w^\top \mu - \frac{\gamma}{2} w^\top \Sigma w - \lambda \| w - w^- \|_1 \), under the proportional cost model \( \lambda = \kappa \) aligns the penalty with the actual cost. **MVP freezes \( \lambda = \kappa \)** (frozen 2026-10-17). A tuned \( \lambda \) — which may exceed \( \kappa \) — is a registered extension, not part of the MVP baseline. The units of \( \lambda \) are monthly return per unit of one-way turnover.
 
 #### 5.5.7 Sensitivity analysis
 
@@ -483,30 +491,32 @@ Invalidated results are documented, not deleted.
 
 ## 6. Materiality and Decision Thresholds
 
-> **Note:** The following thresholds are **proposed conservative defaults**. They define what "materially better" means. The owner must confirm or replace them before freezing this document.
+> **Confirmed at freeze (2026-10-17).** These thresholds define what "materially better" means and are now frozen. They may not be relaxed after seeing results (§16).
 
 ### 6.1 Statistical significance
 
 A robust method is statistically significant if:
 
-- **Deflated Sharpe ratio p-value < 0.05** *(proposed)*, AND
-- **Probabilistic Sharpe ratio > 0.95** *(proposed)* against the best baseline.
+- **Deflated Sharpe ratio p-value < 0.05**, with \( SR^* = SR_0 \) (the expected maximum Sharpe under \( N \) independent trials), AND
+- **Probabilistic Sharpe ratio > 0.95** with \( SR^* = SR_{\text{best baseline}} \) (the best baseline's observed Sharpe).
+
+The two bullets are distinct tests — the DSR threshold is the multiple-testing-adjusted maximum, the PSR threshold is the best baseline — and both are required. (This resolves the freeze-session ambiguity in `freeze_inputs_2026-10-15.md` §2.)
 
 ### 6.2 Economic materiality
 
 A robust method is economically material if:
 
-- **Net Sharpe improvement over best baseline ≥ 0.20** *(proposed)* at the baseline cost level, AND
-- **Turnover is not more than 2× the best baseline's turnover** *(proposed)*, AND
-- **Maximum drawdown is not worse than the best baseline's drawdown by more than 5 percentage points** *(proposed)*.
+- **Net Sharpe improvement over best baseline ≥ 0.20** at the baseline cost level, AND
+- **Turnover is not more than 2× the best baseline's turnover**, AND
+- **Maximum drawdown is not worse than the best baseline's drawdown by more than 5 percentage points**.
 
 ### 6.3 Robustness
 
 A robust method is robust if:
 
 - Its advantage over the best baseline holds at **≥ 3 of the cost levels defined in §5.5.3**, AND
-- Its advantage holds in **≥ 60% of walk-forward folds** *(proposed)*, AND
-- No single fold accounts for more than 40% of the total advantage *(proposed)*.
+- Its advantage holds in **≥ 60% of walk-forward folds**, AND
+- No single fold accounts for more than 40% of the total advantage.
 
 ### 6.4 Success definition
 
@@ -531,8 +541,8 @@ Hypotheses are grouped by family. Each family shares a multiple-testing correcti
 
 | ID | Hypothesis | Falsification test | Kill/pivot on falsification |
 |----|-----------|-------------------|------------------------------|
-| H1.1 | Sample MVO produces extreme weights relative to 1/N | Max absolute weight > `[PROPOSED: 0.40]` in ≥ 1 fold | If not, the framing premise is weak; document and re-evaluate problem |
-| H1.2 | Sample MVO has higher turnover than 1/N | Annualized turnover ratio > `[PROPOSED: 2.0]` | If not, turnover is not the problem; revisit |
+| H1.1 | Sample MVO produces extreme weights relative to 1/N | **Uncapped** sample MVO max absolute weight > 0.40 in ≥ 1 fold. The capped B3 is reported as a separate treatment. | If not, the framing premise is weak; document and re-evaluate problem |
+| H1.2 | Sample MVO has higher turnover than 1/N | Annualized turnover ratio > 2.0 | If not, turnover is not the problem; revisit |
 | H1.3 | Estimation error, not optimization, drives instability | Shrinkage covariance reduces weight dispersion vs sample covariance | If not, revisit root-cause model in [`problem_framing.md`](problem_framing.md) §5 |
 
 **Family kill trigger:** If H1.1 and H1.2 both fail on the primary dataset, the problem framing is falsified. Pivot or stop before Phase 2. See §8.6 K2.
@@ -602,20 +612,20 @@ This section absorbs content previously in `project_charter.md` §6–9 (relocat
 
 ### 8.3 Time-boxes
 
-> **Note:** The values below are proposed conservative defaults for a solo, part-time independent researcher. Confirm or replace each value before freezing.
+> **Confirmed at freeze (2026-10-17).** Values are for a solo, part-time independent researcher and are now frozen. Any extension requires a §8.3 amendment with a decision log entry.
 
 | Resource | Budget | Notes |
 |----------|--------|-------|
-| Time per week | 10 hours *(proposed)* | Determines feasible phase durations |
-| Total time budget | 6 months *(proposed)* | Hard stop at this limit unless amended |
-| Phase 0 time-box | 2 weeks *(proposed)* | Problem validation only |
-| Phase 1 time-box | 6 weeks *(proposed)* | Data + baselines |
-| Phase 2 time-box | 6 weeks *(proposed)* | Robust methods |
-| Phase 3 time-box | 4 weeks *(proposed)* | Evaluation |
-| Phase 4 time-box | 4 weeks *(proposed)* | Reporting + release |
-| Compute budget | $0 *(proposed)* | Local machine only |
-| Data budget | $0 *(proposed)* | Public/free data only |
-| Monetary budget | $0 *(proposed)* | Preferably zero |
+| Time per week | 10 hours | Determines feasible phase durations |
+| Total time budget | 6 months | Hard stop at this limit unless amended |
+| Phase 0 time-box | 2 weeks | Problem validation only |
+| Phase 1 time-box | 6 weeks | Data + baselines |
+| Phase 2 time-box | 6 weeks | Robust methods |
+| Phase 3 time-box | 4 weeks | Evaluation |
+| Phase 4 time-box | 4 weeks | Reporting + release |
+| Compute budget | $0 | Local machine only |
+| Data budget | $0 | Public/free data only |
+| Monetary budget | $0 | Preferably zero |
 | Opportunity cost | Acknowledged | Time here is not spent on signal research, a general backtesting toolkit, or regime detection |
 
 **Risk of ruin:** Low. The project risks time, not capital or reputation, provided claims are framed honestly and phase gates are enforced.
@@ -626,7 +636,7 @@ A phase cannot begin until the prior gate is passed. Gates are enforced by the o
 
 | Phase | Name | Entry Criteria | Exit Criteria (Go) | No-Go Action |
 |-------|------|----------------|--------------------|--------------|
-| 0 | Problem Validation | Tier 0 documentation Active or Frozen | R1 complete and documents a scan of ≥10 relevant open-source tools, papers, or repositories, explicitly stating which part of the gap hypothesis remains uncovered; registry, data contract, cost model, baseline spec, and evaluation protocol drafted | Narrow problem or stop |
+| 0 | Problem Validation | Tier 0 documentation Active or Frozen | R1 complete and documents a scan of ≥10 relevant open-source tools, papers, or repositories, explicitly stating which part of the gap hypothesis remains uncovered (see [`problem_framing.md`](problem_framing.md) §4.1); registry, data contract, cost model, baseline spec, and evaluation protocol drafted **and the evaluation protocol Frozen** | Narrow problem or stop |
 | 1 | Data & Baselines | Gate 0 passed; data contract, cost model, baseline spec frozen; method spec frozen | C1, C2, C3 work; R2 shows MVO instability is real | Fix data/cost contract or stop |
 | 2 | Robust Methods | Gate 1 passed | C4 implemented and unit-tested; no leakage | Reduce method scope |
 | 3 | Evaluation | Gate 2 passed | C5 complete; R3 produced; multiple-testing adjusted | Extend evaluation or narrow claims |
@@ -701,7 +711,7 @@ These are the conditions under which the project as a whole must decide to kill,
 
 #### K7 — Cumulative invalidation
 
-**Trigger:** `[PROPOSED: 3]` or more experiments in the same family are invalidated for protocol reasons.
+**Trigger:** 3 or more experiments in the same family are invalidated for protocol reasons.
 
 **Decision:** Kill the family. If the invalidations span families, kill the project.
 
@@ -843,7 +853,7 @@ Adjusts for: number of trials \( N \); non-normality of returns (skewness, kurto
 ### 12.8 Family-wise error control
 
 - Trials are grouped by hypothesis family (H1–H4 in §7).
-- Within a family, apply Benjamini-Hochberg FDR control at `[PROPOSED: q = 0.10]`. Owner to confirm.
+- Within a family, apply Benjamini-Hochberg FDR control at **q = 0.10** (frozen 2026-10-17). This is a conventional exploratory-research default (Benjamini & Hochberg, 1995), **not** a value derived from the deflated Sharpe framework.
 - Report both raw and adjusted p-values.
 
 ### 12.9 Amendments and re-runs
@@ -883,8 +893,8 @@ All headline metrics are reported with uncertainty quantification.
 ### 13.1 Method
 
 - **Bootstrap:** Stationary block bootstrap for Sharpe, turnover, and drawdown confidence intervals.
-- **Block length:** `[PROPOSED: 6 months]`. Owner to confirm.
-- **Replications:** `[PROPOSED: 2000]`. Owner to confirm.
+- **Block length:** 6 months (frozen 2026-10-17; the \( T^{1/3} \) heuristic for \( T = 168 \) months gives ≈ 5.5).
+- **Replications:** 2000.
 - **Confidence level:** 90% for reporting; 95% for decision thresholds.
 
 ### 13.2 Why block bootstrap
@@ -933,7 +943,7 @@ When a trigger from §8.6 fires, follow this sequence:
 5. **Act.** Update affected documents. Bump versions. Notify informed parties.
 6. **Update priors.** Record what was learned in `decision_log.md` and, if relevant, in [`problem_framing.md`](problem_framing.md) or this protocol.
 
-**Time-box for decisions:** `[PROPOSED: 1 week]` from trigger recognition to decision. Beyond this, the project is drifting.
+**Time-box for decisions:** 1 week from trigger recognition to decision. Beyond this, the project is drifting.
 
 ---
 
@@ -999,76 +1009,92 @@ Once this document is `Frozen`:
 
 ---
 
-## 18. Owner Action Checklist Before Freezing
+## 18. Owner Action Checklist — Freeze Record
 
-Before setting Status to `Frozen`, confirm or replace every `[PROPOSED]` value:
+**Status: Frozen 2026-10-17.** Every `[PROPOSED]` value was confirmed or replaced at the freeze session. Decisions and rationale are recorded in [`../notes/freeze_worksheet_2026-10-17.md`](../notes/freeze_worksheet_2026-10-17.md) and logged as DEC-20261017-021.
 
 **Measurement protocol:**
 
-- [ ] §5.2: estimation window, test window, step size
-- [ ] §5.2: walk-forward convention (pure rolling vs expanding-within-test — resolves DEC-20261015-015 finding 4d)
-- [ ] §5.3: embargo length
-- [ ] §6.1: significance thresholds
-- [ ] §6.2: materiality thresholds
-- [ ] §6.3: robustness thresholds
-- [ ] §12.8: FDR level
-- [ ] §13.1: block length, replications
+- [x] §5.2: estimation window 60 months rolling; test window 12; step 12
+- [x] §5.2: walk-forward convention — pure rolling, re-estimated monthly (resolves DEC-20261015-015 finding 4d)
+- [x] §5.3: scoped to hyperparameter selection only; embargo 1 month
+- [x] §6.1: significance thresholds — DSR p < 0.05 (\( SR^* = SR_0 \)); PSR > 0.95 (\( SR^* = SR_{\text{best baseline}} \))
+- [x] §6.2: materiality thresholds — ΔSharpe ≥ 0.20; turnover ≤ 2×; MDD within +5pp
+- [x] §6.3: robustness thresholds — ≥ 3 cost levels; ≥ 60% of folds; no fold > 40%
+- [x] §12.8: FDR level — q = 0.10 (convention)
+- [x] §13.1: block length 6; replications 2000
 
 **Baselines (§4):**
 
-- [ ] §4.3: estimation window (36 months) and \( w_{\max} \) (0.30)
-- [ ] §4.3: \( \gamma \) (5)
-- [ ] §4.4 B2: risk parity solver and diagonal loading
-- [ ] §4.4 B5: \( \lambda \) baseline and L1 formulation; **resolves DEC-20261015-015 finding 2**
-- [ ] §4.2: baseline set (B1–B5) confirmed; no extensions promoted
+- [x] §4.3: estimation window (60 months) and \( w_{\max} \) (0.30, uniform across all methods)
+- [x] §4.3: \( \gamma \) (10, scale-verified)
+- [x] §4.4 B2: risk parity solver (CCD risk budgeting) and diagonal loading (1e-6)
+- [x] §4.4 B5: \( \lambda = \kappa \) and convex-QP formulation (resolves DEC-20261015-015 finding 2)
+- [x] §4.2: baseline set (B1–B5) confirmed; `inverse_vol` and the other extensions not promoted
 
 **Data contract (§5.4):**
 
-- [ ] §5.4.1: data sources and access method
-- [ ] §5.4.2: candidate universe size and minimum history
-- [ ] §5.4.2: eligibility thresholds (history, dollar volume)
-- [ ] §5.4.5: delisting return assumption
-- [ ] §5.4.6: forward-fill limit; **resolves DEC-20261015-015 finding 4c** (missing rf policy)
-- [ ] §5.4.9: snapshot naming convention; **resolves DEC-20261015-015 finding 4a** (cache invalidation policy)
+- [x] §5.4.1: sources — raw unadjusted + corporate actions + snapshots (two-tier; resolves DEC-20261017-019 finding F8)
+- [x] §5.4.2: candidate universe — point-in-time list (target 15–25); minimum history 60 months
+- [x] §5.4.2: eligibility thresholds — 60 months history; $5M trailing ADV
+- [x] §5.4.5: delisting return assumption — conservative −100% default, flagged untested
+- [x] §5.4.6: forward-fill limit 3 days; missing rf forward-fill ≤ 1 month then FRED (resolves DEC-20261015-015 finding 4c)
+- [x] §5.4.9: snapshot naming and content-addressed cache; confirmatory runs read snapshots (resolves DEC-20261015-015 finding 4a)
+- [x] §5.4.7: point-in-time candidate list required (resolves DEC-20261017-020 finding N3)
 
 **Cost model (§5.5):**
 
-- [ ] §5.5.3: baseline \( \kappa \) and cost level set
-- [ ] §5.5.1: decide whether size-dependent impact term is in MVP (default: off)
-- [ ] §5.5.4: execution price assumption (close vs next open)
-- [ ] §5.5.6: whether \( \lambda = \kappa \) or a tuned value will be used
-- [ ] §5.5.5: risk-free rate convention for gross and net Sharpe; **resolves DEC-20261015-015 finding 1** (gross Sharpe definition)
+- [x] §5.5.3: baseline \( \kappa = 10 \) bps; levels 0/5/10/20/50
+- [x] §5.5.1: size-dependent impact term not in MVP (off)
+- [x] §5.5.4: execution — signals through close \( t-1 \); execute close \( t-1 \); hold month \( t \)
+- [x] §5.5.6: \( \lambda = \kappa \); tuned \( \lambda \) is a registered extension
+- [x] §5.5.5: single \( R_f \) for gross and net Sharpe (resolves DEC-20261015-015 finding 1)
+- [x] §5.5.2: canonical turnover definition (resolves DEC-20261015-015 finding 4b)
 
 **Governance (§8):**
 
-- [ ] §8.3: time-boxes (per-week, total, per-phase)
-- [ ] §8.4: phase gate exit criteria are usable as written
+- [x] §8.3: time-boxes confirmed
+- [x] §8.4: phase gate exit criteria usable; Gate 0 requires the R1 scan of ≥ 10 items and the evaluation protocol Frozen
 
 **Falsification and triggers:**
 
-- [ ] §7 H1.1: extreme-weight threshold
-- [ ] §7 H1.2: turnover ratio threshold
-- [ ] §8.6 K7: cumulative invalidation count
-- [ ] §14.3: decision time-box
+- [x] §7 H1.1: extreme-weight threshold — 0.40, tested on the **uncapped** optimizer (resolves DEC-20261017-020 finding N2)
+- [x] §7 H1.2: turnover ratio threshold — 2.0
+- [x] §8.6 K7: cumulative invalidation count — 3
+- [x] §14.3: decision time-box 1 week
 
 **Cross-document consistency:**
 
-- [ ] §8.6 triggers are consistent with the time-boxes in §8.3
-- [ ] §9 sunk cost firewall rules are acceptable
-- [ ] §10 forbidden pivots are acceptable
-- [ ] §14.3 decision authority matches §8.2
-- [ ] §16 conflict resolution is internally consistent
+- [x] §8.6 triggers consistent with the §8.3 time-boxes
+- [x] §9 sunk-cost firewall rules acceptable
+- [x] §10 forbidden pivots acceptable
+- [x] §14.3 decision authority matches §8.2
+- [x] §16 conflict resolution internally consistent
 
-**Open freeze-session inputs (DEC-20261015-015):**
+**Freeze-session inputs — DEC-20261015-015:**
 
-- [ ] Finding 1 resolved (gross Sharpe definition) — §2 note, §5.5.5
-- [ ] Finding 2 resolved (turnover penalty scale) — §4.4 B5, §5.5.6
-- [ ] Finding 4a resolved (cache staleness) — §5.4.9
-- [ ] Finding 4b resolved (duplicate turnover function) — §5.5.2
-- [ ] Finding 4c resolved (missing rf substitution) — §5.4.6
-- [ ] Finding 4d resolved (walk-forward convention) — §5.2
+- [x] Finding 1 resolved (gross Sharpe definition) — §2, §5.5.5
+- [x] Finding 2 resolved (turnover penalty scale) — §4.4 B5, §5.5.6
+- [x] Finding 4a resolved (cache staleness) — §5.4.9
+- [x] Finding 4b resolved (duplicate turnover function) — §5.5.2
+- [x] Finding 4c resolved (missing rf substitution) — §5.4.6
+- [x] Finding 4d resolved (walk-forward convention) — §5.2
 
-Once confirmed, bump to Version 2.3, set Status to `Frozen`, and add a revision history row.
+**Freeze-session inputs — DEC-20261017-019 / DEC-20261017-020:**
+
+- [x] F1 resolved (fair-comparison constraint defect) — §4.3 (uniform \( w_{\max} \))
+- [x] F2 resolved (baseline-set mismatch) — §4.2 confirmed; B2/B4 required; `inverse_vol` demoted
+- [x] F3 resolved (parameter drift) — §4.3, §5.2 values reconciled
+- [x] F4 resolved (confounded MVO variants) — one dimension varied at a time
+- [x] F5 partly closed (documentation integrity) — F5(a)–(c) repaired; F5(d) assigned to the method-spec work item
+- [x] F6 resolved (Tests B/C/D defined) — [`../notes/tests_BCD_spec_2026-10-17.md`](../notes/tests_BCD_spec_2026-10-17.md)
+- [x] F7 deferred to the method spec (CVaR, DSR, PSR, CIs implemented before Gate 3)
+- [x] F8 resolved (point-in-time / snapshot gap) — §5.4.1, §5.4.9
+- [x] N1 resolved (Gate 0 scan) — R1 scan extended to ≥ 10 items ([`problem_framing.md`](problem_framing.md) §4.1)
+- [x] N2 resolved (H1.1 reachability) — §7 H1.1
+- [x] N3 resolved (survivorship) — §5.4.7
+
+**Frozen 2026-10-17.** Version 2.3; Status `Frozen`. The remaining open items (method spec, environment doc, reporting policy) are tracked in [`README.md`](README.md) §"Not yet written".
 
 ---
 
@@ -1083,6 +1109,7 @@ Once confirmed, bump to Version 2.3, set Status to `Frozen`, and add a revision 
 | 2026-10-15 | 2.0 | Merged the two documents into a single `evaluation_protocol.md` (B1). Structure: metrics (§§2–4) → protocol (§5) → thresholds (§6) → hypotheses (§7) → triggers (§8) → firewalls (§§9–11) → adjustment and uncertainty (§§12–13) → reporting and invalidation (§§14–15) → freeze rules (§16). Consolidated the two owner checklists into one (§18) and the two revision histories into one (§19). | Ken Ira Lacson Talingting |
 | 2026-10-15 | 2.1 | Phase A relocations per DEC-20261015-017. §8 retitled "Project-Level Governance and Kill Triggers" and expanded to absorb `project_charter.md` §6–9: §8.1 taxonomy, §8.2 decision rights, §8.3 time-boxes, §8.4 phase gates, §8.5 governance cadence, §8.6 kill triggers. All references to `project_charter.md` removed or redirected to §8. §16 conflict table rewritten. §18 checklist updated to reference §8 instead of the charter, and expanded with the DEC-20261015-015 findings 1, 2, 4 as freeze-session inputs. §10 pivot table "Requires" column updated. §11 stop-and-report reference updated to §8.1 Hard Rule 4. §1 principle 6 reference updated to `problem_framing.md` §13. | Ken Ira Lacson Talingting |
 | 2026-10-15 | 2.2 | Phase C spec merges per DEC-20261015-018. §4 replaced with full baseline section (from `benchmark_and_baseline_spec.md`): philosophy, baseline set, common definitions, per-baseline specifications, priors, fair-comparison rules, invalidation rules, reporting requirements. §5.4 replaced with full data contract (from `data_contract_and_point_in_time_policy.md`): sources, universe, point-in-time rules, adjusted-price reconstruction, corporate actions, missing data, survivorship, leakage tests, snapshots, invalidation rules. §5.5 replaced with full cost model (from `cost_model_and_frictions.md`): scope, formula, \( \kappa \) levels, execution timing, drifted weights, cost-aware vs cost-penalized, sensitivity, limitations, invalidation rules. §12 replaced with full registry rules and multiple-testing adjustment (from `experiment_registry_and_preregistration.md`): philosophy, definition, structure, templates, denominator, deflated Sharpe, FDR control, amendments, exploratory rules, invalidation. §16 conflict table rewritten to reflect internal ownership. §18 checklist expanded with subsection checklists for §4, §5.4, §5.5, and explicit freeze-session inputs mapped to DEC-20261015-015 findings. Freeze-session notes added inline at §2, §4.4 B5, §5.2, §5.4.6, §5.4.9, §5.5.2, §5.5.5. Status remains `Draft`; freeze is the next step. | Ken Ira Lacson Talingting |
+| 2026-10-17 | 2.3 | **Owner-confirmed freeze** (DEC-20261017-021). All `[PROPOSED]` values confirmed or replaced. §5.2 estimation window 60 months rolling (was 36). §4.3 \( w_{\max} \) 0.30 applied **uniformly to every method** (was optimizers-only; resolves F1). §4.3 \( \gamma = 10 \), scale-verified (was 5). §4.4 \( \lambda = \kappa \) (was κ-or-tuned). §5.3 scoped to hyperparameter selection with a 1-month embargo. Data contract re-frozen as the satisfiable two-tier path — raw unadjusted + corporate actions + snapshots (§5.4.1; resolves F8) — with a 60-month eligibility window (§5.4.2), a required point-in-time candidate list (§5.4.7; resolves N3), an explicit missing-rf policy (§5.4.6; finding 4c), a content-addressed cache and snapshot rule (§5.4.9; finding 4a), the canonical turnover definition (§5.5.2; finding 4b), the single-\( R_f \) gross/net convention (§2, §5.5.5; finding 1), and an explicit no-lookahead execution convention (§5.5.4; finding 4d). §7 H1.1 redefined to test the **uncapped** optimizer (resolves N2). §8.4 Gate 0 exit now requires the ≥10-item R1 scan ([`problem_framing.md`](problem_framing.md) §4.1; resolves N1) and the protocol Frozen. §§6, 8.3, 12.8, 13.1, 14.3 de-proposed. §18 converted from a to-do checklist to a freeze record. Status `Draft` → `Frozen`. | Ken Ira Lacson Talingting |
 
 ---
 

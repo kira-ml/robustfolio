@@ -51,6 +51,7 @@ Each entry uses the following fields:
 | DEC-20261015-018 | 2026-10-15 | GOVERNANCE | ACTIVE | Execute Phase C spec merges; retire source files |
 | DEC-20261017-019 | 2026-10-17 | GOVERNANCE | ACTIVE | Record audit findings (fair-comparison defect, baseline-set mismatch, parameter drift) as freeze-session inputs; repair doc integrity |
 | DEC-20261017-020 | 2026-10-17 | GOVERNANCE | ACTIVE | Define Tests B/C/D (resolves F6); produce freeze worksheet; record findings N1–N3 |
+| DEC-20261017-021 | 2026-10-17 | GOVERNANCE | ACTIVE | Freeze `evaluation_protocol.md` v2.3; activate scope v1.3 and risk register v1.2; extend R1 scan to 16 items |
 
 **Gap note (001–011):** Resolved by DEC-20261015-014. The seed entries referenced in DEC-20261014-000 were not written and are not recoverable. They are treated as never having existed in this log.
 
@@ -596,6 +597,62 @@ At the freeze session: every recommendation must be accepted, replaced, or decli
 **Pre-mortem:**
 Six weeks from now this entry has failed if (a) the worksheet's recommendations are quoted as decided values while §18 is still unsigned; or (b) Tests B and C have run and one of their arms was used to select Test D's configuration, defeating the firewall in `tests_BCD_spec_2026-10-17.md` §5. (a) is detectable by checking `evaluation_protocol.md` Status against any citation of a worksheet value; (b) is detectable by confirming that Test D's registered window and cap equal the frozen §5.2/§4.3 values.
 
+### DEC-20261017-021
+
+**Date:** 2026-10-17
+**Type:** GOVERNANCE
+**Status:** ACTIVE
+**Authority:** Owner
+**Related docs:** `evaluation_protocol.md` (v2.3, Frozen), `scope_and_non_goals.md` (v1.3, Active), `risk_register_and_premortem.md` (v1.2, Active), `problem_framing.md` (v2.4), `README.md` (root), `docs/README.md` (v1.3), `notes/freeze_worksheet_2026-10-17.md`, `notes/tests_BCD_spec_2026-10-17.md`, DEC-20261015-015, DEC-20261015-016, DEC-20261015-017, DEC-20261015-018, DEC-20261017-019, DEC-20261017-020
+**Related risks:** R-P01, R-P04, R-D01, R-D02, R-C02, R-S02
+
+**Context:**
+DEC-20261017-020 produced the freeze worksheet and defined Tests B/C/D. This entry is the freeze session itself: the owner confirmed the worksheet's recommendations, and the resulting values were written into `evaluation_protocol.md`. The freeze of the evaluation protocol is the binding constraint the whole Phase 0 has been structured around (DEC-20261015-017), and DEC-20261015-015 and DEC-20261017-019 had accumulated open findings that had to be resolved before the status could flip.
+
+**Decision:**
+Freeze and activate the documentation set, and resolve the accumulated freeze-session inputs.
+
+1. **`evaluation_protocol.md` v2.3 — Status `Frozen`.** Every `[PROPOSED]` value confirmed or replaced; all inline freeze-session notes resolved. The full decision table with rationale and source tags is `notes/freeze_worksheet_2026-10-17.md` §0 and §13.
+2. **`scope_and_non_goals.md` v1.3 — Status `Active`.** The §10 activation checklist was completed; §3.1 defaults were aligned with the frozen protocol.
+3. **`risk_register_and_premortem.md` v1.2 — Status `Active`.** Ratings confirmed; the §8 materialization log opened with R-D01 (adjusted-price ingestion, finding F8) and R-D02 (survivorship universe, finding N3).
+4. **`problem_framing.md` v2.4.** The §4.1 Phase 0 scan was extended from 4 to 16 items, satisfying the §8.4 Gate 0 exit criterion (finding N1).
+5. **No `src/` or `scripts/` change.** DEC-20261015-015's pre-freeze source freeze held to the end.
+
+**Key frozen values (full list in the worksheet §0/§13):**
+
+- Estimation window **60 months rolling**, re-estimated monthly; test 12; step 12. §5.3 scoped to hyperparameter selection only (embargo 1 month).
+- `w_max = 0.30` applied **uniformly to every method** (fixes F1); `γ = 10`, scale-verified against a ≈12.3 balance point (replaces the §4.3-proposed 5 and the code's 1.0); `λ = κ = 0.001` (replaces the scale-dominated 0.1).
+- Data contract re-frozen as the **satisfiable two-tier** path: raw unadjusted + corporate actions + SHA-256 snapshots; 60-month eligibility; a required point-in-time candidate list; a missing-rf policy that never substitutes zero; a content-addressed cache with confirmatory runs reading snapshots (fixes F8, satisfies §5.4.7).
+- Execution convention made explicit (signals through close t−1; hold month t); single `R_f` for gross and net Sharpe; H1.1 redefined to test the **uncapped** optimizer (fixes N2); Gate 0 exit requires the ≥10-item R1 scan (fixes N1).
+
+**Alternatives considered:**
+- **Freeze §5.4 as aspirational (vendor-grade PIT required).** Rejected. It is not satisfiable at the $0 data budget and would fire K6 on the first confirmatory run. The two-tier path keeps the point-in-time rule intact at $0.
+- **Amend the Gate 0 criterion instead of extending the scan.** Rejected. Lowering a gate criterion at the moment of passing it is goalpost-moving (Goodhart). Extending the scan satisfies the criterion on its own terms.
+- **Keep γ = 5 (proposed) or γ = 1.0 (code).** Rejected. γ = 1.0 makes B3 a strawman baseline (R-S02, fake wins); the scale check showed the balance point is ≈12.3, so γ = 10 is the representative choice.
+- **Freeze only the measurement protocol and defer §5.4.** Rejected by the owner. A half-frozen protocol would leave Gate 1's entry criteria unmet and invite a second freeze.
+- **Leave F5(d) (the false `model_and_method_spec.md` reference) to the method-spec work item.** Rejected. It is a documentation-only defect; it was fixed in this session rather than carried.
+- **Wait for the method spec before freezing the protocol.** Rejected. The method spec is the *next* artifact (C2/C3); the protocol is the constraint it must satisfy, not the reverse.
+
+**Rationale:**
+[Theory of Constraints] The freeze was the binding constraint on every downstream phase. Resolving the accumulated findings first (DEC-20261015-015, DEC-20261017-019, DEC-20261017-020) is what made the freeze a decision rather than a status flip.
+[Inversion] N2 was the load-bearing catch: enforcing the uniform cap would have made H1.1 unreachable by construction. H1.1 now tests the uncapped optimizer, so the framing's premise check is empirical again.
+[First Principles] A baseline comparison is only meaningful if the treatments differ solely in the dimension under study. F1 (constraint asymmetry), F3 (parameter drift), and F4 (confounded variants) each broke that condition; the frozen values restore it.
+[Goodhart's Law] The freeze is a process metric; its value is a satisfiable, honest contract, not the string `Frozen`. The two rejection alternatives above exist to keep the status field honest.
+
+**Reversibility:** Hard. The protocol is now `Frozen`; §16 permits changes only for a pre-existing protocol flaw, documented in the decision log with a version bump, and post-result changes require an external-review defense. Findings may still be superseded by later entries.
+
+**Revisit trigger:**
+Any change to a frozen value requires a §16 amendment and a decision-log entry. Tests B/C/D may reveal that the 60-month window or the 0.30 cap is the wrong configuration; if so, that is a new pre-registered experiment (per the firewall in `notes/tests_BCD_spec_2026-10-17.md` §5), not an edit to the frozen protocol. Gate 1 cannot be entered until the method spec (§ C2/C3) is written and the point-in-time candidate list exists (§5.4.7).
+
+**Expected value assessment:**
+- Probability the freeze unblocks Phase 1 within the Phase 0 time-box: high (~85%). The remaining Phase 0 items are the method spec and the environment doc.
+- Probability at least one frozen value is revised by a later §16 amendment: moderate (~40%) — expected; the window and cap are explicitly swept dimensions in Tests B/C/D.
+- Probability the N2 fix prevents a spurious H1.1 failure: high (~90%), conditional on the uniform cap being implemented.
+- Probability the survivorship requirement (N3) is under-scoped and the PIT list proves hard to reconstruct: moderate (~45%). If so, the fallback is a documented universe-conditional downgrade, not a silent one.
+
+**Pre-mortem:**
+Six weeks from now this entry has failed in one of three ways. (a) The protocol reads `Frozen` but the Phase 2 code still bypasses the box constraint for some methods (F1) or implements the expanding-within-test convention (§5.2) — detectable by grepping `src/` for `max_weight` call-sites and for `test.iloc[:t]`. (b) A frozen value was changed after seeing a result without a §16 amendment — detectable by diffing `evaluation_protocol.md` against this entry's date. (c) The Phase 1 numbers are cited as confirmatory evidence for the now-frozen thresholds — detectable by grepping reports for "confirmed" language attached to Phase 1. All three are the failure modes the freeze exists to prevent.
+
 ---
 
 ## Appendix A — Experiment Registry (Ledger)
@@ -661,6 +718,8 @@ This appendix is the migration record for the open items in `docs/TODO.md` (v1.1
 
 **Open items from this appendix that are on the critical path:** C1 → C2 → C3 (method spec), and D1 → D2 → D3 (the freeze). These are the same items named as the binding constraint in DEC-20261015-017.
 
+**Update 2026-10-17 (DEC-20261017-021).** The freeze closed: **D1** (the worksheet was produced), **D2** (every value was confirmed or replaced), **D3** (the protocol, data contract, and cost model are `Frozen` at v2.3), **C1** (the open method choices were decided — 60-month window, `w_max` 0.30 uniform, γ = 10, λ = κ), **A7** (the last dead cross-reference, F5d, was fixed in `docs/README.md`), **B3** (scope activated at v1.3), and **B4** (the audit and freeze reconciled the file set). Still open: **C2** and **C3** (write and freeze the method spec), **E2** (`reproducibility_and_environment.md`), **E3** (`results_reporting_and_claims_policy.md`), **E5** (`architecture_decision_records/`), **E7** (`open_source_and_license_policy.md`). The method-spec half (C2 → C3) is now the binding constraint on Gate 1.
+
 ---
 
 ## Revision history
@@ -677,6 +736,7 @@ This appendix is the migration record for the open items in `docs/TODO.md` (v1.1
 | 2026-10-15 | Added DEC-20261015-018 (Phase C spec merges; source-file retirement). Added this row. | Ken Ira Lacson Talingting |
 | 2026-10-17 | Added DEC-20261017-019 (audit findings F1–F8 as freeze-session inputs; documentation-integrity repairs). Added the missing DEC-20261015-018 Index row. Created Appendix B (absorbed items from retired `docs/TODO.md`). | Ken Ira Lacson Talingting |
 | 2026-10-17 | Added DEC-20261017-020 (Tests B/C/D defined — resolves F6; freeze worksheet produced; findings N1–N3). | Ken Ira Lacson Talingting |
+| 2026-10-17 | Added DEC-20261017-021 (freeze executed: `evaluation_protocol.md` v2.3 Frozen; `scope_and_non_goals.md` v1.3 Active; `risk_register_and_premortem.md` v1.2 Active; R1 scan extended in `problem_framing.md` v2.4). Updated Appendix B dispositions note. | Ken Ira Lacson Talingting |
 ---
 
 *This log exists to make decisions explicit, dated, and reviewable. Its append-only discipline is the reason it can be trusted. If the log is edited to hide a gap, the log is worthless. If the log records its gaps, the log is the project's strongest artifact.*

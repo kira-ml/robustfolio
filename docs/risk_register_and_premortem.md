@@ -1,11 +1,11 @@
 # Risk Register and Pre-Mortem: robustfolio
 
-**Version:** 1.1
-**Status:** Draft — pending owner confirmation of proposed ratings; becomes Active on sign-off
+**Version:** 1.2
+**Status:** Active — owner-activated 2026-10-17 (DEC-20261017-021)
 **Owner:** Ken Ira Lacson Talingting
 **Created:** 2026-10-14
-**Last Updated:** 2026-10-15
-**Supersedes:** 1.0 (cross-references updated to `evaluation_protocol.md` sections per DEC-20261015-018)
+**Last Updated:** 2026-10-17
+**Supersedes:** 1.1 (activation at the protocol freeze; ratings confirmed)
 **Related:** [`problem_framing.md`](problem_framing.md), [`evaluation_protocol.md`](evaluation_protocol.md), [`decision_log.md`](decision_log.md), [`scope_and_non_goals.md`](scope_and_non_goals.md)
 
 ---
@@ -40,7 +40,7 @@ The register is the operational arm of [Inversion]. Its contents feed directly i
 
 ## 2. Risk Scoring
 
-> **Note:** Ratings are **proposed conservative defaults**. Confirm or adjust before activating.
+> **Confirmed at activation (2026-10-17).** Ratings are fixed until the first phase-gate review, which may re-rate them.
 
 ### 2.1 Likelihood
 
@@ -106,7 +106,7 @@ Risks are grouped by which part of the project they attack. This aids targeted r
 
 ## 4. Risk Register
 
-> Ratings below are **proposed conservative defaults**. Confirm or adjust.
+> Ratings confirmed at activation (2026-10-17).
 
 | ID | Risk | Cat | L | I | D | RPN | Mitigation | Detection Trigger |
 |----|------|-----|---|---|---|-----|-----------|-------------------|
@@ -139,7 +139,7 @@ Risks are grouped by which part of the project they attack. This aids targeted r
 | **R-S04** | Problem framing falsified in Phase 1 | S | 2 | 4 | 2 | 16 | Falsification H1.1, H1.2; pivot path | Sample MVO not extreme or high-turnover on primary dataset |
 | **R-S05** | Report-only-positive-results pressure | S | 2 | 4 | 3 | 24 | [`problem_framing.md`](problem_framing.md) §13; "negative result is success" language | Wording in reporting that downplays negative findings |
 | **R-H01** | Time budget exhausted before completion | H | 4 | 3 | 2 | 24 | Phase time-boxes; [`evaluation_protocol.md`](evaluation_protocol.md) §8.3 | Any phase exceeding time-box |
-| **R-H02** | Motivation loss / abandonment | H | 3 | 4 | 4 | 48 | Phase gates; small deliverables; decision log | No commits for > `[PROPOSED: 3 weeks]` |
+| **R-H02** | Motivation loss / abandonment | H | 3 | 4 | 4 | 48 | Phase gates; small deliverables; decision log | No commits for > 3 weeks |
 | **R-H03** | Solo researcher blind spots | H | 4 | 3 | 4 | 48 | Reasoning partner escalation; optional external review | Owner cannot articulate why a decision was made |
 | **R-H04** | Distraction by new project ideas | H | 4 | 3 | 3 | 36 | Scope discipline; decision log for any new idea | New "urgent" ideas after each gate |
 | **R-X01** | Data source TOS change | X | 3 | 3 | 2 | 18 | Adapter isolation; alternate sources documented | Ingestion failure; legal notice |
@@ -366,7 +366,8 @@ When a risk materializes, add an entry here. This is a narrative complement to t
 
 | Date | Risk ID | Description | Impact | Response | Decision log entry |
 |------|---------|-------------|--------|----------|--------------------|
-| — | — | — | — | — | — |
+| 2026-10-17 | R-D01 | Phase 1 ingested retroactively adjusted prices (`auto_adjust=True`) with no immutable snapshot; the §5.4.4 reconstruction and §5.4.9 snapshot rules were unsatisfied. | Phase 1 is exploratory only; no confirmatory claim depends on it. | Froze the two-tier raw + corporate-actions + snapshot contract (§5.4.1, §5.4.9). | DEC-20261017-019 (F8), DEC-20261017-021 |
+| 2026-10-17 | R-D02 | The Phase 1 universe was the 15 tickers live today — the escalation trigger fired. | Unquantified upward survival bias; the delisting rules were never exercised. | Froze a required point-in-time candidate list (§5.4.7); building it is a Gate-1 task and results stay universe-conditional until it exists. | DEC-20261017-020 (N3), DEC-20261017-021 |
 
 **Rule:** A materialized risk always produces a decision log entry, even if the decision is "continue unchanged." This preserves the learning loop.
 
@@ -388,20 +389,20 @@ When a risk materializes, add an entry here. This is a narrative complement to t
 
 Before setting Status to `Active`:
 
-- [ ] Confirm or adjust likelihood ratings in §4 based on your actual discipline, tooling, and time.
-- [ ] Confirm or adjust impact ratings in §4.
-- [ ] Confirm the critical-risk set in §6 is complete. If any risk feels missing, add it.
-- [ ] Confirm the monitoring cadence in §7.1 matches your available time.
-- [ ] Confirm the phase-gate review checklist in §7.2 will actually be run.
-- [ ] Add a `[FILL]`-free version of the register to the repo before Phase 1 begins.
+- [x] Confirm or adjust likelihood ratings in §4 based on your actual discipline, tooling, and time.
+- [x] Confirm or adjust impact ratings in §4.
+- [x] Confirm the critical-risk set in §6 is complete. If any risk feels missing, add it.
+- [x] Confirm the monitoring cadence in §7.1 matches your available time.
+- [x] Confirm the phase-gate review checklist in §7.2 will actually be run.
+- [x] Add a `[FILL]`-free version of the register to the repo before Phase 1 begins.
 
 Also confirm:
 
-- [ ] You accept that the register is a living document, not a frozen one.
-- [ ] You accept that materialized risks always produce a decision log entry.
-- [ ] You accept that the reasoning partner may escalate any firing trigger.
+- [x] You accept that the register is a living document, not a frozen one.
+- [x] You accept that materialized risks always produce a decision log entry.
+- [x] You accept that the reasoning partner may escalate any firing trigger.
 
-Once confirmed, bump to Version 1.2, set Status to `Active`, and add a revision history row.
+**Activated 2026-10-17.** Version 1.2; Status `Active`.
 
 ---
 
@@ -411,6 +412,7 @@ Once confirmed, bump to Version 1.2, set Status to `Active`, and add a revision 
 |------|---------|--------|--------|
 | 2026-10-14 | 1.0 | Initial risk register and pre-mortem | Ken Ira Lacson Talingting |
 | 2026-10-15 | 1.1 | Updated cross-references to retired documents per DEC-20261015-018: `project_charter.md`, `data_contract_and_point_in_time_policy.md`, `cost_model_and_frictions.md`, `benchmark_and_baseline_spec.md`, `success_metrics_and_evaluation_protocol.md`, and `experiment_registry_and_preregistration.md` redirected to `evaluation_protocol.md` sections. Header `Related` list trimmed to retained files. §1, §5.2, §5.4, §7.3 references updated. No risk content changed. | Ken Ira Lacson Talingting |
+| 2026-10-17 | 1.2 | **Activated** at the protocol freeze (DEC-20261017-021). §2 and §4 rating notes de-proposed. §8 Risk Materialization Log opened with entries for R-D01 (adjusted-price ingestion, F8) and R-D02 (survivorship universe, N3). §10 activation checklist completed. Status `Draft` → `Active`. | Ken Ira Lacson Talingting |
 
 ---
 
