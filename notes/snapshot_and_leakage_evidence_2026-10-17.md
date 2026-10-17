@@ -1,8 +1,9 @@
 # Snapshot and leakage-suite evidence - 2026-10-17
 
 **Status:** Evidence record - the §5.4.8 leakage suite passes; the Phase 1 experiment is unblocked
+**Version:** 1.1
 **Owner:** Ken Ira Lacson Talingting
-**Decision:** DEC-20261017-025
+**Decision:** DEC-20261017-025 (build + suite), DEC-20261017-026 (F10/F11 confirmed)
 **Authority:** [`evaluation_protocol.md`](../docs/evaluation_protocol.md) §5.4.8, §5.4.9, §8.4; [`model_and_method_spec.md`](../docs/model_and_method_spec.md) §3; DEC-20261017-024 (PIT candidate universe)
 
 ---
@@ -108,14 +109,16 @@ universe ever gains a delisting, so the check cannot be forgotten. Survivorship 
 `DGS1MO` is an annualised percent. `data.RF_ANNUAL_TO_MONTHLY` defaults to `"geometric"`
 (`(1+y)^(1/12)-1`, compounding-consistent); `"simple"` (`y/12`) is the alternative. At a 5%
 yield the two differ by ~0.009 percentage points per month - immaterial to a Sharpe ratio,
-but it is a frozen-value gap and is not silently chosen. **Owner confirmation requested.**
+but it is a frozen-value gap and was not silently chosen. **Confirmed 2026-10-17
+(DEC-20261017-026): `geometric` stands.** No code change; the default was already the
+confirmed value.
 
 ### F11 - risk-free observation month is not pinned
 §5.5.5 says "as observed at *t*" while §5.5.4 places decisions and execution at the close of
 `t-1`. `data.RF_ALIGN` defaults to `"prior_month"` (the yield observed at the last trading day
 of month `t-1` prices month `t`), which is the no-lookahead reading and matches the standard
-one-month-bill convention; `"same_month"` is the literal §5.5.5 reading. **Owner confirmation
-requested.**
+one-month-bill convention; `"same_month"` is the literal §5.5.5 reading. **Confirmed 2026-10-17
+(DEC-20261017-026): `prior_month` stands.** No code change.
 
 ### F12 - the §5.4.2 liquidity floor is binding, so the eligible universe shrinks from 18 to 17
 The candidate list has 18 instruments, but eligibility is a filter, not a membership roll.
@@ -168,7 +171,8 @@ initially confused with a forbidden zero-substitution. Both are fixed; the fixes
 3. **Yahoo is not a point-in-time vendor.** Raw unadjusted prices plus ex-post corporate actions
    are the satisfiable two-tier contract frozen in §5.4.1; this is a known and accepted limit,
    not an oversight.
-4. **`RF_ANNUAL_TO_MONTHLY` and `RF_ALIGN`** are implementation conventions pending F10/F11.
+4. **`RF_ANNUAL_TO_MONTHLY` and `RF_ALIGN`** were unpinned by the frozen docs; both were
+   **confirmed as recorded on 2026-10-17 (DEC-20261017-026)** and are closed.
 
 ---
 
@@ -191,3 +195,4 @@ Requirements added: `pytest`, `cvxpy>=1.4` (the latter for the C3 optimizer, not
 | Version | Date | Change | Author |
 |---------|------|--------|--------|
 | 1.0 | 2026-10-17 | Initial evidence record: snapshot `…-2ad06139`, §5.4.8 suite pass, findings F10-F12 | Ken Ira Lacson Talingting |
+| 1.1 | 2026-10-17 | F10 and F11 **confirmed as recorded** by the owner (DEC-20261017-026); both closed. No code change, so no new snapshot: the built snapshot already stamps the confirmed conventions. | Ken Ira Lacson Talingting |

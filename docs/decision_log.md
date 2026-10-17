@@ -56,6 +56,7 @@ Each entry uses the following fields:
 | DEC-20261017-023 | 2026-10-17 | GOVERNANCE | ACTIVE | Freeze `model_and_method_spec.md` v1.1 (C3); resolve open items O1–O7 |
 | DEC-20261017-024 | 2026-10-17 | GOVERNANCE | ACTIVE | Confirm the point-in-time candidate universe (18 ETFs); accept the residual survivorship limitation |
 | DEC-20261017-025 | 2026-10-17 | GOVERNANCE | ACTIVE | Build the immutable PIT snapshot; pass the §5.4.8 leakage suite; record findings F10–F12 |
+| DEC-20261017-026 | 2026-10-17 | GOVERNANCE | ACTIVE | Confirm F10/F11 (rf conventions); register Test B and Test D; raise F13 (DSR trial count) and F14 (Test C period) |
 
 **Gap note (001–011):** Resolved by DEC-20261015-014. The seed entries referenced in DEC-20261014-000 were not written and are not recoverable. They are treated as never having existed in this log.
 
@@ -859,6 +860,58 @@ Six weeks from now this entry has failed in one of four ways. (a) The suite is r
 
 ---
 
+### DEC-20261017-026
+
+**Date:** 2026-10-17
+**Type:** GOVERNANCE
+**Status:** ACTIVE
+**Authority:** Owner
+**Related docs:** `notes/snapshot_and_leakage_evidence_2026-10-17.md` (v1.1, confirmed by this entry), `notes/tests_BCD_spec_2026-10-17.md`, `evaluation_protocol.md` (v2.4, Frozen §6, §12.4, §12.6, §12.9), `model_and_method_spec.md` (v1.1, Frozen §1, §2), `docs/README.md` (v1.8), DEC-20261015-014, DEC-20261015-015, DEC-20261017-024, DEC-20261017-025
+**Related risks:** R-M01, R-M02, R-D05, R-P01, R-S02
+
+**Context:**
+DEC-20261017-025 closed both Gate 1 data blockers and left two risk-free conventions (F10, F11) awaiting owner confirmation. Protocol §12.4 requires a snapshot ID in every registration, and had none until that entry; so the Tests B/C/D registrations — deferred by DEC-20261017-020 and by DEC-20261017-025's alternative list — became writable for the first time. This entry records the confirmations and the first two registrations, and reports two findings that block the third.
+
+**Decision:**
+1. **F10 confirmed: `RF_ANNUAL_TO_MONTHLY = "geometric"`** (`(1+y/100)^(1/12)-1`).
+   **F11 confirmed: `RF_ALIGN = "prior_month"`** (the yield observed at the close of `t-1` prices month `t`, consistent with §5.5.4).
+   Both were the implemented defaults, so **no code change and no new snapshot** — the built snapshot's manifest already stamps the confirmed conventions. Both findings are closed.
+2. **Test B registered** — `EXP-X-20261017-001` in Appendix A. Family **X**, so it does **not** count toward any denominator (§12.6.2). Cap sweep `w_max ∈ {0.20, 0.30, 0.40, 1.00}`, applied uniformly in every arm, everything else at the common configuration.
+3. **Test D registered** — `EXP-H2-20261017-001` in Appendix A. Family **H2/H3**, **counts**. Family size at registration **N = 1** (zero prior confirmatory trials in the family per DEC-20261015-014 + 1; §12.6.1).
+4. **Test C is *not* registered.** It cannot be pre-registered honestly yet — see **F14**.
+5. **Findings raised:**
+   - **F13 — the DSR trial count for a multi-method registration is not pinned.** §12.6 fixes the *family denominator* (registered confirmatory trials = 1 here, per DEC-20261015-014), but §12.7's DSR also needs the number of trials from which the reported maximum was selected. Test D reports the best of **two** candidate methods (`M1`, `M2`) against five baselines. Registering with `N = 1` follows the frozen rules literally; if the owner intends `M1`/`M2` to be separate trials, the registration must be **amended before execution** (§12.9 permits pre-run amendment via a new registration ID; §12.11 invalidates only post-execution edits). Flagged because §12.11 makes a wrong family-size count fatal to the adjustment.
+   - **F14 — Test C's window sweep has no common evaluation period.** The spec (Tests B/C/D §1) requires all arms to share an identical period. With data starting 2007-01 and a rolling estimation window, the first feasible out-of-sample month is 2010-06 (36-month window), 2012-06 (60), and 2017-06 (120). The three arms are therefore **not comparable as written**, and the 120-month arm discards five years of the sample relative to the frozen protocol. Two options, both with a cost: (a) hold every arm to the common window 2017-06…2026-05 (108 months, 9 folds) — comparable, but abandons 2012-06…2017-05 for a diagnostic that exists to characterise the *frozen* 60-month setting; or (b) let each arm run its own period and report them as three separate diagnostics rather than one comparison — no information lost, but the "window artifact" question is then answered by three mutually non-comparable numbers. **Owner decision required before Test C is registered.**
+6. **No Tier-0 contract value changed; no protocol, spec, or scope amendment.** Test B and Test D registrations are ledger entries, not contracts.
+
+**Alternatives considered:**
+- **Fold the F10/F11 confirmation into DEC-20261017-025.** Rejected — entries are append-only and 025 recorded the findings as *outstanding*; a confirmation is a new act, not an edit of the old one.
+- **Register Test C at the 2017-06 common window without asking.** Rejected — it silently discards five years of the frozen protocol's evaluation period to serve an exploratory diagnostic, which is exactly the kind of parameter choice that should be the owner's.
+- **Register Test D with `N = 2` (two candidate methods).** Rejected for the registration as written — the frozen rules define the denominator as *registered confirmatory trials* (§12.6), and DEC-20261015-014 defines those as confirmatory EXPERIMENT entries in this log. Recorded as F13 so the choice is the owner's, not an accident of the registration.
+- **Defer all three registrations until the Phase 2 harness exists.** Rejected — §12.1 is "lock before you look"; a registration written after the code exists is a registration written by someone who has already seen how it runs.
+
+**Rationale:**
+[First Principles] A registration's only value is that it was written while the outcome was still unknown. The snapshot ID and the frozen thresholds were the last missing inputs; with both present, deferring further would erode the lock.
+[Inversion] The failure mode is not "a missing registration" but "a registration whose parameters were chosen after the sweep" — so Tests B and C are registered **before** any harness exists, and the firewall (§5 of the spec) is quoted in the entry itself.
+[Goodhart's Law] F13 is recorded rather than resolved because resolving it conveniently (N = 1) is the direction that makes success easier to declare. The owner should be the one to accept that.
+[Systems] F14 surfaced only because the registrations were written before the code: the window sweep's period-misalignment is invisible in prose and unavoidable in a run.
+
+**Reversibility:** Soft. Registrations are append-only ledger entries; Test D's `N` may be amended before execution under §12.9 (new registration ID). F10/F11 are confirmed values in code and in the manifest of an append-only snapshot — a later change requires a new snapshot and a new entry.
+
+**Revisit trigger:**
+The owner answers F13 → Test D's registration is amended before execution (or left as `N = 1`). The owner answers F14 → Test C is registered, or the Tests B/C/D spec is amended at its §3. The Phase 2 harness becomes runnable → execution may begin only with a completed registration for every reported metric (§12.2).
+
+**Expected value assessment:**
+- Probability the confirmed F10/F11 values are the ones used in the confirmatory run: high (~99%) — they are already in code and stamped in the manifest.
+- Probability `N = 1` is the value the owner intends after reading F13: high (~70%) — it follows the frozen rules literally; the remaining ~30% is the `M1`/`M2`-as-two-trials reading.
+- Probability the owner chooses a common period and Test C loses the 2012-06…2017-05 stretch: moderate (~50%).
+- Probability Test B or Test D must be amended before execution: moderate (~40%) — both are written against a harness that does not yet exist, so a parameter will likely need restating rather than changing.
+
+**Pre-mortem:**
+Six weeks from now this entry has failed in one of four ways. (a) Test D is executed with `N = 1` while `M1` and `M2` were effectively two searches — detectable by checking whether the results section reports a best-of-several selection and whether F13 was answered. (b) Test C is registered at whichever period produced the more striking window story — detectable by checking the registration predates the run and that its period rule is the one recorded here, not a later choice. (c) The registrations are quietly edited after a run to match what was run — detectable because the pre-registration fields are immutable (§12.3) and the ledger is append-only. (d) The Phase 2 harness is built and run without amending the registrations at all, so the numbers reported are for an unregistered configuration — detectable by diffing the harness's frozen config against the entries' field 3.
+
+---
+
 ## Appendix A — Experiment Registry (Ledger)
 
 This appendix is the append-only ledger of pre-registered experiments. Registry *rules* (what counts as an experiment, ID format, denominator rules, invalidation rules) live in `evaluation_protocol.md` §12 and, until Phase C completes, in `experiment_registry_and_preregistration.md`. This appendix holds the *entries*.
@@ -872,6 +925,8 @@ This appendix is the append-only ledger of pre-registered experiments. Registry 
 | EXP-ID | Date | Family | Status | Title |
 |--------|------|--------|--------|-------|
 | EXP-H1-20261015-001 | 2026-10-15 | X (exploratory) | ARCHIVED | Phase 1 smoke test (retroactively logged per DEC-20261015-012) |
+| EXP-X-20261017-001 | 2026-10-17 | X (exploratory) | REGISTERED | Test B — cap-sensitivity sweep (cap-artifact diagnostic) |
+| EXP-H2-20261017-001 | 2026-10-17 | H2 / H3 (confirmatory) | REGISTERED | Test D — confirmatory evaluation of the robust methods (H2.4); N = 1 at registration |
 
 ### EXP-H1-20261015-001
 
@@ -883,6 +938,126 @@ This appendix is the append-only ledger of pre-registered experiments. Registry 
 **Note:** This entry exists so the ledger is non-empty and so future readers can trace the Phase 1 exploratory run through the correct index. It does not carry a full pre-registration template because it was not pre-registered. It is not a finding. It does not count toward any multiple-testing denominator.
 
 **No further entries exist as of 2026-10-15.** The first confirmatory registration will be appended after `evaluation_protocol.md` reaches `Frozen`.
+
+**Superseded in part (2026-10-17, DEC-20261017-026).** The protocol is `Frozen` and the first registrations are appended below: `EXP-X-20261017-001` (Test B, exploratory) and `EXP-H2-20261017-001` (Test D, confirmatory). Test C is **not** registered — see finding F14 in DEC-20261017-026.
+
+### EXP-X-20261017-001
+
+**Status:** REGISTERED (not executed)
+**Registered date:** 2026-10-17
+**Family:** X (exploratory — **non-counting**; §12.6.2)
+**Related hypotheses:** H3-family diagnostic (cap artifact). Companion to `EXP-H2-20261017-001`.
+**Related decision triggers:** §4.3 `w_max`; resolves audit finding F1. Not a §8.6 kill trigger.
+**Related decision log entry:** DEC-20261017-020 (spec), DEC-20261017-026 (this registration)
+
+**1. Hypothesis.** The Phase 1 underperformance of the shrinkage and turnover-penalized methods, relative to unpenalized sample MVO, is an artifact of the box cap having been applied only to the optimizers.
+*Direction:* if the artifact is real, `ΔB` (penalized/shrinkage minus `B3`) reverses sign as the cap loosens and the cap is applied uniformly.
+*Effect size of interest:* a sign change in `ΔB` between the tightest and loosest arm.
+*Prior probability:* moderate (~40%). Phase 1 applied the cap unevenly, so the artifact is plausible, but Phase 1 also changed the window, `γ`, and cost treatment at once, so the cap is not the only candidate.
+*Falsifiable:* yes — a pre-committed decision rule on `ΔB` and `Δbase` (field 5).
+
+**2. Methods compared.** Baselines `B1` (1/N), `B2` (risk parity), `B3` (sample MVO), `B4` (min variance), `B5` (turnover-penalized MVO, λ = κ). No robust methods (Test D owns those). Cap applied **uniformly to every method including `B1` and `B2`** (fixes audit finding F1).
+
+**3. Parameters.**
+| Parameter | Value |
+|---|---|
+| Universe | the snapshot's `universe_pit.csv` — 18 confirmed candidates (DEC-20261017-024); eligible 18 → 17 after 2021-11 (F12) |
+| Snapshot ID (SHA-256) | `yahoo-usetf-2007-01-01_2026-09-30-2026-10-17-2ad06139` (`2ad0613913df9065b62ba2291abc391402c1eb13d36937ba8c2bbc09d637d707`) |
+| Data | point-in-time adjusted, raw + corporate actions (protocol §5.4.1) |
+| Estimation window | 60 months, rolling, re-estimated monthly (§5.2) |
+| Test window / step | 12 months / 12 months, non-overlapping (§5.2) |
+| Out-of-sample period | 2012-06 … 2026-05 (168 months, 14 folds) |
+| Rebalance | monthly, last trading day (§5.5.4) |
+| **Swept parameter** | `w_max ∈ {0.20, 0.30, 0.40, 1.00}` (1.00 = uncapped), applied uniformly in every arm |
+| Constraints | Σw = 1; 0 ≤ w_i ≤ `w_max` |
+| Cost levels | 0 / 5 / 10 / 20 / 50 bps; headline 10 bps (§5.5.3) |
+| Turnover penalty | λ = κ = 0.001 monthly (uniform with `B5`) |
+| γ | 10 (`B3`, `B5`) |
+| Random seeds | `SEED = 20261017` (spec §11 O6/O7); no other stochastic component |
+| Solver | `cvxpy` / `CLARABEL` convex QP, no fallback (F1, F3) |
+
+**4. Evaluation protocol.** Protocol `evaluation_protocol.md` **v2.4 (Frozen)**; method spec **v1.1 (Frozen)**.
+*Primary metric:* net Sharpe at 10 bps. *Secondary:* `ΔB`, `Δbase`, turnover, max drawdown, CVaR 95%, cost drag.
+*Statistical test:* **descriptive only.** DSR and PSR are reported for information but carry no decision weight: family X cannot support success claims (§12.6.2, §12.10).
+*Confidence level:* 90% block-bootstrap intervals.
+*Multiple-testing family size at registration:* **N/A** — family X does not count (§12.6.2). 4 arms, **all reported**.
+
+**5. Decision rule.**
+- `ΔB < 0` at **every** cap **and** `Δbase` widens monotonically as the cap loosens → the underperformance is **not** a cap artifact; escalate to Test C.
+- `ΔB < 0` **only** at loose/no cap and reverses at tight caps → **cap artifact**; the framing's remedy hypothesis is not falsified by Phase 1.
+- `ΔB` changes sign with cap non-monotonically → **cap-fragile**; report as unresolved and do not proceed to a confirmatory claim without a new hypothesis.
+- **In all three cases:** if an arm reveals a configuration where a robust method meets §6.4, that configuration is **not** adopted. It becomes the hypothesis for a **new, separately pre-registered** experiment, with the Test B arms (4) counted as prior trials in that experiment's denominator (Tests B/C/D spec §5, rules 1–3).
+
+**6. Cost and time estimate.** Compute: 4 arms × 14 folds × 5 methods; cap-constrained convex QPs are small (≤ 18 assets) and solve in well under a second each. Estimated wall-clock: **under 10 minutes** single-threaded on the development machine, plus one snapshot read. Data volume: the snapshot's parquet files (~2 MB).
+
+**7. What would invalidate this experiment.** Any §12.11 condition; additionally: an arm whose cap is not applied uniformly; a differing OOS period, universe, cost model, or constraint handling between arms (Tests B/C/D spec §1 — "any deviation invalidates the comparison"); use of the arms to select Test D's configuration (firewall §5).
+
+**8. Pre-registration signature.** Author: Ken Ira Lacson Talingting. Date: 2026-10-17. Git commit at registration: `1b71e13` (the code state this registration was written against). Registry version at registration: `decision_log.md` v1.3, Appendix A scaffold.
+
+**Results:** pending execution.
+**Conclusion:** pending.
+**Decision:** pending.
+
+---
+
+### EXP-H2-20261017-001
+
+**Status:** REGISTERED (not executed)
+**Registered date:** 2026-10-17
+**Family:** H2 / H3 (**confirmatory — counts** toward the denominator)
+**Related hypotheses:** H2.1, H2.2, H2.3, **H2.4**; H3.1, H3.2, H3.3.
+**Related decision triggers:** **§8.6 K1** (if no method is successful, the primary objective is falsified → stop-and-report).
+**Related decision log entries:** DEC-20261017-023 (spec freeze), DEC-20261017-025 (snapshot), DEC-20261017-026 (this registration)
+
+**1. Hypothesis (H2.4).** Under the frozen protocol, at least one robust method beats the best baseline on net Sharpe after costs and multiple-testing adjustment, per §6.4.
+*Direction:* positive — at least one of `M1`, `M2` exceeds the best of `B1`–`B5`.
+*Effect size of interest:* net Sharpe improvement over the best baseline **≥ 0.20** (§6.2).
+*Prior probability:* low-to-moderate (~30%). Phase 1 (exploratory, non-confirmatory — DEC-20261015-012) found shrinkage and penalized MVO *underperforming* on net Sharpe; the frozen protocol is fairer than Phase 1's comparison (uniform cap, identical data), which cuts both ways.
+*Falsifiable:* yes — §6.4's four conditions are all fixed in advance, and failure triggers K1.
+
+**2. Methods compared.** Baselines `B1`–`B5` (§4.2). Robust candidates `M1` (Ledoit-Wolf shrinkage covariance + sample-mean MVO; differs from `B3` **only** in Σ) and `M2` (sample covariance + no-views Bayesian/Black-Litterman posterior MVO, ½(Π + μ̂); differs from `B3` **only** in μ). Both are MVP components per scope §3.4/§3.5 (finding F9, DEC-20261017-022).
+
+**3. Parameters.**
+| Parameter | Value |
+|---|---|
+| Universe | the snapshot's `universe_pit.csv` — 18 confirmed candidates; eligible 18 → 17 after 2021-11 (F12) |
+| Snapshot ID (SHA-256) | `yahoo-usetf-2007-01-01_2026-09-30-2026-10-17-2ad06139` (`2ad0613913df9065b62ba2291abc391402c1eb13d36937ba8c2bbc09d637d707`) |
+| Data | point-in-time adjusted, raw + corporate actions (§5.4.1) |
+| Estimation window | 60 months, rolling, re-estimated monthly (§5.2) — **the frozen value**, not whichever arm won Test C |
+| Test window / step | 12 months / 12 months (168 OOS months, 14 folds) |
+| Rebalance | monthly, last trading day (§5.5.4) |
+| Constraints | Σw = 1; 0 ≤ w_i ≤ **0.30**, uniform across **all** methods (§4.3, fixes F1) |
+| Risk aversion | γ = 10 (`B3`, `B5`, `M1`, `M2`) |
+| Turnover penalty | λ = κ = 0.001 monthly (`B5`) |
+| Cost levels | 0 / 5 / 10 / 20 / 50 bps; headline 10 bps (§5.5.3) |
+| Risk-free rate | `DGS1MO`, geometric monthly conversion, prior-month alignment (confirmed F10/F11, DEC-20261017-026); same `R_f` for gross and net |
+| Shrinkage target (`M1`) | `sklearn` Ledoit-Wolf, identity target (spec O2) |
+| Solver | `cvxpy` / `CLARABEL`; acceptance = max constraint violation ≤ 1e-7 **and** duality gap ≤ 1e-7; **no fallback** (spec O4, F1/F3) |
+| Random seeds | `SEED = 20261017` (spec O7); block bootstrap uses the same seed |
+| H1.1 treatment | `H1.1` tests the **uncapped** optimizer (decoupled from the capped `B3`); reported as a separate treatment |
+
+**4. Evaluation protocol.** Protocol `evaluation_protocol.md` **v2.4 (Frozen)**; method spec **v1.1 (Frozen)**.
+*Primary metric:* net Sharpe at the baseline cost level (10 bps).
+*Secondary metrics:* gross Sharpe; turnover; maximum drawdown; CVaR 95%; cost drag; per-fold net Sharpe; DSR and PSR; calibration (return + volatility, one-month horizon, 80–100% coverage).
+*Statistical test:* §6.1 — **DSR p-value < 0.05** with `SR* = SR_0` (expected maximum under `N` trials) **and PSR > 0.95** vs `SR* = SR_best baseline`; both required. §12.8 — Benjamini-Hochberg FDR at **q = 0.10** within family H2/H3.
+*Confidence level:* 90% block-bootstrap CIs (§13).
+*Multiple-testing family size at registration:* **N = 1** — zero prior confirmatory trials in family H2/H3 + 1 (§12.6; the denominator is the count of confirmatory EXPERIMENT entries per DEC-20261015-014). **See finding F13** (DEC-20261017-026): `N = 1` follows the frozen rules literally; if `M1` and `M2` are to be counted as separate trials it must be amended **before execution** (§12.9).
+
+**5. Decision rule (§6.4).** A method is **successful** only if **all four** hold: statistical significance (§6.1), economic materiality (§6.2: net Sharpe improvement ≥ 0.20 *and* turnover ≤ 2× the best baseline *and* max drawdown no worse than the best baseline by > 5 pp), robustness (§6.3: advantage at ≥ 3 cost levels *and* in ≥ 60% of folds *and* no fold contributing > 40% of the advantage), and no PIT/cost violation.
+- **Success condition:** ≥ 1 method satisfies all four → H2.4 confirmed; proceed to Phase 3.
+- **Failure condition:** no method satisfies all four → **K1 fires: stop-and-report.** The primary objective is falsified.
+- **Ambiguous condition:** a method satisfies some but not all → report as `INCONCLUSIVE`; it is not a success.
+- **Action in every case:** no method may be added and no threshold relaxed to rescue the result (§8.6 K1, §8.1 Hard Rule 2).
+
+**6. Cost and time estimate.** Compute: 14 folds × 7 methods × 5 cost levels; each fold solves a small (≤ 18-asset) convex QP per method. Estimated wall-clock: **under 30 minutes** single-threaded, plus one snapshot read.
+
+**7. What would invalidate this experiment.** Any §12.11 condition; additionally: any §5.4 field not traceable to the snapshot; a failing §5.4.8 leakage test; a differing universe, cost model, or constraint handling between methods (§4.6); the configuration being taken from a Test B or Test C arm (firewall, Tests B/C/D spec §5); a `B3` that is capped while the comparable `M1`/`M2` is not (F1 regression).
+
+**8. Pre-registration signature.** Author: Ken Ira Lacson Talingting. Date: 2026-10-17. Git commit at registration: `1b71e13`. Registry version at registration: `decision_log.md` v1.3, Appendix A scaffold.
+
+**Results:** pending execution.
+**Conclusion:** pending.
+**Decision:** pending.
 
 ---
 
@@ -932,6 +1107,8 @@ This appendix is the migration record for the open items in `docs/TODO.md` (v1.1
 
 **Update 2026-10-17 (DEC-20261017-025).** The **§5.4.8 leakage suite passes** (14 passed, 1 skipped as vacuous in-sample) against the first immutable snapshot, `yahoo-usetf-2007-01-01_2026-09-30-2026-10-17-2ad06139`. **Both Gate 1 data blockers are now closed**; the Phase 1 experiment is unblocked. Findings **F10** (rf annual-to-monthly conversion) and **F11** (rf observation month) are surfaced for owner confirmation; **F12** records that the §5.4.2 liquidity floor is binding on `RWX`, so the eligible set declines from 18 to 17 after 2021-11. This is the first `src/` / `scripts/` change since the freeze. The remaining appendix items still open are unchanged and off the critical path: **E2**, **E3**, **E5**, **E7**. The next critical-path work is registering Tests B/C/D in Appendix A (protocol §12.4 — now unblocked, since a snapshot ID exists) and rewriting `src/` to conform to protocol v2.4 + spec v1.1.
 
+**Update 2026-10-17 (DEC-20261017-026).** **F10 and F11 confirmed as recorded** (`geometric`, `prior_month`) — no code change, so no new snapshot. The first registrations are written: `EXP-X-20261017-001` (Test B, family X, non-counting) and `EXP-H2-20261017-001` (Test D, family H2/H3, counting, **N = 1**). **Test C is not registered**: finding **F14** — the window sweep {36, 60, 120} has no common evaluation period (first feasible OOS 2010-06 / 2012-06 / 2017-06), so its arms are not comparable and the spec's "identical period" rule cannot be met without an owner decision. Finding **F13** — whether a single registration that reports the best of several candidate methods (`M1`, `M2`) should carry `N = 1` or `N = 2` in the DSR — is recorded for the owner; it must be amended before execution if changed (§12.9).
+
 ---
 
 ## Revision history
@@ -953,6 +1130,7 @@ This appendix is the migration record for the open items in `docs/TODO.md` (v1.1
 | 2026-10-17 | Added DEC-20261017-023 (`model_and_method_spec.md` v1.1 Frozen — C3; all `[OPEN]` items O1, O2, O4–O7 resolved; v1.0's run-reproduction freeze condition corrected). Updated Appendix B row C3 and added the DEC-023 update note. | Ken Ira Lacson Talingting |
 | 2026-10-17 | Added DEC-20261017-024 (point-in-time candidate universe confirmed — 18 ETFs anchored 2012-06; residual survivorship limitation accepted as documented). Updated Appendix B with the DEC-024 update note. | Ken Ira Lacson Talingting |
 | 2026-10-17 | Added DEC-20261017-025 (immutable PIT snapshot built; §5.4.8 leakage suite passes — 14 passed, 1 vacuous skip; findings F10–F12 recorded; Gate 1 data blockers closed). Created `notes/snapshot_and_leakage_evidence_2026-10-17.md`; added the snapshot builder, the PIT reader and the leakage suite to `src/`/`scripts/`/`tests/`. Updated Appendix B with the DEC-025 update note. | Ken Ira Lacson Talingting |
+| 2026-10-17 | Added DEC-20261017-026 (F10/F11 confirmed as recorded; first registry entries: `EXP-X-20261017-001` Test B and `EXP-H2-20261017-001` Test D, N = 1; findings F13 and F14 raised — Test C not registered). Introduced the §12.4 pre-registration template in Appendix A; updated Appendix A index and the scaffold note, and Appendix B with the DEC-026 update note. | Ken Ira Lacson Talingting |
 
 ---
 

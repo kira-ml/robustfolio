@@ -132,4 +132,28 @@ This file defines the tests. The freeze decides the configuration. The registry 
 
 ---
 
+## 9. Addendum — 2026-10-17 (post-freeze)
+
+**Registration status (DEC-20261017-026).** The precondition in the header is now met: the protocol is `Frozen`, the §5.4.8 leakage suite passes, and a snapshot ID exists.
+
+- **Test B — registered** as `EXP-X-20261017-001` (`decision_log.md` Appendix A). Family X, non-counting.
+- **Test D — registered** as `EXP-H2-20261017-001`. Family H2/H3, counting, **N = 1** at registration.
+- **Test C — NOT registered.** See F14 below.
+
+**F14 — Test C's §3 window sweep has no common evaluation period.** §1 requires all arms to share an identical period. With data from 2007-01 and a *rolling* estimation window, the first feasible out-of-sample month differs per arm:
+
+| Window | First OOS month | OOS months | Folds |
+|--------|-----------------|-----------|-------|
+| 36 months | 2010-06 | 192 | 16 |
+| 60 months | 2012-06 | 168 | 14 |
+| 120 months | 2017-06 | 108 | 9 |
+
+The three arms as written are therefore **not comparable**, and the 120-month arm discards five years relative to the frozen protocol. Test C cannot be pre-registered honestly until the owner resolves this. The two options and their costs are set out in DEC-20261017-026 §5 (F14): a common window from 2017-06 (comparable, but abandons 2012-06…2017-05 for a diagnostic about the *frozen* 60-month setting), or three separately-reported single-arm diagnostics (no information lost, but no single comparable number answers the "window artifact" question).
+
+**Why the conditioning diagnostic matters here.** The window sweep and the conditioning diagnostic are the same question asked twice: with 18 candidates, the sample covariance estimated on 36 months is far worse conditioned than on 120 months, so a window effect and a conditioning effect are not separable by construction. `H1.3` predicts that shrinkage (not the window) is what moves weight dispersion; Test C's condition-number output is the evidence for or against that, and risk `R-E04` is the corresponding failure mode.
+
+**Note.** These are the specs the registry entries reference, as §8 intends. Registration happened **before** any harness exists, per §12.1 ("lock before you look").
+
+---
+
 **End of Tests B/C/D specification.**
