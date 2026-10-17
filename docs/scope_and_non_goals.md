@@ -1,11 +1,11 @@
 # Scope and Non-Goals: robustfolio
 
-**Version:** 1.3
-**Status:** Active — owner-activated 2026-10-17 (DEC-20261017-021)
+**Version:** 1.4
+**Status:** Active — owner-activated 2026-10-17 (DEC-20261017-021); v1.4 clarifies the MVP robust-method set (DEC-20261017-022)
 **Owner:** Ken Ira Lacson Talingting
 **Created:** 2026-10-14
 **Last Updated:** 2026-10-17
-**Supersedes:** 1.2 (activation at the protocol freeze; `[PROPOSED]` defaults confirmed)
+**Supersedes:** 1.3 (activation at the protocol freeze; `[PROPOSED]` defaults confirmed) and earlier
 **Related:** [`problem_framing.md`](problem_framing.md), [`evaluation_protocol.md`](evaluation_protocol.md), [`decision_log.md`](decision_log.md), [`risk_register_and_premortem.md`](risk_register_and_premortem.md)
 
 ---
@@ -96,7 +96,7 @@ The MVP is the minimum sufficient implementation to test the project's primary h
 |-----------|--------|
 | Sample mean | MVP (for B3, B5) |
 | Equal / none | MVP (for B1, B2, B4) |
-| Black-Litterman | MVP (baseline extension, at least one variant) |
+| Black-Litterman | MVP — no-views (equilibrium-prior) variant, defined in [`model_and_method_spec.md`](model_and_method_spec.md) §4.5 |
 
 ### 3.6 Optimizers / constructors
 
@@ -107,6 +107,8 @@ The MVP is the minimum sufficient implementation to test the project's primary h
 | Sample MVO | MVP |
 | Minimum variance | MVP |
 | Turnover-penalized MVO (L1) | MVP |
+
+**MVP methods (the full set).** The five constructors above define the baselines **B1–B5**. The MVP *robust methods* are the single-factor treatments built on them: **M1** = Ledoit-Wolf shrinkage covariance + sample-mean MVO (tests H2.1); **M2** = sample covariance + Bayesian/Black-Litterman posterior returns (tests H2.2). Both are defined exactly in [`model_and_method_spec.md`](model_and_method_spec.md) §1. The §3.4 Ledoit-Wolf estimator and the §3.5 Black-Litterman estimator were **not** promoted to the baseline set — the baseline set stays B1–B5 — but they are MVP *robust-method* components, not extensions. This is the clarification of finding F9 (DEC-20261017-022).
 
 ### 3.7 Turnover penalties
 
@@ -323,6 +325,7 @@ Also confirm:
 | 2026-10-15 | 1.1 | Replaced §3.8 cost-level row with pointer to cost model doc §3.3 (A6); updated §6 conflict table to reflect supersessions; updated §10 checklist to reflect completed supersessions; added revision history | Ken Ira Lacson Talingting |
 | 2026-10-15 | 1.2 | Updated all cross-references to retired documents per DEC-20261015-018: `project_charter.md`, `benchmark_and_baseline_spec.md`, `success_metrics_and_evaluation_protocol.md`, `falsification_and_kill_criteria.md`, `cost_model_and_frictions.md`, and `experiment_registry_and_preregistration.md` redirected to `evaluation_protocol.md` sections. §3.2 point-in-time reference redirected to §5.4.3. §4.3 registry reference redirected to `decision_log.md` Appendix A and `evaluation_protocol.md` §12. §6 conflict table rewritten. §8 charter reference redirected to §8 of the protocol. No scope content changed. | Ken Ira Lacson Talingting |
 | 2026-10-17 | 1.3 | **Activated** at the protocol freeze (DEC-20261017-021). §3.1 `[PROPOSED]` defaults confirmed and aligned with the frozen protocol (universe = point-in-time list per §5.4.7; minimum history 60 months). §4 note de-proposed. §10 activation checklist completed. Status `Draft` → `Active`. | Ken Ira Lacson Talingting |
+| 2026-10-17 | 1.4 | Clarified the MVP method set (finding F9, DEC-20261017-022). §3.5 Black-Litterman row reworded to "MVP — no-views (equilibrium-prior) variant" and pointed at `model_and_method_spec.md` §4.5. Added a §3.6 note naming the MVP robust methods (M1 shrinkage MVO, M2 Bayesian/B-L MVO) and stating they are MVP components, not the baseline set (B1–B5). Resolves the scope-vs-protocol-§4.2 contradiction in scope's favour (scope §6). No MVP/extension status changed. | Ken Ira Lacson Talingting |
 
 ---
 

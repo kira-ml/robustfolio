@@ -52,6 +52,7 @@ Each entry uses the following fields:
 | DEC-20261017-019 | 2026-10-17 | GOVERNANCE | ACTIVE | Record audit findings (fair-comparison defect, baseline-set mismatch, parameter drift) as freeze-session inputs; repair doc integrity |
 | DEC-20261017-020 | 2026-10-17 | GOVERNANCE | ACTIVE | Define Tests B/C/D (resolves F6); produce freeze worksheet; record findings N1–N3 |
 | DEC-20261017-021 | 2026-10-17 | GOVERNANCE | ACTIVE | Freeze `evaluation_protocol.md` v2.3; activate scope v1.3 and risk register v1.2; extend R1 scan to 16 items |
+| DEC-20261017-022 | 2026-10-17 | GOVERNANCE | ACTIVE | Write `model_and_method_spec.md` v1.0 Draft (C2); resolve finding F9 (MVP robust-method classification) |
 
 **Gap note (001–011):** Resolved by DEC-20261015-014. The seed entries referenced in DEC-20261014-000 were not written and are not recoverable. They are treated as never having existed in this log.
 
@@ -655,6 +656,56 @@ Six weeks from now this entry has failed in one of three ways. (a) The protocol 
 
 ---
 
+### DEC-20261017-022
+
+**Date:** 2026-10-17
+**Type:** GOVERNANCE
+**Status:** ACTIVE
+**Authority:** Owner
+**Related docs:** `model_and_method_spec.md` (v1.0, Draft — new), `evaluation_protocol.md` (v2.4, Frozen), `scope_and_non_goals.md` (v1.4, Active), `docs/README.md` (v1.4), `notes/tests_BCD_spec_2026-10-17.md`, `notes/freeze_worksheet_2026-10-17.md`, DEC-20261015-015, DEC-20261017-019, DEC-20261017-020, DEC-20261017-021
+**Related risks:** R-S02, R-E01, R-E04, R-M05, R-C02
+
+**Context:**
+DEC-20261017-021 froze the protocol and activated scope and the risk register, leaving the method spec (todo C2, then C3) as the binding constraint on Gate 1 (§8.4). Writing the spec surfaced a contradiction the freeze had not resolved: the frozen protocol §4.2 listed "shrinkage covariance + minimum variance" and "Black-Litterman" as **extensions**, while the Active `scope_and_non_goals.md` §3.4/§3.5 mark them **MVP**. Scope §6 makes scope authoritative on MVP-vs-extension classification, but the two documents had never been reconciled, and the freeze worksheet settled only the *baseline* set (B1–B5). This is finding **F9**.
+
+F9 is load-bearing, not cosmetic. Hypotheses H2.1 ("shrinkage covariance beats sample covariance") and H2.2 ("Bayesian expected returns beat historical mean") are **Family H2 — Phase 2**. Extensions cannot run until Gate 4 (scope §4.3). Under the protocol's reading, Phase 2's own hypotheses would be unreachable — structurally identical to finding N2 (an unreachable H1.1), which the freeze had to fix.
+
+**Decision:**
+1. **`model_and_method_spec.md` v1.0 — `Draft`** is written (todo C2 complete). It defines the MVP method set, the estimators, the optimizers/solvers, the walk-forward harness, the cost application, and the exact metric implementations. It absorbs DEC-20261017-019 finding **F7** (CVaR, DSR, PSR, skewness, kurtosis, lag-1 autocorrelation, stationary block-bootstrap CIs).
+2. **F9 resolved in scope's favour** (scope §6). Shrinkage covariance and Black-Litterman are MVP **robust-method** components. `evaluation_protocol.md` §4.2 was corrected: the hard-coded extension list is replaced by a pointer to scope §3–§4 (protocol v2.3 → **v2.4**; a §16 **pre-result** correction — no experiment had run against v2.3 and no measurement value changed). `scope_and_non_goals.md` v1.3 → **v1.4** clarifies §3.5 and names the MVP robust methods.
+3. **MVP method set fixed.** Baselines **B1–B5** (unchanged, protocol §4.2). Robust methods: **M1** = Ledoit-Wolf shrinkage covariance + sample-mean MVO (tests H2.1; differs from B3 only in Σ); **M2** = sample covariance + Bayesian/Black-Litterman posterior returns (tests H2.2; differs from B3 only in μ). M2's no-views B-L has the closed form \(\hat\mu_{BL} = \tfrac12(\Pi + \hat\mu)\), removing solver ambiguity.
+4. **Implementation decisions recorded in the spec** (all are implementation-level, not scope or threshold): convex-QP MVO family with auxiliary L1 variables solved by `cvxpy`/`CLARABEL`, **no fallback** (replaces the Phase 1 SLSQP subgradient path and its equal-weight fallback); Ledoit-Wolf via the `sklearn` identity target; risk-parity via CCD with a box-constrained least-squares extension when the cap binds; rolling-60 walk-forward with a single drifted-weight function; the canonical turnover and single-\(R_f\) conventions. `cvxpy` is added to `requirements.txt`.
+5. **Open items O1, O2, O4–O7** (`model_and_method_spec.md` §11) must be resolved before the spec is frozen (C3). C3 is **not** performed in this entry: writing and freezing are separate acts (the DEC-20261015-015 / §18 discipline), and the owner has not yet reviewed v1.0.
+
+**Alternatives considered:**
+- **Protocol wins — shrinkage and B-L stay extensions.** Rejected. It makes H2.1 and H2.2 untestable until Gate 4, i.e. it makes two Phase 2 hypotheses unreachable. It also contradicts scope §3.4/§3.5, which the freeze activated as authoritative.
+- **Middle path — shrinkage is MVP, B-L deferred.** Rejected by the owner. It leaves H2.2 untestable and re-opens the classification for a second time.
+- **Reconcile only in the method spec; leave protocol §4.2 as written.** Rejected. A contradiction left inside a `Frozen` document will be read differently by different readers; the spec cannot be the authority on a value the protocol owns.
+- **Freeze the method spec now (C3 in the same act).** Rejected. The spec must be read before it is frozen, and O1–O7 remain open; freezing it now would lock in silently-defaulted choices. The write/freeze separation is the same discipline that produced the protocol freeze.
+- **Fold F9 into DEC-20261017-021.** Rejected. Entries are append-only; 021 recorded the freeze, which did not contain this finding.
+
+**Rationale:**
+[First Principles] A method is the triple (μ, Σ, constructor). M1 differs from B3 only in Σ and M2 only in μ, so H2.1 and H2.2 are single-factor tests rather than confounded comparisons (protocol §4.6; F4).
+[Theory of Constraints] Gate 1's binding constraint was the method spec; F9 was a latent blocker *inside* that constraint, which is exactly why writing the artifact surfaced it.
+[Inversion] The failure mode is a spec that reads as compliant while quietly making a hypothesis unreachable. Managing the MVP/extension boundary explicitly is the fix; leaving §4.2 uncorrected would let a future reader claim MVP compliance while never running H2.1/H2.2.
+[Information Theory] Closed forms (the B-L posterior) and a single source of truth for each frozen value (§2 of the spec) remove decisions that could otherwise drift between implementation and protocol.
+
+**Reversibility:** Soft for the spec (it is `Draft`). The protocol §4.2 correction is a §16 pre-result change and may itself be superseded by a later entry; the freeze record in §18 is preserved unchanged as the v2.3 snapshot.
+
+**Revisit trigger:**
+The C3 freeze of `model_and_method_spec.md`; resolution of O1–O7; and, if the point-in-time candidate list (O1) includes a cash/T-bill proxy, the B2 cap handling and the MVO scale in §5.3/§5.4 must be revisited before C3. A future change to the MVP method set is a scope amendment (scope §4.3), not an edit to this entry.
+
+**Expected value assessment:**
+- Probability the spec is freezeable (C3) after resolving O1–O7 within the Phase 0/1 time-box: high (~85%).
+- Probability at least one O-item changes a metric convention (rather than confirming the recommendation): moderate (~30%) — the DSR \(V\)-when-\(N=1\) convention (O6) and the calibration operationalisation (O5) are the least settled.
+- Probability the F9 correction prevents a Phase 2 dead-end: high (~90%).
+- Probability the PIT list includes a cash proxy and reopens B2's cap handling: moderate (~35%), conditional on the universe reconstruction.
+
+**Pre-mortem:**
+Six weeks from now this entry has failed in one of three ways. (a) The spec is frozen with an `[OPEN]` item silently defaulted — detectable by grepping `model_and_method_spec.md` for `[OPEN]`. (b) The v2.4 §4.2 correction is cited as a post-result change — detectable by comparing the DEC date with the first confirmatory run date (no run predates it). (c) The Phase 2 code diverges from §5/§6 of the spec — detectable by testing each constructor against the spec's formulation and the no-fallback policy. All three are caught by the §12.4 pre-registration template, which requires the spec version and git commit at registration.
+
+---
+
 ## Appendix A — Experiment Registry (Ledger)
 
 This appendix is the append-only ledger of pre-registered experiments. Registry *rules* (what counts as an experiment, ID format, denominator rules, invalidation rules) live in `evaluation_protocol.md` §12 and, until Phase C completes, in `experiment_registry_and_preregistration.md`. This appendix holds the *entries*.
@@ -695,16 +746,16 @@ This appendix is the migration record for the open items in `docs/TODO.md` (v1.1
 | TODO ID | Item | Status at retirement | Home now |
 |---------|------|----------------------|----------|
 | A1 | Fix `README.md` to reflect reality | Open | **Closed** — root `README.md` reconciled 2026-10-17 (DEC-20261017-019, F5a) |
-| A7 | Verify merges did not break cross-references | Partial | Open — covered by DEC-20261017-019 F5; remaining dead reference: `docs/README.md` → `model_and_method_spec.md` claim (F5d) |
+| A7 | Verify merges did not break cross-references | Partial | **Closed** — F5(a)–(c) repaired (DEC-20261017-019); F5(d) (the false `model_and_method_spec.md` reference in `docs/README.md`) fixed at the freeze (DEC-20261017-021, `docs/README.md` v1.3) |
 | B2 | Tighten `project_charter.md` | Superseded | Closed — charter retired (DEC-20261015-017/-018); content relocated to `evaluation_protocol.md` §8, `problem_framing.md`, `scope_and_non_goals.md` |
-| B3 | Tighten `scope_and_non_goals.md` | Open | Open — `scope_and_non_goals.md` §10 sign-off checklist still unchecked (activation pending) |
+| B3 | Tighten `scope_and_non_goals.md` | Open | **Closed** — activated v1.3 (DEC-20261017-021); §3.5/§3.6 clarified at v1.4 (DEC-20261017-022) |
 | B4 | Verify the new file set is internally consistent | Open | Open — partially addressed by this session's audit (DEC-20261017-019) |
-| C1 | Decide the three open method choices | Open | Open — freeze worksheet (`evaluation_protocol.md` §18) |
-| C2 | Write `model_and_method_spec.md` | Open | Open — still the highest-priority missing doc (`docs/README.md` §"Not yet written") |
-| C3 | Freeze the method spec | Open | Open — gated on C2 |
-| D1 | Extract every `[PROPOSED]` value into one table | Open | Open — freeze worksheet (`evaluation_protocol.md` §18) |
-| D2 | Confirm or replace each value | Open | Open — freeze session |
-| D3 | Freeze the evaluation protocol, data contract, and cost model | Open | Open — the freeze; the binding constraint |
+| C1 | Decide the three open method choices | Open | **Closed** — freeze worksheet (§0/§13); 60-month window, `w_max` 0.30 uniform, γ = 10, λ = κ (DEC-20261017-021) |
+| C2 | Write `model_and_method_spec.md` | Open | **Closed** — `model_and_method_spec.md` v1.0 Draft written 2026-10-17 (DEC-20261017-022); absorbs F7 |
+| C3 | Freeze the method spec | Open | Open — gated on O1–O7 resolution; write and freeze are separate acts (DEC-20261017-022) |
+| D1 | Extract every `[PROPOSED]` value into one table | Open | **Closed** — freeze worksheet produced (DEC-20261017-021) |
+| D2 | Confirm or replace each value | Open | **Closed** — all values confirmed/replaced at the freeze session (DEC-20261017-021) |
+| D3 | Freeze the evaluation protocol, data contract, and cost model | Open | **Closed** — `evaluation_protocol.md` Frozen at v2.3; v2.4 is a §16 §4.2 correction only (DEC-20261017-022) |
 | E1 | `decision_log.md` entry for Phase 1 parameter choices | In progress | **Closed** — DEC-20261015-012 |
 | E2 | `reproducibility_and_environment.md` | Open | Open — written when the Python environment is first set up |
 | E3 | `results_reporting_and_claims_policy.md` | Open | Open — must be written before Phase 4 |
@@ -719,6 +770,8 @@ This appendix is the migration record for the open items in `docs/TODO.md` (v1.1
 **Open items from this appendix that are on the critical path:** C1 → C2 → C3 (method spec), and D1 → D2 → D3 (the freeze). These are the same items named as the binding constraint in DEC-20261015-017.
 
 **Update 2026-10-17 (DEC-20261017-021).** The freeze closed: **D1** (the worksheet was produced), **D2** (every value was confirmed or replaced), **D3** (the protocol, data contract, and cost model are `Frozen` at v2.3), **C1** (the open method choices were decided — 60-month window, `w_max` 0.30 uniform, γ = 10, λ = κ), **A7** (the last dead cross-reference, F5d, was fixed in `docs/README.md`), **B3** (scope activated at v1.3), and **B4** (the audit and freeze reconciled the file set). Still open: **C2** and **C3** (write and freeze the method spec), **E2** (`reproducibility_and_environment.md`), **E3** (`results_reporting_and_claims_policy.md`), **E5** (`architecture_decision_records/`), **E7** (`open_source_and_license_policy.md`). The method-spec half (C2 → C3) is now the binding constraint on Gate 1.
+
+**Update 2026-10-17 (DEC-20261017-022).** **C2** closed — `model_and_method_spec.md` v1.0 `Draft` written; it absorbs finding F7. Finding **F9** (MVP robust-method classification: protocol §4.2 vs scope §3.4/§3.5) resolved in scope's favour; `evaluation_protocol.md` §4.2 corrected at v2.4 (a §16 pre-result change) and `scope_and_non_goals.md` clarified at v1.4. **C3 remains open** and is now gated on the spec's `[OPEN]` items O1, O2, O4–O7. The remaining appendix items open on the critical path are C3 and, for Gate 1, the point-in-time candidate list (protocol §5.4.7).
 
 ---
 
@@ -737,6 +790,7 @@ This appendix is the migration record for the open items in `docs/TODO.md` (v1.1
 | 2026-10-17 | Added DEC-20261017-019 (audit findings F1–F8 as freeze-session inputs; documentation-integrity repairs). Added the missing DEC-20261015-018 Index row. Created Appendix B (absorbed items from retired `docs/TODO.md`). | Ken Ira Lacson Talingting |
 | 2026-10-17 | Added DEC-20261017-020 (Tests B/C/D defined — resolves F6; freeze worksheet produced; findings N1–N3). | Ken Ira Lacson Talingting |
 | 2026-10-17 | Added DEC-20261017-021 (freeze executed: `evaluation_protocol.md` v2.3 Frozen; `scope_and_non_goals.md` v1.3 Active; `risk_register_and_premortem.md` v1.2 Active; R1 scan extended in `problem_framing.md` v2.4). Updated Appendix B dispositions note. | Ken Ira Lacson Talingting |
+| 2026-10-17 | Added DEC-20261017-022 (`model_and_method_spec.md` v1.0 Draft — C2; finding F9 resolved in scope's favour; protocol v2.4 §4.2 correction; scope v1.4). Updated Appendix B rows C1/C2/C3/D1/D2/D3/B3 to current state and added the DEC-022 update note. | Ken Ira Lacson Talingting |
 ---
 
 *This log exists to make decisions explicit, dated, and reviewable. Its append-only discipline is the reason it can be trusted. If the log is edited to hide a gap, the log is worthless. If the log records its gaps, the log is the project's strongest artifact.*

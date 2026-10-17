@@ -1,7 +1,7 @@
 # Evaluation Protocol: robustfolio
 
-**Version:** 2.3
-**Status:** Frozen — owner-confirmed 2026-10-17. Changes require a decision log entry, a version bump, and the §16 discipline.
+**Version:** 2.4
+**Status:** Frozen — owner-confirmed 2026-10-17 at v2.3. v2.4 (2026-10-17) applies a §16 **pre-result** correction to §4.2 only (finding F9, DEC-20261017-022); no threshold, metric, cost level, or data-contract value changed. Changes require a decision log entry, a version bump, and the §16 discipline.
 **Owner:** Ken Ira Lacson Talingting
 **Created:** 2026-10-14 (as `success_metrics_and_evaluation_protocol.md`)
 **Last Updated:** 2026-10-17
@@ -113,7 +113,9 @@ The MVP baseline set is fixed. Each baseline must be implemented, tested, and re
 | **B4** | Minimum variance | Risk-based | No | Robust to return error; classical alternative |
 | **B5** | Turnover-penalized MVO (L1) | Robust | Yes | Simplest turnover-aware method |
 
-**Extensions** (not in MVP; require a pre-registered experiment): inverse-volatility weights; hierarchical risk parity (López de Prado, 2016); equal risk budget with return views; shrinkage covariance + minimum variance; Black-Litterman.
+**Extensions.** Which methods are MVP and which are extensions is owned by [`scope_and_non_goals.md`](scope_and_non_goals.md) §3–§4, not by this document (scope §6). This baseline set (B1–B5) is fixed; the MVP **robust methods** built on it (shrinkage-covariance MVO for H2.1; Bayesian/Black-Litterman MVO for H2.2) are defined in [`model_and_method_spec.md`](model_and_method_spec.md) §1 and classified `MVP` by scope §3.4/§3.5. Extensions require a pre-registered experiment and Gate 4 (scope §4.3).
+
+> **Correction 2026-10-17 (v2.4; finding F9; DEC-20261017-022).** This section previously listed "shrinkage covariance + minimum variance" and "Black-Litterman" as extensions, contradicting scope §3.4/§3.5, which mark them `MVP`. Scope §6 makes scope authoritative on MVP-vs-extension classification, so the contradiction is resolved in scope's favour and the extension list is now a pointer to scope §4. This is a **pre-result** correction (§16 rule 4): no experiment had run against the frozen protocol, and no measurement value changed. Without it, Family H2 (H2.1, H2.2) would be unreachable until Gate 4 — the same structural defect as finding N2.
 
 ### 4.3 Common definitions
 
@@ -1096,6 +1098,8 @@ Once this document is `Frozen`:
 
 **Frozen 2026-10-17.** Version 2.3; Status `Frozen`. The remaining open items (method spec, environment doc, reporting policy) are tracked in [`README.md`](README.md) §"Not yet written".
 
+**Post-freeze amendment (v2.4, 2026-10-17).** §4.2 corrected to a pointer to `scope_and_non_goals.md` §3–§4 (finding F9, DEC-20261017-022). This record is the v2.3 freeze snapshot and is not rewritten; the change is recorded in §4.2 and in §19.
+
 ---
 
 ## 19. Revision History
@@ -1110,6 +1114,7 @@ Once this document is `Frozen`:
 | 2026-10-15 | 2.1 | Phase A relocations per DEC-20261015-017. §8 retitled "Project-Level Governance and Kill Triggers" and expanded to absorb `project_charter.md` §6–9: §8.1 taxonomy, §8.2 decision rights, §8.3 time-boxes, §8.4 phase gates, §8.5 governance cadence, §8.6 kill triggers. All references to `project_charter.md` removed or redirected to §8. §16 conflict table rewritten. §18 checklist updated to reference §8 instead of the charter, and expanded with the DEC-20261015-015 findings 1, 2, 4 as freeze-session inputs. §10 pivot table "Requires" column updated. §11 stop-and-report reference updated to §8.1 Hard Rule 4. §1 principle 6 reference updated to `problem_framing.md` §13. | Ken Ira Lacson Talingting |
 | 2026-10-15 | 2.2 | Phase C spec merges per DEC-20261015-018. §4 replaced with full baseline section (from `benchmark_and_baseline_spec.md`): philosophy, baseline set, common definitions, per-baseline specifications, priors, fair-comparison rules, invalidation rules, reporting requirements. §5.4 replaced with full data contract (from `data_contract_and_point_in_time_policy.md`): sources, universe, point-in-time rules, adjusted-price reconstruction, corporate actions, missing data, survivorship, leakage tests, snapshots, invalidation rules. §5.5 replaced with full cost model (from `cost_model_and_frictions.md`): scope, formula, \( \kappa \) levels, execution timing, drifted weights, cost-aware vs cost-penalized, sensitivity, limitations, invalidation rules. §12 replaced with full registry rules and multiple-testing adjustment (from `experiment_registry_and_preregistration.md`): philosophy, definition, structure, templates, denominator, deflated Sharpe, FDR control, amendments, exploratory rules, invalidation. §16 conflict table rewritten to reflect internal ownership. §18 checklist expanded with subsection checklists for §4, §5.4, §5.5, and explicit freeze-session inputs mapped to DEC-20261015-015 findings. Freeze-session notes added inline at §2, §4.4 B5, §5.2, §5.4.6, §5.4.9, §5.5.2, §5.5.5. Status remains `Draft`; freeze is the next step. | Ken Ira Lacson Talingting |
 | 2026-10-17 | 2.3 | **Owner-confirmed freeze** (DEC-20261017-021). All `[PROPOSED]` values confirmed or replaced. §5.2 estimation window 60 months rolling (was 36). §4.3 \( w_{\max} \) 0.30 applied **uniformly to every method** (was optimizers-only; resolves F1). §4.3 \( \gamma = 10 \), scale-verified (was 5). §4.4 \( \lambda = \kappa \) (was κ-or-tuned). §5.3 scoped to hyperparameter selection with a 1-month embargo. Data contract re-frozen as the satisfiable two-tier path — raw unadjusted + corporate actions + snapshots (§5.4.1; resolves F8) — with a 60-month eligibility window (§5.4.2), a required point-in-time candidate list (§5.4.7; resolves N3), an explicit missing-rf policy (§5.4.6; finding 4c), a content-addressed cache and snapshot rule (§5.4.9; finding 4a), the canonical turnover definition (§5.5.2; finding 4b), the single-\( R_f \) gross/net convention (§2, §5.5.5; finding 1), and an explicit no-lookahead execution convention (§5.5.4; finding 4d). §7 H1.1 redefined to test the **uncapped** optimizer (resolves N2). §8.4 Gate 0 exit now requires the ≥10-item R1 scan ([`problem_framing.md`](problem_framing.md) §4.1; resolves N1) and the protocol Frozen. §§6, 8.3, 12.8, 13.1, 14.3 de-proposed. §18 converted from a to-do checklist to a freeze record. Status `Draft` → `Frozen`. | Ken Ira Lacson Talingting |
+| 2026-10-17 | 2.4 | **§16 pre-result correction (finding F9, DEC-20261017-022).** §4.2: the extension list — which had listed "shrinkage covariance + minimum variance" and "Black-Litterman" as extensions, contradicting `scope_and_non_goals.md` §3.4/§3.5 (`MVP`) — is replaced with a pointer to scope §3–§4, and the MVP robust methods are named as defined in the new [`model_and_method_spec.md`](model_and_method_spec.md). Resolves the contradiction in scope's favour per scope §6; keeps Family H2 (H2.1, H2.2) reachable in Phase 2. No threshold, metric, cost level, or data-contract value changed. | Ken Ira Lacson Talingting |
 
 ---
 

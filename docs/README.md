@@ -1,6 +1,6 @@
 # robustfolio Documentation Index
 
-**Version:** 1.3
+**Version:** 1.4
 **Status:** Active
 **Last Updated:** 2026-10-17
 
@@ -23,16 +23,17 @@ Read this file first. It is the map and status board for all project documentati
 
 ## Status Board
 
-The active documentation set is six files. All other Tier 0 documents have been merged into these per DEC-20261015-017 and DEC-20261015-018.
+The active documentation set is seven files. All other Tier 0 documents have been merged into these per DEC-20261015-017 and DEC-20261015-018.
 
 | # | Document | Version | Status | Purpose | Last Updated |
 |---|----------|---------|--------|---------|--------------|
-| 1 | [`README.md`](README.md) | 1.3 | Active | Index and status board | 2026-10-17 |
+| 1 | [`README.md`](README.md) | 1.4 | Active | Index and status board | 2026-10-17 |
 | 2 | [`problem_framing.md`](problem_framing.md) | 2.4 | Foundational | Problem statement, stakeholders, causal model, references | 2026-10-17 |
-| 3 | [`scope_and_non_goals.md`](scope_and_non_goals.md) | 1.3 | **Active** | Authoritative scope: MVP, extensions, out-of-scope | 2026-10-17 |
-| 4 | [`evaluation_protocol.md`](evaluation_protocol.md) | 2.3 | **Frozen** | Metrics, protocol, thresholds, hypotheses, triggers, firewalls, governance, baselines, data contract, cost model, registry rules | 2026-10-17 |
-| 5 | [`decision_log.md`](decision_log.md) | 1.3 | Active | Immutable record of governance, experiment, and pivot decisions; includes the experiment registry ledger (Appendix A) | 2026-10-17 |
-| 6 | [`risk_register_and_premortem.md`](risk_register_and_premortem.md) | 1.2 | **Active** | Failure modes, ratings, mitigations, triggers, pre-mortem scenarios | 2026-10-17 |
+| 3 | [`scope_and_non_goals.md`](scope_and_non_goals.md) | 1.4 | **Active** | Authoritative scope: MVP, extensions, out-of-scope | 2026-10-17 |
+| 4 | [`evaluation_protocol.md`](evaluation_protocol.md) | 2.4 | **Frozen** | Metrics, protocol, thresholds, hypotheses, triggers, firewalls, governance, baselines, data contract, cost model, registry rules | 2026-10-17 |
+| 5 | [`model_and_method_spec.md`](model_and_method_spec.md) | 1.0 | **Draft** | Exact method, estimator, optimizer, harness, and metric definitions (absorbs F7) | 2026-10-17 |
+| 6 | [`decision_log.md`](decision_log.md) | 1.3 | Active | Immutable record of governance, experiment, and pivot decisions; includes the experiment registry ledger (Appendix A) | 2026-10-17 |
+| 7 | [`risk_register_and_premortem.md`](risk_register_and_premortem.md) | 1.2 | **Active** | Failure modes, ratings, mitigations, triggers, pre-mortem scenarios | 2026-10-17 |
 
 **Working inputs (not Tier 0 documents):** the freeze worksheet [`../notes/freeze_worksheet_2026-10-17.md`](../notes/freeze_worksheet_2026-10-17.md) (the decisions behind protocol v2.3, with rationale and sources); the Tests B/C/D specification [`../notes/tests_BCD_spec_2026-10-17.md`](../notes/tests_BCD_spec_2026-10-17.md); the freeze inputs [`../notes/freeze_inputs_2026-10-15.md`](../notes/freeze_inputs_2026-10-15.md); the Phase 1 DSR inputs [`../notes/dsr_inputs_phase1.json`](../notes/dsr_inputs_phase1.json).
 
@@ -51,11 +52,10 @@ The active documentation set is six files. All other Tier 0 documents have been 
 
 The following documents are referenced by other documents but do not exist yet.
 
-1. `model_and_method_spec.md` — **highest priority.** The project cannot run its first confirmatory experiment without it. It must also absorb DEC-20261017-019 finding F7 (metric implementation: CVaR, DSR, PSR, block-bootstrap confidence intervals).
-2. `reproducibility_and_environment.md` — written when the Python environment is first set up.
-3. `results_reporting_and_claims_policy.md` — written before Phase 4 (reporting).
-4. `architecture_decision_records/` — created when the first irreversible technical decision is made.
-5. `open_source_and_license_policy.md` — written before public release.
+1. `reproducibility_and_environment.md` — written when the Python environment is first set up.
+2. `results_reporting_and_claims_policy.md` — written before Phase 4 (reporting).
+3. `architecture_decision_records/` — created when the first irreversible technical decision is made.
+4. `open_source_and_license_policy.md` — written before public release.
 
 ---
 
@@ -90,6 +90,7 @@ The following documents are referenced by other documents but do not exist yet.
 | 2026-10-15 | 1.1 | Removed 9 rows for unwritten documents; corrected statuses; replaced planned-document rows with a prioritized "Not yet written" section; declined `roadmap_and_phase_gates.md` | Ken Ira Lacson Talingting |
 | 2026-10-15 | 1.2 | Replaced status board with 6-doc target set; rewrote "How to Use" to reference internal protocol sections; added "Retired" legend entry; updated "Not yet written" list | Ken Ira Lacson Talingting |
 | 2026-10-17 | 1.3 | Status board updated for the freeze: `evaluation_protocol.md` v2.3 **Frozen**, `scope_and_non_goals.md` v1.3 **Active**, `risk_register_and_premortem.md` v1.2 **Active**, `problem_framing.md` v2.4. Added the "Working inputs (notes/)" pointer. Removed the false claim that `model_and_method_spec.md` is referenced by the protocol (DEC-20261017-019 finding F5d). | Ken Ira Lacson Talingting |
+| 2026-10-17 | 1.4 | Added `model_and_method_spec.md` v1.0 **Draft** as the seventh active document and removed it from "Not yet written" (TODO C2 complete). Status board updated: `evaluation_protocol.md` v2.4 (§16 pre-result correction to §4.2, finding F9), `scope_and_non_goals.md` v1.4 (MVP robust-method clarification). Logged DEC-20261017-022. | Ken Ira Lacson Talingting |
 
 ---
 
