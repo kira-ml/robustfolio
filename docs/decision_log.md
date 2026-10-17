@@ -53,6 +53,7 @@ Each entry uses the following fields:
 | DEC-20261017-020 | 2026-10-17 | GOVERNANCE | ACTIVE | Define Tests B/C/D (resolves F6); produce freeze worksheet; record findings N1–N3 |
 | DEC-20261017-021 | 2026-10-17 | GOVERNANCE | ACTIVE | Freeze `evaluation_protocol.md` v2.3; activate scope v1.3 and risk register v1.2; extend R1 scan to 16 items |
 | DEC-20261017-022 | 2026-10-17 | GOVERNANCE | ACTIVE | Write `model_and_method_spec.md` v1.0 Draft (C2); resolve finding F9 (MVP robust-method classification) |
+| DEC-20261017-023 | 2026-10-17 | GOVERNANCE | ACTIVE | Freeze `model_and_method_spec.md` v1.1 (C3); resolve open items O1–O7 |
 
 **Gap note (001–011):** Resolved by DEC-20261015-014. The seed entries referenced in DEC-20261014-000 were not written and are not recoverable. They are treated as never having existed in this log.
 
@@ -706,6 +707,57 @@ Six weeks from now this entry has failed in one of three ways. (a) The spec is f
 
 ---
 
+### DEC-20261017-023
+
+**Date:** 2026-10-17
+**Type:** GOVERNANCE
+**Status:** ACTIVE
+**Authority:** Owner
+**Related docs:** `model_and_method_spec.md` (v1.1, Frozen — frozen by this entry), `evaluation_protocol.md` (v2.4, Frozen), `scope_and_non_goals.md` (v1.4, Active), `docs/README.md` (v1.5), DEC-20261015-015, DEC-20261017-019, DEC-20261017-020, DEC-20261017-021, DEC-20261017-022
+**Related risks:** R-E01, R-E04, R-M05, R-C02, R-S02
+
+**Context:**
+DEC-20261017-022 wrote `model_and_method_spec.md` as `Draft` v1.0 with six `[OPEN]` items (O1, O2, O4–O7), deliberately leaving the freeze (todo C3) as a separate act. C3 was the last documentation item on the Gate 1 critical path. This entry is the C3 freeze session: the owner confirmed the resolutions, and the status flips.
+
+**Decision:**
+1. **`model_and_method_spec.md` v1.0 → v1.1 — Status `Frozen`** (item C3 complete). All six `[OPEN]` items resolved and recorded in the spec §11:
+   - **O1** — **No cash/T-bill proxy** in the candidate universe. The universe holds risky ETFs only; the risk-free asset is modelled separately (§3.4), and a near-zero-volatility instrument degenerates the ERC and mean-variance scale. Duration-bearing treasuries (e.g. `SHY` and longer) stay eligible. This is universe composition delegated by `scope_and_non_goals.md` §3.1 — **not** a scope change.
+   - **O2** — Ledoit-Wolf target = the `sklearn` identity target (Ledoit & Wolf, 2004); constant-correlation (2003) is a registered variant.
+   - **O4** — Solver acceptance: `optimal`/`optimal_inaccurate` **and** max constraint violation ≤ 1e-7 **and** duality gap ≤ 1e-7; otherwise a hard error.
+   - **O5** — Calibration: one-month horizon; 90% bootstrap prediction intervals for next-month return **and** volatility; coverage target 80–100%.
+   - **O6** — DSR \(V\) when \(N = 1\): analytic estimator variance \((1 + \tfrac12\hat{SR}^2)/T\); for \(N \ge 2\), the sample variance (`ddof=1`) of the family's per-period trial Sharpes.
+   - **O7** — Bootstrap seed `SEED = 20261017`, recorded in the run manifest.
+2. **Correction to v1.0's stated C3 conditions.** v1.0 listed "the frozen configuration reproduced by `scripts/run_experiment.py` on the MVP universe" as a C3 condition. That inverts the code/spec dependency — the code is the *subject* of the spec, not its precondition — so it is removed from C3 and reassigned to Gate 1/2. The point-in-time candidate list and the §5.4.8 leakage suite are **Gate 1 entry** items (protocol §8.4), not C3 items.
+3. **Gate 1 documentation half complete.** Gate 1 entry still requires the point-in-time candidate list (protocol §5.4.7) and the §5.4.8 leakage suite to be built and to pass. Those are now the only unblocked Gate 1 items.
+4. **No `src/` or `scripts/` change.** The spec remains the constraint the Phase 2 rewrite must satisfy.
+
+**Alternatives considered:**
+- **Freeze v1.0 as written, carrying the `[OPEN]` items into Phase 2.** Rejected. It would lock silent defaults into a `Frozen` document and violate the spec's own §11 ("every `[OPEN]` resolved"). The whole point of listing them was that they must not default silently.
+- **Resolve O1 by deferring to the PIT reconstruction.** Rejected. The cash-proxy question is decidable on principle now — the risk-free leg is modelled separately and a near-zero-volatility instrument breaks the ERC/MVO scale — so leaving it open would block B2's implementation for no gain.
+- **Bump to v2.0 instead of v1.1.** Rejected. The change is the resolution of the draft's own open items, not a redesign of the method set or metrics.
+- **Fold C3 into DEC-20261017-022.** Rejected. Entries are append-only, and DEC-022 explicitly recorded that C3 was not performed there; writing and freezing are separate acts.
+
+**Rationale:**
+[Theory of Constraints] C3 was the last documentation blocker on Gate 1; with it frozen, the project's remaining Gate 1 work is data, not documents.
+[First Principles] O1 was resolved from principle (the risk-free asset is not a portfolio asset; near-zero volatility degenerates the optimizer) rather than by an arbitrary pick.
+[Inversion] Freezing forced a literal check of v1.0's own stated freeze conditions, which exposed that one of them (run-reproduction) inverted the dependency — a defect that would have blocked C3 indefinitely had it not been corrected.
+[Goodhart's Law] The value of the `Frozen` status is that the definitions are fixed before any result exists, not the string itself; resolving the items first is what makes the status honest.
+
+**Reversibility:** Hard. The spec is `Frozen`; a change requires a decision-log entry and a version bump on the DEC-20261017-023 discipline. Findings may still be superseded by later entries.
+
+**Revisit trigger:**
+If Gate 1/2 implementation shows a specification is not implementable as written (most likely the box-constrained risk-parity formulation, §5.3, or the solver acceptance test, §5.6), that is a §16-style amendment to this document, logged and version-bumped — not a silent code deviation. If the point-in-time reconstruction cannot exclude a cash proxy, O1 is revisited before the first confirmatory run.
+
+**Expected value assessment:**
+- Probability the spec is implementable as written without amendment: high (~75%). The risk-parity box formulation (§5.3) is the least certain element.
+- Probability at least one frozen definition (a metric convention, or the risk-parity formulation) is amended during the Phase 2 build: moderate (~35%) — expected for a first freeze of a spec this detailed, provided each amendment is logged.
+- Probability Gate 1 is now blocked only on data (the PIT list), not documentation: high (~90%).
+
+**Pre-mortem:**
+Six weeks from now this entry has failed in one of three ways. (a) The Phase 2 code silently deviates from a frozen definition (e.g. an equal-weight fallback reappears, or λ ≠ κ) — detectable by testing each constructor against §5 and grepping `src/` for fallback patterns. (b) The O1 cash-proxy rule is contradicted by the actual PIT list — detectable by checking the candidate list against §3.4. (c) A frozen metric definition (most likely DSR `V`, O6) is changed after seeing Test D's result — detectable by diffing `model_and_method_spec.md` against this entry's date. All three are the failure modes the freeze exists to prevent.
+
+---
+
 ## Appendix A — Experiment Registry (Ledger)
 
 This appendix is the append-only ledger of pre-registered experiments. Registry *rules* (what counts as an experiment, ID format, denominator rules, invalidation rules) live in `evaluation_protocol.md` §12 and, until Phase C completes, in `experiment_registry_and_preregistration.md`. This appendix holds the *entries*.
@@ -752,7 +804,7 @@ This appendix is the migration record for the open items in `docs/TODO.md` (v1.1
 | B4 | Verify the new file set is internally consistent | Open | Open — partially addressed by this session's audit (DEC-20261017-019) |
 | C1 | Decide the three open method choices | Open | **Closed** — freeze worksheet (§0/§13); 60-month window, `w_max` 0.30 uniform, γ = 10, λ = κ (DEC-20261017-021) |
 | C2 | Write `model_and_method_spec.md` | Open | **Closed** — `model_and_method_spec.md` v1.0 Draft written 2026-10-17 (DEC-20261017-022); absorbs F7 |
-| C3 | Freeze the method spec | Open | Open — gated on O1–O7 resolution; write and freeze are separate acts (DEC-20261017-022) |
+| C3 | Freeze the method spec | Open | **Closed** — `model_and_method_spec.md` v1.1 `Frozen`; all `[OPEN]` items resolved (DEC-20261017-023) |
 | D1 | Extract every `[PROPOSED]` value into one table | Open | **Closed** — freeze worksheet produced (DEC-20261017-021) |
 | D2 | Confirm or replace each value | Open | **Closed** — all values confirmed/replaced at the freeze session (DEC-20261017-021) |
 | D3 | Freeze the evaluation protocol, data contract, and cost model | Open | **Closed** — `evaluation_protocol.md` Frozen at v2.3; v2.4 is a §16 §4.2 correction only (DEC-20261017-022) |
@@ -773,6 +825,8 @@ This appendix is the migration record for the open items in `docs/TODO.md` (v1.1
 
 **Update 2026-10-17 (DEC-20261017-022).** **C2** closed — `model_and_method_spec.md` v1.0 `Draft` written; it absorbs finding F7. Finding **F9** (MVP robust-method classification: protocol §4.2 vs scope §3.4/§3.5) resolved in scope's favour; `evaluation_protocol.md` §4.2 corrected at v2.4 (a §16 pre-result change) and `scope_and_non_goals.md` clarified at v1.4. **C3 remains open** and is now gated on the spec's `[OPEN]` items O1, O2, O4–O7. The remaining appendix items open on the critical path are C3 and, for Gate 1, the point-in-time candidate list (protocol §5.4.7).
 
+**Update 2026-10-17 (DEC-20261017-023).** **C3** closed — `model_and_method_spec.md` v1.0 `Draft` → **v1.1 `Frozen`**; all six `[OPEN]` items resolved (spec §11). The **documentation half of Gate 1 is complete**. Gate 1 entry now requires only the point-in-time candidate universe list (protocol §5.4.7) and the §5.4.8 leakage suite. The remaining appendix items still open are **E2** (`reproducibility_and_environment.md`), **E3** (`results_reporting_and_claims_policy.md`), **E5** (`architecture_decision_records/`), and **E7** (`open_source_and_license_policy.md`) — none on the Gate 1 critical path.
+
 ---
 
 ## Revision history
@@ -791,6 +845,7 @@ This appendix is the migration record for the open items in `docs/TODO.md` (v1.1
 | 2026-10-17 | Added DEC-20261017-020 (Tests B/C/D defined — resolves F6; freeze worksheet produced; findings N1–N3). | Ken Ira Lacson Talingting |
 | 2026-10-17 | Added DEC-20261017-021 (freeze executed: `evaluation_protocol.md` v2.3 Frozen; `scope_and_non_goals.md` v1.3 Active; `risk_register_and_premortem.md` v1.2 Active; R1 scan extended in `problem_framing.md` v2.4). Updated Appendix B dispositions note. | Ken Ira Lacson Talingting |
 | 2026-10-17 | Added DEC-20261017-022 (`model_and_method_spec.md` v1.0 Draft — C2; finding F9 resolved in scope's favour; protocol v2.4 §4.2 correction; scope v1.4). Updated Appendix B rows C1/C2/C3/D1/D2/D3/B3 to current state and added the DEC-022 update note. | Ken Ira Lacson Talingting |
+| 2026-10-17 | Added DEC-20261017-023 (`model_and_method_spec.md` v1.1 Frozen — C3; all `[OPEN]` items O1, O2, O4–O7 resolved; v1.0's run-reproduction freeze condition corrected). Updated Appendix B row C3 and added the DEC-023 update note. | Ken Ira Lacson Talingting |
 ---
 
 *This log exists to make decisions explicit, dated, and reviewable. Its append-only discipline is the reason it can be trusted. If the log is edited to hide a gap, the log is worthless. If the log records its gaps, the log is the project's strongest artifact.*

@@ -1,7 +1,7 @@
 # Model and Method Specification: robustfolio
 
-**Version:** 1.0
-**Status:** Draft — written 2026-10-17 (execution TODO item C2). This document must be `Frozen` (item C3) before Gate 1 may be entered.
+**Version:** 1.1
+**Status:** **Frozen** — owner-confirmed 2026-10-17 (item C3; DEC-20261017-023). Freeze conditions and the resolution of every former `[OPEN]` item are in §11. Changes now require a decision-log entry and a version bump.
 **Owner:** Ken Ira Lacson Talingting
 **Created:** 2026-10-17
 **Last Updated:** 2026-10-17
@@ -25,7 +25,7 @@ Three documents meet here. The rule is fixed and directional:
 
 If this document and the protocol disagree on a *value*, the protocol wins. If this document and scope disagree on *classification*, scope wins. A disagreement is a defect in this document, not a licence to pick.
 
-**Status discipline.** This is `Draft`. Items marked `[OPEN]` must be resolved before `Frozen` (C3). `[OPEN]` items are spec-level implementation choices that the protocol and scope deliberately left to this document; they are not scope or threshold changes.
+**Status discipline.** This document is **`Frozen`** (v1.1, 2026-10-17, DEC-20261017-023). Every former `[OPEN]` item was resolved at the C3 freeze and its resolution is recorded in §11. Changes now require a decision-log entry and a version bump, on the same discipline as [`evaluation_protocol.md`](evaluation_protocol.md) §16; a change made after seeing a result must be defensible to a skeptical external reviewer.
 
 **Resolution of finding F9 (logged DEC-20261017-022).** The frozen protocol §4.2 previously listed "shrinkage covariance + minimum variance" and "Black-Litterman" as *extensions*, while [`scope_and_non_goals.md`](scope_and_non_goals.md) §3.4/§3.5 mark them `MVP`. Scope §6 makes scope authoritative on classification. MVP therefore includes the shrinkage-covariance and Bayesian-return **robust methods**, and §4.2 of the protocol now points to scope §4 for the extension list (protocol v2.3 → v2.4; a §16 pre-result correction). This is required for Family H2 to be testable: H2.1 and H2.2 are Phase 2 hypotheses, and an "extension" cannot run until Gate 4.
 
@@ -122,7 +122,7 @@ The eligible set is recomputed at every rebalance; a universe change is a state 
 
 Monthly `rf_t` = the 1-month T-bill yield observed at *t*, converted to a monthly rate. Missing months are forward-filled ≤ 1 month, then the FRED `DGS1MO` value is used directly. **Zero is never substituted** (protocol §5.4.6; resolves DEC-20261015-015 finding 4c). The same `rf` series feeds gross and net Sharpe (§7.1).
 
-> `[OPEN] O1` — The Phase 1 universe included `BIL` as a cash proxy. A near-zero-volatility instrument is degenerate for risk parity (§5.3) and for the mean-variance scale. The point-in-time candidate list (Gate 1 data task) must state explicitly whether a cash/T-bill proxy is a candidate, and the answer is recorded here before C3.
+> **Cash proxies excluded (frozen 2026-10-17; resolves O1).** The candidate universe contains **risky** ETFs only. A pure cash / T-bill proxy (≤ 3-month T-bills, money-market ETFs — e.g. `BIL`, `SHV`) is **not** an eligible candidate: the risk-free asset is modelled separately (§3.4), and a near-zero-volatility instrument degenerates the risk-parity and mean-variance scale (§5.3, §5.4). Duration-bearing treasuries (e.g. `SHY` and longer) remain eligible. The point-in-time reconstruction must respect this rule. This is universe composition delegated by [`scope_and_non_goals.md`](scope_and_non_goals.md) §3.1, **not** a scope change.
 
 ---
 
@@ -146,7 +146,7 @@ Unbiased (`ddof=1`), matching `pandas.DataFrame.cov`. Used by B2, B3, B4, B5, M2
 
 \[ \hat\Sigma_{LW} = (1-\delta)\,\hat\Sigma + \delta\,\hat F, \qquad \delta \in [0,1] \]
 
-`[OPEN] O2` — the shrinkage **target** must be stated explicitly because "Ledoit-Wolf" names several estimators. MVP choice: the `sklearn.covariance.LedoitWolf` estimator (Ledoit & Wolf, 2004), whose target is \(\hat F = \bar\sigma^2 I\) with \(\bar\sigma^2 = \operatorname{tr}(\hat\Sigma)/N\), and whose intensity \(\delta\) is the analytic optimum. The constant-correlation target (Ledoit & Wolf, 2003) is a registered variant, not MVP. The chosen target and the fitted \(\delta\) (per fold) are recorded in the results. Used by M1.
+> **Target frozen (2026-10-17; resolves O2).** MVP uses the `sklearn.covariance.LedoitWolf` estimator (Ledoit & Wolf, 2004), whose target is \(\hat F = \bar\sigma^2 I\) with \(\bar\sigma^2 = \operatorname{tr}(\hat\Sigma)/N\), with the analytically optimal intensity \(\delta\). "Ledoit-Wolf" names several estimators, so the target is stated explicitly: the constant-correlation target (Ledoit & Wolf, 2003) is a registered variant, **not** MVP. The fitted \(\delta\) (per fold) is recorded in the results. Used by M1.
 
 ### 4.4 Equilibrium (reverse-optimized) excess returns
 
@@ -214,7 +214,7 @@ Solved as a **convex quadratic program with auxiliary variables** \(u_i \ge w_i 
 - **Tolerance:** solver defaults; the residual check in §5.6 is the binding acceptance test.
 - **Determinism:** identical inputs must give bit-identical weights (protocol §5.4.8 determinism test).
 
-> `[OPEN] O4` — the exact residual-check formula (max constraint violation and duality gap) is recorded before C3.
+> **Acceptance frozen (2026-10-17; resolves O4).** Residual check: max constraint violation ≤ 1e-7 **and** duality gap ≤ 1e-7, in addition to the solver-status check above. Either failing is a hard error that aborts the run.
 
 ### 5.7 Fallback policy
 
@@ -308,7 +308,7 @@ Sample skewness \(\gamma_3 = m_3/m_2^{3/2}\) and **non-excess** kurtosis \(\gamm
 
 For each rebalance, using the trailing window and the block bootstrap, form a 90% prediction interval for the next month's return and for volatility; report **empirical coverage** = fraction of rebalances whose realised value falls inside. Target 80–100% (protocol §3). Coverage is reported per method.
 
-> `[OPEN] O5` — the exact calibration protocol (return interval only, or return and volatility; single-month horizon) is fixed before C3; the operationalisation above is the recommendation.
+> **Calibration frozen (2026-10-17; resolves O5).** One-month horizon; 90% stationary-bootstrap prediction intervals for **both** next-month return and volatility; empirical coverage reported per method; target 80–100%.
 
 ### 7.9 Probabilistic Sharpe ratio (PSR)
 
@@ -326,11 +326,11 @@ The DSR is PSR evaluated at the expected maximum Sharpe under \(N\) trials:
 
 where \(\gamma \approx 0.5772156649\) is the Euler–Mascheroni constant, \(e\) is Euler's number, \(N\) is the registered family size (protocol §12.6), and \(V = \operatorname{Var}(\hat{SR}_n)\) is the variance of the per-period Sharpe estimates **across the family's trials**. Decision use (protocol §6.1): DSR p-value \(= 1 - \text{DSR} < 0.05\). Reference: Bailey & López de Prado (2014).
 
-> **V when \(N = 1\).** \(V\) is undefined from a single trial. Specified convention: for \(N \ge 2\), \(V\) = sample variance (`ddof=1`) of the family's per-period trial Sharpes; for \(N = 1\), \(V = (1 + \tfrac{1}{2}\hat{SR}^2)/T\), the asymptotic variance of the Sharpe estimator, which gives \(SR_0 \approx 0\) and reduces the DSR to a PSR against zero. `[OPEN] O6` — confirm this convention before C3.
+> **V when \(N = 1\).** \(V\) is undefined from a single trial. Specified convention: for \(N \ge 2\), \(V\) = sample variance (`ddof=1`) of the family's per-period trial Sharpes; for \(N = 1\), \(V = (1 + \tfrac{1}{2}\hat{SR}^2)/T\), the asymptotic variance of the Sharpe estimator, which gives \(SR_0 \approx 0\) and reduces the DSR to a PSR against zero. **Frozen 2026-10-17 (resolves O6).**
 
 ### 7.11 Block-bootstrap confidence intervals
 
-Stationary block bootstrap (Politis & Romano, 1994): geometric block lengths with mean \(L = 6\) months, \(B = 2000\) replications, percentile intervals — 90% for reporting, 95% for decisions (protocol §13.1). Computed for Sharpe, turnover, maximum drawdown, and CVaR. Seed: `numpy.random.default_rng(SEED)` with `SEED` fixed and recorded in the manifest. `[OPEN] O7` — seed value fixed before C3.
+Stationary block bootstrap (Politis & Romano, 1994): geometric block lengths with mean \(L = 6\) months, \(B = 2000\) replications, percentile intervals — 90% for reporting, 95% for decisions (protocol §13.1). Computed for Sharpe, turnover, maximum drawdown, and CVaR. Seed: `numpy.random.default_rng(SEED)` with **`SEED = 20261017`** (frozen 2026-10-17; resolves O7), recorded in the run manifest.
 
 ### 7.12 Metric registry
 
@@ -390,18 +390,22 @@ Implementation lands in the Phase 2 rewrite. Proposed layout (subject to ADR at 
 
 ---
 
-## 11. Open items to resolve before freeze (C3)
+## 11. Freeze record (C3) — resolved open items
 
-| ID | Item | Recommendation |
-|----|------|----------------|
-| O1 | Does the PIT candidate list include a cash/T-bill proxy? (affects B2 cap, MVO scale) | Decide at universe reconstruction; record here |
-| O2 | Ledoit-Wolf shrinkage target | `sklearn` identity target; constant-correlation as a variant |
-| O4 | Exact solver acceptance residual formula | max constraint violation ≤ 1e-7 and duality gap ≤ 1e-7 |
-| O5 | Calibration protocol detail | return + volatility, one-month horizon |
-| O6 | \(V\) (DSR) when \(N=1\) | analytic estimator variance \((1+\tfrac12\hat{SR}^2)/T\) |
-| O7 | Bootstrap seed value | fixed constant recorded in the manifest |
+This document was `Draft` v1.0 with six `[OPEN]` items. All are resolved as of the **C3 freeze (2026-10-17, v1.1, DEC-20261017-023)**. The v1.0 recommendation is adopted for O2, O4, O5, O6, O7; O1 is resolved by rule.
 
-**Freeze (C3) requires:** every `[OPEN]` resolved, the frozen config reproduced by `scripts/run_experiment.py` on the MVP universe, and a decision-log entry with a version bump. Gate 1 entry additionally requires the point-in-time candidate list (§3.1 O1) and the §5.4.8 leakage suite passing.
+| ID | Item | Resolution |
+|----|------|------------|
+| O1 | Cash/T-bill proxy in the candidate universe? | **No cash proxy.** The universe contains risky ETFs only; the risk-free asset is modelled separately (§3.4), and a near-zero-volatility instrument degenerates the ERC/MVO scale (§5.3, §5.4). Duration-bearing treasuries stay eligible. Enforced in the PIT reconstruction (a scope §3.1 delegation, not a scope change). |
+| O2 | Ledoit-Wolf shrinkage target | `sklearn` identity target (Ledoit & Wolf, 2004); constant-correlation (2003) is a registered variant. |
+| O4 | Solver acceptance residual check | `optimal`/`optimal_inaccurate` **and** max constraint violation ≤ 1e-7 **and** duality gap ≤ 1e-7; otherwise hard error. |
+| O5 | Calibration protocol | One-month horizon; 90% bootstrap prediction intervals for next-month return **and** volatility; empirical coverage; target 80–100%. |
+| O6 | DSR `V` when \(N = 1\) | Analytic estimator variance \((1 + \tfrac12\hat{SR}^2)/T\); for \(N \ge 2\), sample variance (`ddof=1`) of the family's per-period trial Sharpes. |
+| O7 | Bootstrap seed value | `SEED = 20261017`, recorded in the run manifest. |
+
+**Freeze conditions — satisfied at C3 (2026-10-17):** every `[OPEN]` item resolved; a decision-log entry with a version bump (DEC-20261017-023). **Correction to v1.0's stated conditions.** v1.0 listed "the frozen configuration reproduced by `scripts/run_experiment.py` on the MVP universe" as a C3 condition. That inverts the dependency — the code does not exist yet and is the *subject* of the spec, not its precondition — so it is removed from C3 and reassigned: run-level reproduction is a Gate 1/2 deliverable, and the §5.4.8 leakage suite and the point-in-time candidate list are **Gate 1 entry** items (protocol §8.4), not C3 items.
+
+**What `Frozen` now means here.** The method, estimator, optimizer, harness, and metric definitions are fixed. Phase 2 code must conform to them; a divergence is a code defect, not a spec change. Any change to a value in this document requires the DEC-20261017-023 discipline (decision log entry + version bump).
 
 ---
 
@@ -420,6 +424,7 @@ Implementation lands in the Phase 2 rewrite. Proposed layout (subject to ADR at 
 | Date | Version | Change | Author |
 |------|---------|--------|--------|
 | 2026-10-17 | 1.0 | Initial `model_and_method_spec.md` (TODO C2). Defines the MVP method set (B1–B5, M1 shrinkage-covariance MVO for H2.1, M2 Bayesian/B-L MVO for H2.2) and fixes the F9 classification conflict in favour of scope §3.4/§3.5 (logged DEC-20261017-022; protocol §4.2 corrected to v2.4). Absorbs DEC-20261017-019 finding F7: exact implementations of Sharpe (single-\(R_f\)), canonical turnover, maximum drawdown, CVaR 95%, cost drag, skewness/kurtosis, lag-1 autocorrelation, calibration, PSR, DSR, and stationary block-bootstrap CIs. Specifies the convex-QP MVO family (auxiliary L1 variables, CLARABEL, no fallback), risk-parity CCD with box handling, the rolling-60 walk-forward harness with drifted-weight cost application, and the module/dependency plan (`cvxpy` added). Status `Draft`; `[OPEN]` O1, O2, O4–O7 remain. | Ken Ira Lacson Talingting |
+| 2026-10-17 | 1.1 | **Frozen (C3)** — DEC-20261017-023. All six `[OPEN]` items resolved and recorded in §11: **O1** no cash/T-bill proxy in the candidate universe; **O2** `sklearn` identity shrinkage target; **O4** solver acceptance (max violation ≤ 1e-7, duality gap ≤ 1e-7); **O5** calibration = return + volatility, one-month horizon; **O6** DSR `V` with \(N=1\) = analytic estimator variance \((1+\tfrac12\hat{SR}^2)/T\); **O7** `SEED = 20261017`. Corrected v1.0's C3 condition (the run-reproduction requirement inverts the code/spec dependency and moves to Gate 1/2). Status `Draft` → `Frozen`. | Ken Ira Lacson Talingting |
 
 ---
 
