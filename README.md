@@ -2,7 +2,7 @@
 
 > A reproducible, open-source benchmark for turnover-aware, robust portfolio rebalancing — with honest net-of-cost out-of-sample results and documented negative findings.
 
-**Status:** Phase 0 — Problem Validation. No production code yet. The Tier 0 documentation contracts are being frozen.
+**Status:** Phase 0 — Problem Validation, closing. The Tier 0 documentation set is consolidated to six files and the evaluation protocol is pending freeze. An exploratory Phase 1 smoke test exists and is explicitly non-confirmatory (DEC-20261015-012).
 
 [![Phase](https://img.shields.io/badge/phase-0%20problem%20validation-blue)]()
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -66,39 +66,36 @@ If the benchmark is useful, those are separate projects built on top of it — n
 
 **Phase 0 — Problem Validation.**
 
-The current deliverable is **documentation, not code**. The Tier 0 contracts that govern the project are being written and frozen before any backtest is run. This is intentional: the most common failure mode in this kind of research is to write code first and realize later that the evaluation protocol, cost model, or data discipline were never specified.
+The Tier 0 documentation set has been consolidated from twelve files to six (DEC-20261015-017, DEC-20261015-018). The evaluation protocol is drafted and **pending freeze**; the freeze is the binding constraint on Phase 1.
+
+An **exploratory Phase 1 smoke test** ran on 2026-10-15. It exercised the walk-forward harness end to end, but it was not pre-registered and is **non-confirmatory** (DEC-20261015-012). Its numbers may be used to scope diagnostics only; they may not be cited for or against any hypothesis.
 
 | Artifact | Status |
 |----------|--------|
-| Tier 0 documentation contracts | In progress |
-| Data ingestion pipeline | Not started |
-| Baseline implementations | Not started |
+| Tier 0 documentation set (6 files) | Consolidated; protocol pending freeze |
+| Exploratory walk-forward harness | Exists (non-confirmatory) |
+| Data ingestion pipeline (point-in-time) | Not started — harness uses adjusted Yahoo data |
+| MVP baselines (B1–B5) | Partial — B1, B3, B5 only; B2 and B4 missing |
 | Robust method implementations | Not started |
-| Evaluation harness | Not started |
+| Evaluation metrics (DSR, PSR, CVaR, CIs) | Not started |
 | Public release | Not started |
 
-The next milestone is **Phase 1: Data and Baselines**, gated on the frozen contracts in `docs/`.
+The next milestone is **freezing `docs/evaluation_protocol.md`**, the gated entry to Phase 1: Data and Baselines.
 
 ---
 
 ## Documentation
 
-All project contracts, protocols, and decision records live in [`docs/`](docs/).
-
-Start here:
+All project contracts, protocols, and decision records live in [`docs/`](docs/). The active set is six files:
 
 - [`docs/README.md`](docs/README.md) — Documentation index and status board
 - [`docs/problem_framing.md`](docs/problem_framing.md) — The real problem, stakeholders, causal model
-- [`docs/project_charter.md`](docs/project_charter.md) — Mission, deliverables, phase gates, kill criteria
-- [`docs/success_metrics_and_evaluation_protocol.md`](docs/success_metrics_and_evaluation_protocol.md) — How success is measured
-- [`docs/falsification_and_kill_criteria.md`](docs/falsification_and_kill_criteria.md) — What would falsify the project
-- [`docs/data_contract_and_point_in_time_policy.md`](docs/data_contract_and_point_in_time_policy.md) — Data discipline
-- [`docs/cost_model_and_frictions.md`](docs/cost_model_and_frictions.md) — Transaction cost model
-- [`docs/benchmark_and_baseline_spec.md`](docs/benchmark_and_baseline_spec.md) — Baselines to beat
-- [`docs/experiment_registry_and_preregistration.md`](docs/experiment_registry_and_preregistration.md) — Pre-registration rules
-- [`docs/risk_register_and_premortem.md`](docs/risk_register_and_premortem.md) — Failure modes
 - [`docs/scope_and_non_goals.md`](docs/scope_and_non_goals.md) — What is and is not in scope
-- [`docs/decision_log.md`](docs/decision_log.md) — Why the project is the way it is
+- [`docs/evaluation_protocol.md`](docs/evaluation_protocol.md) — Metrics, baselines, data contract, cost model, registry rules, governance
+- [`docs/risk_register_and_premortem.md`](docs/risk_register_and_premortem.md) — Failure modes and pre-mortem
+- [`docs/decision_log.md`](docs/decision_log.md) — Why the project is the way it is (and the experiment registry, Appendix A)
+
+Working inputs that are **not** contracts live in [`notes/`](notes/).
 
 The docs are versioned. Frozen documents may not be modified after seeing experimental results without a decision log entry and a version bump.
 
@@ -143,39 +140,36 @@ A gate may be passed with a documented **negative** result. It may not be passed
 robustfolio/
 ├── README.md                       ← you are here
 ├── LICENSE                         ← MIT
-├── docs/                           ← all project contracts and protocols
-│   ├── README.md                   ← documentation index
+├── pyproject.toml                  ← package metadata
+├── requirements.txt                ← Phase 1 dependencies (unpinned)
+├── docs/                           ← the 6-file contract set
+│   ├── README.md                   ← documentation index and status board
 │   ├── problem_framing.md
-│   ├── project_charter.md
-│   ├── success_metrics_and_evaluation_protocol.md
-│   ├── falsification_and_kill_criteria.md
-│   ├── data_contract_and_point_in_time_policy.md
-│   ├── cost_model_and_frictions.md
-│   ├── benchmark_and_baseline_spec.md
-│   ├── experiment_registry_and_preregistration.md
-│   ├── risk_register_and_premortem.md
 │   ├── scope_and_non_goals.md
+│   ├── evaluation_protocol.md
+│   ├── risk_register_and_premortem.md
 │   └── decision_log.md
-├── experiments/                    ← experiment registry log (created in Phase 1)
-├── data/                           ← immutable snapshots (created in Phase 1)
-├── src/                            ← implementation (created in Phase 1)
-└── tests/                          ← unit, integration, leakage tests (created in Phase 1)
+├── notes/                          ← non-contract working inputs (freeze inputs, DSR inputs)
+├── src/robustfolio/                ← exploratory walk-forward implementation
+├── scripts/                        ← Phase 1 experiment and diagnostics
+├── data/                           ← local cache and (planned) snapshots — git-ignored
+└── results/                        ← experiment outputs
 ```
 
-Directories marked "created in Phase 1" do not yet exist. They will be added as the corresponding gates are passed.
+`tests/` (unit, integration, leakage) does not exist yet; it is required by the Phase 1 gate and will be added before any confirmatory experiment.
 
 ---
 
 ## Getting Started
 
-**There is nothing to install yet.** The project is in Phase 0.
+**There is nothing to install yet.** The project is in Phase 0; the Python package in `src/robustfolio/` is an exploratory harness, not a released tool.
 
-If you want to understand the project before any code exists, read the documentation in this order:
+Read the documentation in this order:
 
 1. [`docs/problem_framing.md`](docs/problem_framing.md) — what problem is being solved
-2. [`docs/project_charter.md`](docs/project_charter.md) — what the project commits to
-3. [`docs/success_metrics_and_evaluation_protocol.md`](docs/success_metrics_and_evaluation_protocol.md) — how success will be measured
-4. [`docs/falsification_and_kill_criteria.md`](docs/falsification_and_kill_criteria.md) — what would prove the project wrong
+2. [`docs/scope_and_non_goals.md`](docs/scope_and_non_goals.md) — what is and is not in scope
+3. [`docs/evaluation_protocol.md`](docs/evaluation_protocol.md) — how success is measured and what would falsify it
+4. [`docs/risk_register_and_premortem.md`](docs/risk_register_and_premortem.md) — how the project fails
 
 If you want to contribute to the documentation phase, open an issue.
 

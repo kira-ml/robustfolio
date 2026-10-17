@@ -3,7 +3,7 @@
 **Project:** `robustfolio`
 **Owner:** Ken Ira Lacson Talingting
 **Created:** 2026-10-14
-**Last Updated:** 2026-10-15
+**Last Updated:** 2026-10-17
 **Purpose:** Immutable record of every governance, experiment, and pivot decision in the project. Entries are append-only. Supersession is by a new entry, not by editing an old one.
 
 ---
@@ -48,6 +48,8 @@ Each entry uses the following fields:
 | DEC-20261015-015 | 2026-10-15 | GOVERNANCE | ACTIVE | Record code-review findings as freeze-session inputs |
 | DEC-20261015-016 | 2026-10-15 | GOVERNANCE | ACTIVE | Close finding 3 of 015 — zero SLSQP fallbacks in Phase 1 |
 | DEC-20261015-017 | 2026-10-15 | GOVERNANCE | ACTIVE | Execute Phase A relocations; adopt 6-doc target set |
+| DEC-20261015-018 | 2026-10-15 | GOVERNANCE | ACTIVE | Execute Phase C spec merges; retire source files |
+| DEC-20261017-019 | 2026-10-17 | GOVERNANCE | ACTIVE | Record audit findings (fair-comparison defect, baseline-set mismatch, parameter drift) as freeze-session inputs; repair doc integrity |
 
 **Gap note (001–011):** Resolved by DEC-20261015-014. The seed entries referenced in DEC-20261014-000 were not written and are not recoverable. They are treated as never having existed in this log.
 
@@ -492,6 +494,58 @@ Source files deleted after relocation is verified: `benchmark_and_baseline_spec.
 **Pre-mortem:**
 Six weeks from now this entry has failed if (a) `evaluation_protocol.md` §12 exists in rules-only form and the ledger in Appendix A is empty, leaving experiments un-logged; or (b) `scope_and_non_goals.md` still points at `cost_model_and_frictions.md` §3.3 after that file was deleted. Both are detectable by grepping the surviving files for the retired filenames — zero matches expected.
 
+### DEC-20261017-019
+
+**Date:** 2026-10-17
+**Type:** GOVERNANCE
+**Status:** ACTIVE
+**Authority:** Owner
+**Related docs:** `decision_log.md` (DEC-20261015-012, -015, -016, -017, -018), `evaluation_protocol.md` (§3, §4.2, §4.3, §4.6, §4.7, §5.2, §5.4.4, §5.4.8, §5.4.9, §7, §13, §18), `problem_framing.md` §14, `README.md`, `docs/README.md`, `docs/TODO.md` (retired; absorbed into Appendix B), source files reviewed: `data.py`, `estimators.py`, `optimize.py`, `backtest.py`, `metrics.py`, `scripts/phase1_experiment.py`
+**Related risks:** R-P01, R-P04, R-S02, R-C01
+
+**Context:**
+A full documentation-and-source audit on 2026-10-17 (docs set, `src/robustfolio/`, `scripts/`, `results/`, git history) produced findings that bear on the pending freeze. This entry records them so they are not lost between the audit and the freeze session, in the same mode as DEC-20261015-015. None of them changes Phase 1's exploratory status (DEC-20261015-012). Findings F1, F2, F3, F4 are **new**; F5–F7 are documentation-integrity items; F8 is carried forward from DEC-20261015-015 finding 4.
+
+**Findings:**
+
+1. **F1 — Fair-comparison constraint defect.** In `backtest.py`, `equal_weight` and `inverse_vol` return weights that bypass the box constraint entirely (`max_weight` is not applied), while every MVO variant is capped at 0.40. In Phase 1, `inverse_vol` reached `max_abs_weight = 0.858` against an MVO cap of 0.40. This violates `evaluation_protocol.md` §4.6 rule 4 ("same constraints") and is exactly the §4.7 invalidation condition "a baseline's weights were not properly constrained." Consequence: the Phase 1 comparison is not like-for-like — the capped MVO family was denied concentration capacity that `inverse_vol` was allowed, and `inverse_vol` is the row most affected (max weight 0.858, and the largest gross-to-net gap). `equal_weight` is unaffected: 1/15 ≈ 0.067 sits inside any cap. The distortion flatters `inverse_vol`, not `1/N`.
+2. **F2 — Baseline-set mismatch and a scope signal.** `evaluation_protocol.md` §4.2 fixes the MVP baseline set as B1 (1/N), **B2 (risk parity)**, B3 (sample MVO), **B4 (minimum variance)**, B5 (turnover-penalized MVO). The code implements B1, B3, and B5. **B2 and B4 are not implemented.** Conversely, `inverse_vol` — listed in §4.2 as an *extension*, not MVP — *is* implemented. This is simultaneously two missing MVP baselines and the §7 scope-creep signal "a new method appears in code before the Phase 2 gate."
+3. **F3 — Parameter drift between protocol proposals and code.** Code values vs `[PROPOSED]` protocol values: risk aversion γ = 1.0 vs 5; `w_max` = 0.40 vs 0.30; estimation window = 60 months vs 36; turnover penalty λ = 0.1 vs the proposed λ = κ. Freezing §4.3 and §5.2 without reconciling these would freeze numbers the code does not produce.
+4. **F4 — Confounded MVO variants.** `_rebalance` passes the L1 turnover penalty to `unconstrained_sample_mvo` but a penalty of 0.0 to `sample_mvo`. The two MVO variants therefore differ on **two** dimensions at once — box cap *and* turnover penalty — so neither isolates the effect of the constraint or the penalty. (This compounds DEC-20261015-015 finding 2.)
+5. **F5 — Documentation-integrity defects (partly repaired today).** (a) Root `README.md` was stale: it claimed "no production code yet," reported every artifact as "Not started," and linked to seven deleted documents; repaired in this session. (b) `decision_log.md` Index omitted the DEC-20261015-018 row; repaired in this session. (c) `decision_log.md` referenced an Appendix B that was never created after `docs/TODO.md` was retired; created in this session. (d) `docs/README.md` claims `model_and_method_spec.md` is "referenced by `evaluation_protocol.md` §4 and §12"; the protocol contains no such reference. (d) is **not** repaired and is assigned to the `model_and_method_spec.md` work item.
+6. **F6 — Tests B/C/D are undefined.** `problem_framing.md` §14 and DEC-20261015-012 reference "Tests B/C/D" eight times as the planned resolution of the cap-artifact / window-artifact / real-effect question, but they are specified nowhere. They cannot be pre-registered after the freeze until they are defined. F1 and F3 make this more urgent, not less: the Phase 1 signal that B/C/D were meant to interpret is itself potentially a constraint artifact.
+7. **F7 — Metric-implementation gap.** `evaluation_protocol.md` §3 requires CVaR, calibration, deflated Sharpe, probabilistic Sharpe, skewness, kurtosis, and lag-1 autocorrelation; §13 requires block-bootstrap confidence intervals. None of these is implemented in `metrics.py`. The current harness reports Sharpe, turnover, max drawdown, and max weight only.
+8. **F8 — Point-in-time and snapshot gap.** `data.py` retrieves retroactively adjusted prices (`auto_adjust=True`) with a local Parquet cache and no immutable snapshot, so §5.4.4 (adjusted-price reconstruction) and §5.4.9 (snapshots) are unsatisfied. This is disclosed as a Phase 1 caveat, but it means the §5.4 data contract as written is not currently satisfiable by the repository.
+
+**Decision:**
+Record F1–F8 as freeze-session inputs. No changes to `src/` or `scripts/` are authorized before the freeze (DEC-20261015-015 remains in force). The documentation-integrity repairs in F5(a)–(c) were performed in this session because they are documentation-only and touch no measured artifact.
+
+The freeze session must, for each finding, resolve it, defer it with a stated rationale, or declare it out of scope, before `evaluation_protocol.md` status flips from `Draft` to `Frozen`. F1, F2, and F3 in particular change what a faithful freeze of §4.3 and §5.2 must say; F6 must be resolved before any post-freeze experiment registration.
+
+**Alternatives considered:**
+- **Fix `src/` now (apply `max_weight` to all methods, add B2 and B4, correct γ and window).** Rejected. Same reasoning as DEC-20261015-015: the freeze decides what the metrics and constraints should be. Changing measured behavior before that decision is action before resolution.
+- **Fold F1–F4 into DEC-20261015-015 by editing it.** Rejected. Entries are append-only; supersession is by a new entry.
+- **Defer F1–F8 to the freeze session without logging them.** Rejected. This is the exact "findings discovered, discussed, and forgotten before the freeze" path that DEC-20261015-015 exists to close.
+- **Treat F1 as invalidating Phase 1 retroactively.** Rejected. Phase 1 is already labelled exploratory and non-confirmatory; F1 narrows the interpretation of an already-non-confirmatory artifact, it does not un-invalidate anything.
+
+**Rationale:**
+[Inversion] The failure mode this entry prevents is a freeze that proceeds on the assumption that Phase 1's code implements the protocol's own baseline set and constraint rules. It does not. The freeze would then have been calibrated against a comparison that `evaluation_protocol.md` §4.7 itself calls invalid.
+[Goodhart's Law] "Get the protocol frozen" is a process metric. Its proxy risk is freezing a contract the code cannot satisfy (F2, F8) or that misdescribes the code (F1, F3). The purpose is a satisfiable, honest contract, not a status field reading `Frozen`.
+[First Principles] A baseline comparison is only meaningful if the treatments differ solely in the dimension under study. F1, F3, and F4 each break that condition.
+
+**Reversibility:** Soft. Findings may be superseded by the freeze session's decisions. The F5 documentation repairs are themselves reversible via git.
+
+**Revisit trigger:**
+The freeze session must address F1–F8. If the freeze completes and none of F1–F8 is reflected in the frozen protocol or in a superseding entry, this entry has failed (detectable by diffing the frozen `evaluation_protocol.md` §3, §4.2, §4.3, §5.2, §5.4 against this entry). If Tests B/C/D are registered before F6 is resolved, the registration is invalid.
+
+**Expected value assessment:**
+- Probability at least one of F1–F4 changes a frozen `[PROPOSED]` value or a §4 constraint rule: high (~85%).
+- Probability F1 materially affects the interpretation of the Phase 1 diagnostic: high — `inverse_vol` is the method with the largest observed max weight (0.858) and the largest gross-to-net gap, so the artifact lands on a headline row.
+- Probability F5-class documentation drift recurs without a checklist item: moderate (~40%) unless the freeze checklist (§18) is extended to include a cross-reference integrity check.
+
+**Pre-mortem:**
+Six weeks from now this entry has failed if (a) `evaluation_protocol.md` is `Frozen` while `inverse_vol` still bypasses the box constraint (F1) or while B2/B4 remain unimplemented but listed as MVP (F2); or (b) `docs/README.md` still asserts that `model_and_method_spec.md` is referenced by the protocol (F5d) after the method spec is written. Both are detectable by grepping the code for `max_weight` call-sites and by grepping the protocol for `model_and_method_spec`.
+
 ---
 
 ## Appendix A — Experiment Registry (Ledger)
@@ -521,6 +575,44 @@ This appendix is the append-only ledger of pre-registered experiments. Registry 
 
 ---
 
+## Appendix B — Absorbed Items from Retired `docs/TODO.md`
+
+This appendix is the migration record for the open items in `docs/TODO.md` (v1.1, retired per DEC-20261015-018 item 5; source preserved in git history). It exists so that retiring the TODO did not silently drop its unfinished work. It is a **migration record, not a task list**: like the rest of this log, it is append-only, and new tasks are recorded as new decision entries, not added here.
+
+**Dispositions:**
+
+- **closed** — the item is done or superseded; no further action.
+- **open** — the item is still live; its home is named.
+- **declined** — the owner decided against it, with the reason preserved from the source.
+
+| TODO ID | Item | Status at retirement | Home now |
+|---------|------|----------------------|----------|
+| A1 | Fix `README.md` to reflect reality | Open | **Closed** — root `README.md` reconciled 2026-10-17 (DEC-20261017-019, F5a) |
+| A7 | Verify merges did not break cross-references | Partial | Open — covered by DEC-20261017-019 F5; remaining dead reference: `docs/README.md` → `model_and_method_spec.md` claim (F5d) |
+| B2 | Tighten `project_charter.md` | Superseded | Closed — charter retired (DEC-20261015-017/-018); content relocated to `evaluation_protocol.md` §8, `problem_framing.md`, `scope_and_non_goals.md` |
+| B3 | Tighten `scope_and_non_goals.md` | Open | Open — `scope_and_non_goals.md` §10 sign-off checklist still unchecked (activation pending) |
+| B4 | Verify the new file set is internally consistent | Open | Open — partially addressed by this session's audit (DEC-20261017-019) |
+| C1 | Decide the three open method choices | Open | Open — freeze worksheet (`evaluation_protocol.md` §18) |
+| C2 | Write `model_and_method_spec.md` | Open | Open — still the highest-priority missing doc (`docs/README.md` §"Not yet written") |
+| C3 | Freeze the method spec | Open | Open — gated on C2 |
+| D1 | Extract every `[PROPOSED]` value into one table | Open | Open — freeze worksheet (`evaluation_protocol.md` §18) |
+| D2 | Confirm or replace each value | Open | Open — freeze session |
+| D3 | Freeze the evaluation protocol, data contract, and cost model | Open | Open — the freeze; the binding constraint |
+| E1 | `decision_log.md` entry for Phase 1 parameter choices | In progress | **Closed** — DEC-20261015-012 |
+| E2 | `reproducibility_and_environment.md` | Open | Open — written when the Python environment is first set up |
+| E3 | `results_reporting_and_claims_policy.md` | Open | Open — must be written before Phase 4 |
+| E4 | `roadmap_and_phase_gates.md` | Declined | Closed — declined in source; not re-opened |
+| E5 | `architecture_decision_records/` | Open | Open — created at the first irreversible architectural decision |
+| E6 | `glossary.md` | Declined | Closed — declined in source; not re-opened |
+| E7 | `open_source_and_license_policy.md` | Open | Open — must be written before public release |
+| F5 | Log the experiment in the registry before running it | Open | **Closed** — DEC-20261015-012 + Appendix A pointer `EXP-H1-20261015-001` |
+
+**Note on F1–F4 of the source TODO (F1–F4 in "Phase F").** Those items (implement data pipeline, baselines, walk-forward harness, run H1.1/H1.2) were marked done in exploratory form. Their completion is recorded in DEC-20261015-012; DEC-20261017-019 qualifies it (the harness was completed but does not implement the protocol's baseline set or constraint rules).
+
+**Open items from this appendix that are on the critical path:** C1 → C2 → C3 (method spec), and D1 → D2 → D3 (the freeze). These are the same items named as the binding constraint in DEC-20261015-017.
+
+---
+
 ## Revision history
 
 | Date | Change | Author |
@@ -533,6 +625,7 @@ This appendix is the append-only ledger of pre-registered experiments. Registry 
 | 2026-10-15 | Added DEC-20261015-016 (SLSQP fallback diagnostic — finding 3 of 015 closed). | Ken Ira Lacson Talingting |
 | 2026-10-15 | Added DEC-20261015-017 (Phase A relocations; 6-doc target). Added Appendix A (Experiment Registry Ledger) scaffold with EXP-H1-20261015-001 pointer. Fixed Index table formatting (gap note moved below table). Added Supersession note for DEC-20261015-013. Updated Conventions 3 and 5 to reflect registry relocation and exploratory non-counting. | Ken Ira Lacson Talingting |
 | 2026-10-15 | Added DEC-20261015-018 (Phase C spec merges; source-file retirement). Added this row. | Ken Ira Lacson Talingting |
+| 2026-10-17 | Added DEC-20261017-019 (audit findings F1–F8 as freeze-session inputs; documentation-integrity repairs). Added the missing DEC-20261015-018 Index row. Created Appendix B (absorbed items from retired `docs/TODO.md`). | Ken Ira Lacson Talingting |
 ---
 
 *This log exists to make decisions explicit, dated, and reviewable. Its append-only discipline is the reason it can be trusted. If the log is edited to hide a gap, the log is worthless. If the log records its gaps, the log is the project's strongest artifact.*
