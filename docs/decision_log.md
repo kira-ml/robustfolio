@@ -55,6 +55,7 @@ Each entry uses the following fields:
 | DEC-20261017-022 | 2026-10-17 | GOVERNANCE | ACTIVE | Write `model_and_method_spec.md` v1.0 Draft (C2); resolve finding F9 (MVP robust-method classification) |
 | DEC-20261017-023 | 2026-10-17 | GOVERNANCE | ACTIVE | Freeze `model_and_method_spec.md` v1.1 (C3); resolve open items O1–O7 |
 | DEC-20261017-024 | 2026-10-17 | GOVERNANCE | ACTIVE | Confirm the point-in-time candidate universe (18 ETFs); accept the residual survivorship limitation |
+| DEC-20261017-025 | 2026-10-17 | GOVERNANCE | ACTIVE | Build the immutable PIT snapshot; pass the §5.4.8 leakage suite; record findings F10–F12 |
 
 **Gap note (001–011):** Resolved by DEC-20261015-014. The seed entries referenced in DEC-20261014-000 were not written and are not recoverable. They are treated as never having existed in this log.
 
@@ -808,6 +809,56 @@ Six weeks from now this entry has failed in one of three ways. (a) The candidate
 
 ---
 
+### DEC-20261017-025
+
+**Date:** 2026-10-17
+**Type:** GOVERNANCE
+**Status:** ACTIVE
+**Authority:** Owner
+**Related docs:** `notes/snapshot_and_leakage_evidence_2026-10-17.md` (v1.0, Evidence record — recorded by this entry), `src/robustfolio/data.py`, `scripts/build_snapshot.py`, `tests/test_leakage_suite.py`, `tests/conftest.py`, `evaluation_protocol.md` (v2.4, Frozen §5.4.8/§5.4.9/§8.4), `model_and_method_spec.md` (v1.1, Frozen §3), `notes/pit_candidates_2026-10-17.csv`, `docs/README.md` (v1.7), DEC-20261015-015, DEC-20261017-021, DEC-20261017-024
+**Related risks:** R-D02, R-S02, R-E01, R-M05
+
+**Context:**
+DEC-20261017-024 confirmed the candidate list and left exactly one Gate 1 blocker: the §5.4.8 leakage suite, which could not run because no immutable snapshot existed. This entry records the snapshot builder, the point-in-time reader, the suite, and its pass. It is the **first `src/` / `scripts/` change since the freeze** (DEC-20261015-015 forbade pre-freeze code changes; the freeze completed in DEC-20261017-021, so the restriction no longer binds).
+
+**Decision:**
+1. **Snapshot built.** `yahoo-usetf-2007-01-01_2026-09-30-2026-10-17-2ad06139`, bundle SHA-256 `2ad06139…d707`: 18 candidates, 4,966 daily rows, 2,294 corporate actions (2 splits, 2,292 dividends), 4,941 `DGS1MO` observations. The window ends on the last **complete** month so no partial month enters a return.
+2. **The §5.4.8 leakage suite passes: 14 passed, 1 skipped.** Items 1, 3, 4, 5 pass against real data; item 2 skips as **vacuous in-sample** (§5.4.5), with the mechanism verified separately so the check re-activates if the universe changes. No failing test → the Phase 1 experiment is unblocked.
+3. **PIT contract implemented** per spec §3.1–§3.4 and protocol §5.4: `load_snapshot` never reaches the network and vendor specifics are isolated in one block; `Snapshot.truncated(t)` is the operational form of §5.4.3; splits back-adjust prices while cash dividends enter the return on the ex-date (§5.4.5); eligibility per §5.4.2; the risk-free rate is never zero-filled (§5.4.6); snapshots are append-only and hash-pinned (§5.4.9).
+4. **Two conventions are not pinned by the frozen documents** and are therefore recorded as findings and defaulted, not silently chosen: **F10** `RF_ANNUAL_TO_MONTHLY = "geometric"` (`(1+y)^(1/12)-1`; alternative `y/12`), and **F11** `RF_ALIGN = "prior_month"` (the yield observed at the close of `t-1` prices month `t`; alternative is the literal §5.5.5 "observed at `t`"). Both set a value inside every net Sharpe ratio. The owner is asked to confirm or override; until then the defaults stand and are stamped into every snapshot manifest.
+5. **F12 recorded.** The §5.4.2 `ADV > $5M` floor is binding on `RWX`, whose dollar volume falls from $15–28 M (2012–2020) to $0.99 M (2026). The **eligible** set is 18 for 2012-06…2021-11 and 17 thereafter. The frozen rule is working as written; the consequence — a time-varying investable set and a real, costed divestment — is recorded for the owner before Gate 2. No decision is required to proceed.
+6. **Pre-mortem item (b) of DEC-20261017-024 is closed in code.** The Phase 1 `DEFAULT_UNIVERSE` (which contained `BIL`) is renamed `PHASE1_UNIVERSE` and quarantined under a `LEGACY` banner; nothing on the confirmatory path can reach it. The confirmatory universe is the snapshot's `universe_pit.csv` only.
+7. **No Tier-0 contract value changed.** The protocol, spec, and scope are not amended; no version bump.
+
+**Alternatives considered:**
+- **Hold the leakage suite until the full Phase 2 rewrite.** Rejected — §5.4.8 blocks experiments, and the suite is the cheapest way to falsify the data layer *before* any result exists.
+- **Treat the §5.5.5 conversion as obvious and skip the finding.** Rejected — that silently fixes a value inside every net Sharpe ratio; the standing rule (F1–F9 precedent) is that frozen-value gaps are surfaced, not absorbed.
+- **Drop `RWX` from the candidate list so the universe stays 18.** Rejected — that is membership tuning after observing data. The list is fixed by DEC-20261017-024; eligibility is applied by the frozen rule, not negotiated.
+- **Use the Phase 1 shortcut (`auto_adjust=True` adjusted closes).** Rejected — protocol §5.4.4/§5.4.10 make retroactively adjusted prices an invalidation. Raw unadjusted prices plus ex-post corporate actions is the frozen two-tier contract.
+- **Register Tests B/C/D in Appendix A now that a snapshot ID exists.** Deferred, not rejected — §12.4's precondition is met, but the registrations belong with the harness that runs them, not with the data layer.
+
+**Rationale:**
+[First Principles] The suite is a falsifier for the data layer, and it earned its keep: two real defects (month-end prices read from *raw* rather than split-adjusted closes — worth a spurious −49 % month; and a genuine `DGS1MO` 0.00 misread as a forbidden zero-substitution) were caught before any number was computed, which is exactly when they are cheapest.
+[Inversion] Rather than assert the snapshot is leak-free, the suite constructs the leak — a dividend with an ex-date after `t` **does** change a naive whole-sample result — and shows the pipeline is immune to it. A test that cannot fail proves nothing.
+[Baseline-first] The cheapest satisfiable data (Yahoo raw + FRED) was made to meet the frozen contract before any paid source was considered (§5.4.1).
+[Probabilistic] The derived anchor is now confirmed by data, not only by window arithmetic: all 18 candidates are eligible at 2012-06-29 and **none** is eligible in the 65 preceding months.
+
+**Reversibility:** Soft for the code; hard for the snapshot. Snapshots are append-only, so the `…-2ad06139` bundle is never modified — a corrected retrieval creates a new snapshot ID and this entry remains the record of what was used.
+
+**Revisit trigger:**
+The owner confirms or overrides F10/F11 → the constants change and a new snapshot is built (the manifest stamps the conventions, so a mixed pair is detectable). Or Yahoo/FRED restates history → new snapshot. Or the §5.4.8.2 test activates (a candidate delists) → implement the survivorship check before any further run.
+
+**Expected value assessment:**
+- Probability the suite would have passed without the two defects having been fixed: low (~15 %); the split branch is exercised by real `EEM` (3:1) and `SLV` (10:1) 2008 splits.
+- Probability F10/F11 are immaterial to the H2 comparison (both methods share one `R_f`): high (~95 %).
+- Probability F12 changes a test outcome materially: low (~10 %); it does change the investable set for 48 of 172 OOS months, so it must stay visible.
+- Probability the snapshot reproduces byte-for-byte on a fresh retrieval: moderate (~60 %) — vendor series are restated over time, which is precisely why the values are pinned and a new retrieval yields a new ID.
+
+**Pre-mortem:**
+Six weeks from now this entry has failed in one of four ways. (a) The suite is re-run against a *live cache* rather than the snapshot, so it validates nothing — detectable by asserting `load_snapshot` is the harness's only data entry point. (b) F10/F11 are quietly frozen by usage before the owner confirms them — detectable by diffing the constants against this entry and the manifest. (c) A later `src/` change re-introduces `auto_adjust=True` or a `BIL` cash proxy — detectable by grepping the confirmatory path for `PHASE1_UNIVERSE` and `auto_adjust`. (d) F12's shrinking universe is cited as "a 17-asset universe" with no note that it was 18 — detectable by requiring the note's §4 table alongside any universe count.
+
+---
+
 ## Appendix A — Experiment Registry (Ledger)
 
 This appendix is the append-only ledger of pre-registered experiments. Registry *rules* (what counts as an experiment, ID format, denominator rules, invalidation rules) live in `evaluation_protocol.md` §12 and, until Phase C completes, in `experiment_registry_and_preregistration.md`. This appendix holds the *entries*.
@@ -879,6 +930,8 @@ This appendix is the migration record for the open items in `docs/TODO.md` (v1.1
 
 **Update 2026-10-17 (DEC-20261017-024).** The **point-in-time candidate universe list** (protocol §5.4.7) is reconstructed and confirmed — `notes/pit_universe_2026-10-17.md` v1.0, 18 instruments, anchored at the backtest start 2012-06. One of the two remaining Gate 1 items is closed; the **§5.4.8 leakage suite** is now the only Gate 1 blocker. No Tier-0 value changed (the universe count is delegated by protocol §5.4.2 and scope §3.1).
 
+**Update 2026-10-17 (DEC-20261017-025).** The **§5.4.8 leakage suite passes** (14 passed, 1 skipped as vacuous in-sample) against the first immutable snapshot, `yahoo-usetf-2007-01-01_2026-09-30-2026-10-17-2ad06139`. **Both Gate 1 data blockers are now closed**; the Phase 1 experiment is unblocked. Findings **F10** (rf annual-to-monthly conversion) and **F11** (rf observation month) are surfaced for owner confirmation; **F12** records that the §5.4.2 liquidity floor is binding on `RWX`, so the eligible set declines from 18 to 17 after 2021-11. This is the first `src/` / `scripts/` change since the freeze. The remaining appendix items still open are unchanged and off the critical path: **E2**, **E3**, **E5**, **E7**. The next critical-path work is registering Tests B/C/D in Appendix A (protocol §12.4 — now unblocked, since a snapshot ID exists) and rewriting `src/` to conform to protocol v2.4 + spec v1.1.
+
 ---
 
 ## Revision history
@@ -899,6 +952,8 @@ This appendix is the migration record for the open items in `docs/TODO.md` (v1.1
 | 2026-10-17 | Added DEC-20261017-022 (`model_and_method_spec.md` v1.0 Draft — C2; finding F9 resolved in scope's favour; protocol v2.4 §4.2 correction; scope v1.4). Updated Appendix B rows C1/C2/C3/D1/D2/D3/B3 to current state and added the DEC-022 update note. | Ken Ira Lacson Talingting |
 | 2026-10-17 | Added DEC-20261017-023 (`model_and_method_spec.md` v1.1 Frozen — C3; all `[OPEN]` items O1, O2, O4–O7 resolved; v1.0's run-reproduction freeze condition corrected). Updated Appendix B row C3 and added the DEC-023 update note. | Ken Ira Lacson Talingting |
 | 2026-10-17 | Added DEC-20261017-024 (point-in-time candidate universe confirmed — 18 ETFs anchored 2012-06; residual survivorship limitation accepted as documented). Updated Appendix B with the DEC-024 update note. | Ken Ira Lacson Talingting |
+| 2026-10-17 | Added DEC-20261017-025 (immutable PIT snapshot built; §5.4.8 leakage suite passes — 14 passed, 1 vacuous skip; findings F10–F12 recorded; Gate 1 data blockers closed). Created `notes/snapshot_and_leakage_evidence_2026-10-17.md`; added the snapshot builder, the PIT reader and the leakage suite to `src/`/`scripts/`/`tests/`. Updated Appendix B with the DEC-025 update note. | Ken Ira Lacson Talingting |
+
 ---
 
 *This log exists to make decisions explicit, dated, and reviewable. Its append-only discipline is the reason it can be trusted. If the log is edited to hide a gap, the log is worthless. If the log records its gaps, the log is the project's strongest artifact.*
