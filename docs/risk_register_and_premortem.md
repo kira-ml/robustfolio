@@ -1,11 +1,11 @@
 # Risk Register and Pre-Mortem: robustfolio
 
-**Version:** 1.2
+**Version:** 1.3
 **Status:** Active — owner-activated 2026-10-17 (DEC-20261017-021)
 **Owner:** Ken Ira Lacson Talingting
 **Created:** 2026-10-14
 **Last Updated:** 2026-10-17
-**Supersedes:** 1.1 (activation at the protocol freeze; ratings confirmed)
+**Supersedes:** 1.2 (activation at the protocol freeze; ratings confirmed)
 **Related:** [`problem_framing.md`](problem_framing.md), [`evaluation_protocol.md`](evaluation_protocol.md), [`decision_log.md`](decision_log.md), [`scope_and_non_goals.md`](scope_and_non_goals.md)
 
 ---
@@ -368,6 +368,7 @@ When a risk materializes, add an entry here. This is a narrative complement to t
 |------|---------|-------------|--------|----------|--------------------|
 | 2026-10-17 | R-D01 | Phase 1 ingested retroactively adjusted prices (`auto_adjust=True`) with no immutable snapshot; the §5.4.4 reconstruction and §5.4.9 snapshot rules were unsatisfied. | Phase 1 is exploratory only; no confirmatory claim depends on it. | Froze the two-tier raw + corporate-actions + snapshot contract (§5.4.1, §5.4.9). | DEC-20261017-019 (F8), DEC-20261017-021 |
 | 2026-10-17 | R-D02 | The Phase 1 universe was the 15 tickers live today — the escalation trigger fired. | Unquantified upward survival bias; the delisting rules were never exercised. | Froze a required point-in-time candidate list (§5.4.7); building it is a Gate-1 task and results stay universe-conditional until it exists. | DEC-20261017-020 (N3), DEC-20261017-021 |
+| 2026-10-17 | R-D02 | The point-in-time candidate list was reconstructed and confirmed — 18 instruments anchored at the backtest start 2012-06, inception cut-off 2007-05-31 (`notes/pit_universe_2026-10-17.md` v1.0). No in-scope, large, liquid, non-leveraged ETF available at 2007-06 liquidated 2012–2026, so the §5.4.8.2 survivorship test is vacuous in-sample. | The upward survival bias is now bounded and documented, but remains **argued, not measured**; results stay universe-conditional (§5.4.7). | Confirmed the list and accepted the residual; held the §5.4.7 downgrade clause in reserve; declined the archived-PIT-screen upgrade (paid source). | DEC-20261017-024 |
 
 **Rule:** A materialized risk always produces a decision log entry, even if the decision is "continue unchanged." This preserves the learning loop.
 
@@ -413,6 +414,7 @@ Also confirm:
 | 2026-10-14 | 1.0 | Initial risk register and pre-mortem | Ken Ira Lacson Talingting |
 | 2026-10-15 | 1.1 | Updated cross-references to retired documents per DEC-20261015-018: `project_charter.md`, `data_contract_and_point_in_time_policy.md`, `cost_model_and_frictions.md`, `benchmark_and_baseline_spec.md`, `success_metrics_and_evaluation_protocol.md`, and `experiment_registry_and_preregistration.md` redirected to `evaluation_protocol.md` sections. Header `Related` list trimmed to retained files. §1, §5.2, §5.4, §7.3 references updated. No risk content changed. | Ken Ira Lacson Talingting |
 | 2026-10-17 | 1.2 | **Activated** at the protocol freeze (DEC-20261017-021). §2 and §4 rating notes de-proposed. §8 Risk Materialization Log opened with entries for R-D01 (adjusted-price ingestion, F8) and R-D02 (survivorship universe, N3). §10 activation checklist completed. Status `Draft` → `Active`. | Ken Ira Lacson Talingting |
+| 2026-10-17 | 1.3 | §8: added the R-D02 resolution entry — the point-in-time candidate universe is confirmed (18 instruments, anchor 2012-06) and the residual survival bias accepted as documented (DEC-20261017-024). No rating changed. | Ken Ira Lacson Talingting |
 
 ---
 

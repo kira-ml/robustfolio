@@ -24,7 +24,7 @@ DEC-20261017-019 F1 sharpens the question: Phase 1's baselines were not subject 
 
 | Parameter | Value | Source |
 |-----------|-------|--------|
-| Universe | the frozen MVP universe (15 ETFs) | freeze worksheet §3 |
+| Universe | the confirmed point-in-time candidate universe (18 ETFs) | [`pit_universe_2026-10-17.md`](pit_universe_2026-10-17.md) (v1.0); DEC-20261017-024 |
 | Period | full history available from the point-in-time snapshot | §5.4 |
 | Data | point-in-time adjusted, from the frozen raw+actions reconstruction | §5.4.1 |
 | Rebalance | monthly | §3.3 |

@@ -1,0 +1,19 @@
+ticker,first_eligible,last_eligible,source_note
+SPY,2012-06-29,,SSGA SPDR fact sheet; inception 1993-01-22; first US ETF
+MDY,2012-06-29,,SSGA SPDR fact sheet; inception 1995-05-04
+IWM,2012-06-29,,iShares fact sheet; inception 2000-05-22
+EFA,2012-06-29,,iShares fact sheet; inception 2001-08-14
+EEM,2012-06-29,,iShares fact sheet; inception 2003-04-07
+VNQ,2012-06-29,,Vanguard fund profile; inception 2004-09-29
+RWX,2012-06-29,,SSGA SPDR fact sheet; inception 2006-12-15
+GLD,2012-06-29,,SPDR Gold Trust prospectus; inception 2004-11-18
+SLV,2012-06-29,,iShares Silver Trust fact sheet; inception 2006-04-21
+DBC,2012-06-29,,Invesco DB Commodity Index Tracking Fund fact sheet; inception 2006-02-03
+SHY,2012-06-29,,iShares fact sheet; launch 2002-07-22
+IEF,2012-06-29,,iShares fact sheet; launch 2002-07-22
+TLT,2012-06-29,,iShares fact sheet; launch 2002-07-22
+LQD,2012-06-29,,iShares fact sheet; launch 2002-07-22 (some vendors 2002-07-26)
+AGG,2012-06-29,,iShares fact sheet; inception 2003-09-22
+TIP,2012-06-29,,iShares fact sheet; inception 2003-12-04
+HYG,2012-06-29,,iShares fact sheet; inception 2007-04-04
+MBB,2012-06-29,,iShares fact sheet; launch 2007-03-13

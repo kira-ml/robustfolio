@@ -54,6 +54,7 @@ Each entry uses the following fields:
 | DEC-20261017-021 | 2026-10-17 | GOVERNANCE | ACTIVE | Freeze `evaluation_protocol.md` v2.3; activate scope v1.3 and risk register v1.2; extend R1 scan to 16 items |
 | DEC-20261017-022 | 2026-10-17 | GOVERNANCE | ACTIVE | Write `model_and_method_spec.md` v1.0 Draft (C2); resolve finding F9 (MVP robust-method classification) |
 | DEC-20261017-023 | 2026-10-17 | GOVERNANCE | ACTIVE | Freeze `model_and_method_spec.md` v1.1 (C3); resolve open items O1–O7 |
+| DEC-20261017-024 | 2026-10-17 | GOVERNANCE | ACTIVE | Confirm the point-in-time candidate universe (18 ETFs); accept the residual survivorship limitation |
 
 **Gap note (001–011):** Resolved by DEC-20261015-014. The seed entries referenced in DEC-20261014-000 were not written and are not recoverable. They are treated as never having existed in this log.
 
@@ -758,6 +759,55 @@ Six weeks from now this entry has failed in one of three ways. (a) The Phase 2 c
 
 ---
 
+### DEC-20261017-024
+
+**Date:** 2026-10-17
+**Type:** GOVERNANCE
+**Status:** ACTIVE
+**Authority:** Owner
+**Related docs:** `notes/pit_universe_2026-10-17.md` (v1.0, Confirmed — confirmed by this entry), `notes/pit_candidates_2026-10-17.csv`, `evaluation_protocol.md` (v2.4, Frozen §5.4.2/§5.4.7), `model_and_method_spec.md` (v1.1, Frozen §3.3/§3.4), `scope_and_non_goals.md` (v1.4, §3.1), `docs/README.md` (v1.6), `risk_register_and_premortem.md` (v1.3), `notes/tests_BCD_spec_2026-10-17.md`, DEC-20261017-020, DEC-20261017-021, DEC-20261017-023
+**Related risks:** R-D02, R-S02
+
+**Context:**
+Gate 1 entry (`evaluation_protocol.md` §8.4) requires the point-in-time candidate universe list (§5.4.7) and a passing §5.4.8 leakage suite. DEC-20261017-023 closed the documentation half and left exactly those two. This entry records the reconstruction and owner confirmation of the **candidate list** — the first of the two, and the last object that needed a decision rather than an execution.
+
+**Decision:**
+1. **Candidate universe confirmed at 18 instruments**, anchored at the backtest start (2012-06) with an inception cut-off of 2007-05-31: `SPY` `MDY` `IWM` `EFA` `EEM` `VNQ` `RWX` `GLD` `SLV` `DBC` `SHY` `IEF` `TLT` `LQD` `AGG` `TIP` `HYG` `MBB`. One liquid representative per bucket — equity 5, real estate 2, commodities 3, fixed income 8 — inside §5.4.2's 15–25 target. Inception dates are verified from issuer fact sheets and SEC EDGAR N-1A filings.
+2. **The anchor is derived, not chosen.** §13.1's frozen bootstrap note (\(T = 168\) months) plus §4.3's 60-month window and §5.2's walk-forward force a 228-month record, 2007-06 … 2026-05: backtest start **2012-06**, first estimation window 2007-06 … 2012-05, inception cut-off **2007-05-31**. The competing reading (anchor = the 2007-06 data start → inception ≤ 2002-06) excludes every fixed-income, commodity, and real-estate instrument in scope — the earliest, `TLT`/`IEF`/`SHY`/`LQD`, launched 2002-07-22 — and is therefore unsatisfiable; resolved by satisfiability. Membership is invariant to a ±1-month anchor shift (nearest inception: `HYG`, 2007-04-04).
+3. **O1 applied.** No cash / T-bill proxy: Phase 1's `BIL` is dropped; duration-bearing Treasuries stay. The Phase 1 `DEFAULT_UNIVERSE` in `src/robustfolio/data.py` therefore no longer matches the candidate list — a Gate 1/2 code change, not a documentation change (DEC-20261015-015).
+4. **The residual survivorship limitation is accepted as documented.** The inception screen is objective; the in-scope closure record 2012–2026 is thin (closures are dominated by sub-$100 M, thematic, leveraged, and ETN products, all out of scope). The §5.4.8.2 survivorship test is therefore **vacuous in-sample** — exactly what §5.4.5 already anticipates ("no candidate delists in-sample"). The bias is **argued, not measured**: per §5.4.7 every result stays universe-conditional and the §5.4.7 downgrade clause is held in reserve. The owner declined the archived-PIT-screen upgrade (§5.4.1 forbids paid data without budget approval).
+5. **No Tier-0 value changed.** The universe count is delegated by protocol §5.4.2 ("target 15–25") and scope §3.1, so no protocol, spec, or scope version bump is required.
+6. **No `src/` or `scripts/` change.**
+
+**Alternatives considered:**
+- **Anchor at the data start (2007-06, inception ≤ 2002-06).** Rejected — unsatisfiable for the four required asset classes.
+- **Trim fixed income to 16 (drop `AGG` and `MBB`).** Rejected — aggregate and MBS are distinct buckets (MBS adds prepayment risk) and 18 stays inside the target.
+- **Phase 1 core only (14, ex-`BIL`).** Rejected — drops the size (`MDY`), aggregate, MBS, and silver buckets. The §4.3 \( \gamma \) derivation survives either way, since the sleeve structure and its collinearity are preserved.
+- **Upgrade to archived 2007/2012 AUM+ADV screens.** Rejected by the owner — a paid source for a bounded, documented residual.
+- **Assert the list is survivorship-free.** Rejected — that is the R-D02 failure mode: an unmeasured bias asserted away.
+
+**Rationale:**
+[First Principles] The anchor was derived from the frozen window arithmetic rather than picked, so the list needs no arbitrary date decision.
+[Inversion] The survivorship question was attacked by asking what *should* be missing (delisted members) instead of asserting completeness; the honest answer — nothing in scope — is recorded as an argument, not a measurement.
+[Experimental] The list is fixed before any result exists, so membership cannot be tuned to outcomes.
+[Goodhart's Law] Confirming a "clean" universe is worth little unless the residual is stated; the note records both.
+
+**Reversibility:** Soft. The list is a data artifact; a change requires a new decision-log entry. The anchor *reading* is recorded and could be restated without changing membership.
+
+**Revisit trigger:**
+An archived screen surfaces an in-scope ETF available at 2007-06 that later liquidated → add the member, exercise §5.4.5's delisting default, and re-run the §5.4.8.2 test. Or the harness's first-fold month moves the cut-off across an inception date (it does not, given `HYG`'s margin).
+
+**Expected value assessment:**
+- Probability the confirmed list is implementable in the snapshot with no membership change: high (~90%).
+- Probability an in-scope, large, liquid, non-leveraged ETF available at 2007-06 later liquidated and is missing: low (~10–15%) — the in-scope closure record is thin but not exhaustively audited.
+- Probability the residual later proves economically material for the out-of-sample comparisons: low (~10%), since all candidates are large and liquid throughout.
+- Probability Gate 1 is now blocked only on the leakage suite: high (~95%).
+
+**Pre-mortem:**
+Six weeks from now this entry has failed in one of three ways. (a) The candidate list is expanded mid-backtest to chase a result — detectable by diffing the snapshot's `universe_pit.csv` against this entry. (b) A cash proxy reappears in the universe (e.g. `BIL` smuggled back in via the Phase 1 `DEFAULT_UNIVERSE`) — detectable by grepping the snapshot universe for §3.4's excluded tickers. (c) The "no in-scope delisting" finding is cited as proof the design is survivorship-free — detectable by checking that the note's §5 residual is quoted alongside it. All three are the failure modes this record exists to prevent.
+
+---
+
 ## Appendix A — Experiment Registry (Ledger)
 
 This appendix is the append-only ledger of pre-registered experiments. Registry *rules* (what counts as an experiment, ID format, denominator rules, invalidation rules) live in `evaluation_protocol.md` §12 and, until Phase C completes, in `experiment_registry_and_preregistration.md`. This appendix holds the *entries*.
@@ -827,6 +877,8 @@ This appendix is the migration record for the open items in `docs/TODO.md` (v1.1
 
 **Update 2026-10-17 (DEC-20261017-023).** **C3** closed — `model_and_method_spec.md` v1.0 `Draft` → **v1.1 `Frozen`**; all six `[OPEN]` items resolved (spec §11). The **documentation half of Gate 1 is complete**. Gate 1 entry now requires only the point-in-time candidate universe list (protocol §5.4.7) and the §5.4.8 leakage suite. The remaining appendix items still open are **E2** (`reproducibility_and_environment.md`), **E3** (`results_reporting_and_claims_policy.md`), **E5** (`architecture_decision_records/`), and **E7** (`open_source_and_license_policy.md`) — none on the Gate 1 critical path.
 
+**Update 2026-10-17 (DEC-20261017-024).** The **point-in-time candidate universe list** (protocol §5.4.7) is reconstructed and confirmed — `notes/pit_universe_2026-10-17.md` v1.0, 18 instruments, anchored at the backtest start 2012-06. One of the two remaining Gate 1 items is closed; the **§5.4.8 leakage suite** is now the only Gate 1 blocker. No Tier-0 value changed (the universe count is delegated by protocol §5.4.2 and scope §3.1).
+
 ---
 
 ## Revision history
@@ -846,6 +898,7 @@ This appendix is the migration record for the open items in `docs/TODO.md` (v1.1
 | 2026-10-17 | Added DEC-20261017-021 (freeze executed: `evaluation_protocol.md` v2.3 Frozen; `scope_and_non_goals.md` v1.3 Active; `risk_register_and_premortem.md` v1.2 Active; R1 scan extended in `problem_framing.md` v2.4). Updated Appendix B dispositions note. | Ken Ira Lacson Talingting |
 | 2026-10-17 | Added DEC-20261017-022 (`model_and_method_spec.md` v1.0 Draft — C2; finding F9 resolved in scope's favour; protocol v2.4 §4.2 correction; scope v1.4). Updated Appendix B rows C1/C2/C3/D1/D2/D3/B3 to current state and added the DEC-022 update note. | Ken Ira Lacson Talingting |
 | 2026-10-17 | Added DEC-20261017-023 (`model_and_method_spec.md` v1.1 Frozen — C3; all `[OPEN]` items O1, O2, O4–O7 resolved; v1.0's run-reproduction freeze condition corrected). Updated Appendix B row C3 and added the DEC-023 update note. | Ken Ira Lacson Talingting |
+| 2026-10-17 | Added DEC-20261017-024 (point-in-time candidate universe confirmed — 18 ETFs anchored 2012-06; residual survivorship limitation accepted as documented). Updated Appendix B with the DEC-024 update note. | Ken Ira Lacson Talingting |
 ---
 
 *This log exists to make decisions explicit, dated, and reviewable. Its append-only discipline is the reason it can be trusted. If the log is edited to hide a gap, the log is worthless. If the log records its gaps, the log is the project's strongest artifact.*
