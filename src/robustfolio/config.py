@@ -36,6 +36,17 @@ ESTIMATION_WINDOW = 60
 TEST_WINDOW = 12
 STEP = 12
 
+#: Initial holding at the first rebalance of a run (finding F18, resolved by
+#: DEC-20261017-029). The out-of-sample period starts flat, so ``w^- = 0``: the
+#: first rebalance buys 100% and pays one month of the headline cost. Every
+#: method pays the same entry cost, so the comparison stays fair. Under
+#: ``w >= 0`` the L1 penalty is then exactly constant at that rebalance, so B5's
+#: first month equals unpenalised MVO -- which is correct, because there is no
+#: prior holding to penalise. ``optimize.mean_variance`` still refuses a
+#: ``turnover_penalty > 0`` call with no explicit ``w_prev``: the harness reads
+#: this constant and passes the zeros, so the choice is logged, never defaulted.
+INITIAL_HOLDING_MODE = "flat"
+
 # --- universe / eligibility ------------------------------------------------ #
 
 #: Minimum consecutive months of history at entry (protocol §5.4.2).
@@ -91,6 +102,6 @@ DIAGONAL_LOADING = 1e-6
 #: of magnitude, while going tighter *decreases* accuracy because the solver gives
 #: up and returns ``optimal_inaccurate``. The spec's intent -- that the residual
 #: check binds -- is honoured; the explicit tolerance is the only way to honour
-#: it. Both this and the "duality gap" substitution are **finding F17** and need
-#: owner confirmation.
+#: it. Both this and the "duality gap" substitution are **finding F17**, resolved
+#: as reading (a) by DEC-20261017-029.
 SOLVER_TOL = 1e-14

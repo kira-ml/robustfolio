@@ -322,7 +322,9 @@ def mean_variance(
             # The initial w^- at the first rebalance of a run is not pinned by
             # the protocol or the spec (finding F18). Refusing here rather than
             # defaulting keeps the choice visible in the caller and logged in
-            # the run, instead of buried in a library default.
+            # the run, instead of buried in a library default. Resolved as
+            # "start flat" (w^- = 0) by DEC-20261017-029; the harness reads
+            # config.INITIAL_HOLDING_MODE and passes the zeros.
             raise ValueError(
                 "turnover_penalty > 0 requires w_prev: the initial w^- is not "
                 "pinned by the protocol or spec (finding F18), so it must be "

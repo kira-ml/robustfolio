@@ -15,9 +15,9 @@ estimators below must not quietly change anything else.
 (``ddof=0``), whereas spec §4.2 pins the sample covariance to ``ddof=1``
 ("matching ``pandas.DataFrame.cov``"). M1's Σ therefore differs from B3's by the
 shrinkage *and* by a factor ``T/(T-1)`` in its base. At ``T = 60`` that is a
-1.7% uniform scale difference. It is left as specified (the spec names the
-sklearn estimator) and must not be silently "corrected"; see the note in
-``ledoit_wolf_cov``.
+1.7% uniform scale difference. DEC-20261017-029 resolved this as reading (a):
+it is left as specified (the spec names the sklearn estimator) and must not be
+silently "corrected"; see the note in ``ledoit_wolf_cov``.
 """
 
 from __future__ import annotations
