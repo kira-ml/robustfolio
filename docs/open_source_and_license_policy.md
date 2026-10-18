@@ -1,7 +1,8 @@
 # Open Source and License Policy — robustfolio
 
 **Version:** 1.0
-**Status:** Draft — awaiting owner confirmation of two `[PROPOSED]` dispositions
+**Status:** **Frozen**
+**Frozen:** 2026-10-17 (see DEC-20261017-033 for the draft, DEC-20261017-034 for the confirmations)
 **Owner:** Ken Ira Lacson Talingting
 **Created:** 2026-10-17
 
@@ -31,13 +32,15 @@ The repository's most load-bearing output is a **frozen snapshot archive**, publ
 
 **The tension is real and should be stated rather than resolved silently.** The archive is a redistribution of roughly 4,966 daily rows × 18 instruments of Yahoo-sourced prices. It is also the *only* way the project's central claim stays true: without the exact input, "one command regenerates the number" degrades into "one command generates a similar number", which is the failure the release chain exists to prevent.
 
-**`[PROPOSED]` disposition (a) — publish the archive, with a NOTICE.** Rationale:
+**Disposition (a) — publish the archive, with a NOTICE. Confirmed 2026-10-17 (DEC-20261017-034).** Rationale:
 
 1. The data is factual daily prices of publicly listed ETFs, of the kind widely republished, used here non-commercially and with attribution.
 2. The purpose is verification of published results, not the distribution of a data product.
 3. Deleting the archive would remove the one property that distinguishes this project from every unverifiable backtest.
 
-**Required if (a) is confirmed**, and enforced by review rather than by hope: the README, the release notes, and the archive's own manifest must each state the **source**, the **retrieval date**, that **Yahoo's terms govern the data and MIT does not cover it**, and that the asset exists **to verify the published results**.
+**The NOTICE.** The README and the release notes each state the **source**, the **retrieval date**, that **Yahoo's terms govern the data and MIT does not cover it**, and that the asset exists **to verify the published results**. Inside the archive the notice is a **`NOTICE.txt`** member, generated deterministically by `scripts/pack_snapshot.py` from a template held in that script.
+
+*Why not `manifest.json`* — DEC-20261017-033 originally required the notice in "the archive's own manifest", and DEC-20261017-034 changes that deliberately. `manifest.json` is the data layer's hashed record; a licensing statement is neither data nor a statement about data, and putting it there would place a mutable editorial statement inside the artefact the integrity chain reads. A sibling `NOTICE.txt` is reviewable in git, travels with extraction, and cannot drift from the snapshot on disk. The deviation is recorded rather than absorbed because a silent deviation is the failure mode this project exists to avoid.
 
 **Rejected alternatives.** Publishing only the derived monthly series (option b) is smaller and more defensible, but it would not reproduce the daily→monthly aggregation, the corporate-action application, or the point-in-time eligibility by date — i.e. it would verify the arithmetic while leaving the analyst's actual work unverified. Publishing nothing (option c) leaves the digest meaningless.
 
@@ -56,7 +59,7 @@ The repository's most load-bearing output is a **frozen snapshot archive**, publ
 
 ## 4. Contributions
 
-**`[PROPOSED]`:** issues and pull requests are welcome; no CLA and no DCO sign-off. A contribution must, at minimum:
+**Confirmed 2026-10-17 (DEC-20261017-034):** issues and pull requests are welcome; no CLA and no DCO sign-off. A contribution must, at minimum:
 
 1. keep `pytest -q` green (including the leakage suite and the packaging-integrity tests);
 2. not change a frozen value — a threshold, a seed, a metric definition, the cost model, or a registered hypothesis — without a `decision_log.md` entry, because those values are what make the numbers quotable;
@@ -76,7 +79,7 @@ Findings recorded in `docs/decision_log.md` describe **this project's implementa
 
 ## 6. Review trigger
 
-- Owner confirms both `[PROPOSED]` dispositions → **v1.0 Frozen**.
+- Both dispositions confirmed 2026-10-17 → **v1.0 Frozen**.
 - Yahoo, FRED, or an ETF issuer changes its terms, or any third party objects to the archive → §2 is re-examined and the asset's disposition revisited, with the outcome recorded in `decision_log.md`.
 - A contribution-model dispute arises → §4 revisited.
 - `results_reporting_and_claims_policy.md` (E3) is written → §5 is reduced to a pointer, so that the claim rules exist in exactly one place.

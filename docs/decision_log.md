@@ -3,7 +3,7 @@
 **Project:** `robustfolio`
 **Owner:** Ken Ira Lacson Talingting
 **Created:** 2026-10-14
-**Version:** 1.8
+**Version:** 1.9
 **Last Updated:** 2026-10-17
 **Purpose:** Immutable record of every governance, experiment, and pivot decision in the project. Entries are append-only. Supersession is by a new entry, not by editing an old one.
 
@@ -1338,6 +1338,62 @@ Six weeks from now this entry has failed in one of four ways. (a) The archive wa
 
 
 
+### DEC-20261017-034
+
+**Date:** 2026-10-17
+**Type:** GOVERNANCE
+**Status:** ACTIVE
+**Authority:** Owner
+**Related docs:** `open_source_and_license_policy.md` (v1.0 **Frozen** — was Draft at DEC-20261017-033), `docs/README.md` (v1.16), `decision_log.md` (v1.9), `evaluation_protocol.md` §12.1/§12.9/§12.10, Appendix A entry `EXP-H2-20261017-001`, `scripts/pack_snapshot.py`
+**Related risks:** R-E01
+
+**Context:**
+DEC-20261017-033 presented three owner decisions: how to resolve **F26**, and two `[PROPOSED]` items in the new licence policy. The owner confirmed all three on 2026-10-17. This entry records the resolutions, and one deviation from DEC-033's own wording that executing them made necessary.
+
+**Decision:**
+
+1. **F26 is resolved by re-designation, not by repair.** `EXP-H2-20261017-001` (Test D) is marked **EXECUTED (NON-CONFIRMATORY)** and its execution is recorded as the **same run** as `EXP-X-20261017-003` — one execution, one record, two labels, no duplicated numbers. Repair was not available: the reporting layer could only be validated end-to-end on the frozen configuration, so the confirmation's answer was observed before the test ran, and no subsequent act restores prospective blindness.
+
+2. **The registered confirmatory slot in family H2/H3 is now spent and empty.** No replacement test is registered. **K1 does not fire** — it belongs to a confirmatory test and none was executed blind — so H2.4 is **untested**, not falsified, and the honest public description is **"pre-registered, mechanically evaluated, non-confirmatory"**. This is a weaker claim than a passed test and a *stronger* one than a backtest, and it is the accurate one.
+
+3. **The relabelling cannot be used to rescue the hypothesis, and the ledger says so in the entry itself.** The §6.4 verdict is `FAILURE` for both candidates either way. What changed is *which entry carries the verdict*, not the verdict. This is recorded inside the ledger entry rather than left for a sceptical reader to reconstruct, because a reader who discovers it unaided will reasonably suspect the opposite.
+
+4. **`open_source_and_license_policy.md` is frozen at v1.0.** Both `[PROPOSED]` items are confirmed: **(a)** publish the snapshot archive with a NOTICE (F30), and the contribution model as **issues and PRs, no CLA and no DCO**, with the three contribution conditions as written.
+
+5. **Deviation from DEC-20261017-033, recorded rather than absorbed.** DEC-033 required the NOTICE to appear in "the README, the release notes, *and* the archive's own manifest". The third is **changed** to a **`NOTICE.txt` member inside the archive**, generated from a template held in the packaging script. Reason: `manifest.json` is the *data layer's own hashed record*, and a licensing statement is neither data nor a statement about data; putting it there would place a mutable editorial statement inside the artefact the integrity chain reads. A sibling `NOTICE.txt` is reviewable in git, travels with extraction, and is generated deterministically so it cannot drift from the snapshot on disk. The README and the release notes carry the text as originally required. **This is a deliberate, reasoned deviation, not a silent one**, which is the only reason it is acceptable.
+
+6. **What a valid confirmatory test would require — stated as a condition, not promised as a plan.** A **new sample**: a different asset class, or a period that does not yet exist. The design must not be selected by the observed result, and the denominator must be counted honestly at registration. No such test is registered now, and registering one in a hurry would be worse than not having one, because a test designed after the answer is known is a test designed by the answer.
+
+**Alternatives considered:**
+- **Disclose and execute Test D as registered (DEC-033 option B).** Rejected. It re-runs a known configuration, adds no information, and its only distinctive feature is the risk of being read as confirmatory. The formal record it would create is already created by `EXP-X-20261017-003`.
+- **Register a new confirmatory test now (DEC-033 option C).** Rejected for the reason in item 6: the only samples available are unpowered (a four-month extension) or contaminated (the same data, already seen).
+- **Call the result a *failed* confirmatory test, since the rule returns FAILURE.** Tempting and rejected. It would let the project keep the word "confirmatory" if the answer had been favourable and drop it because the answer was not — which is precisely the selection effect the freeze exists to prevent. The label must not depend on the sign of the result.
+- **Amend §6.4's thresholds so the observed gap qualifies.** Rejected categorically (§8.1 Hard Rule 2, §12.9). Recorded only because it is the failure mode this whole apparatus exists to prevent.
+- **Delete the exploratory run's numbers from the public material to avoid the awkwardness.** Rejected. The numbers are reproducible from a frozen snapshot by a published command; suppressing them would replace an honest null with an unverifiable one.
+
+**Rationale:**
+[First Principles] *What is the artefact?* An evaluation whose value is that a stranger can check it. Blindness is a property of *how* a number was obtained; checkability is a property of *whether* it can be verified. F26 destroyed the first here. It did not touch the second, because the rule is frozen, mechanical, and publicly re-runnable to **tolerance zero** (DEC-20261017-032). The project should therefore say exactly which of the two it has, rather than borrowing the prestige of the one it lost.
+[Inversion] Ask what the *dishonest* version of this resolution looks like: relabel an inconvenient result as non-confirmatory, escape K1, and quietly keep quoting the number. The defence is not that the relabelling is disinterested — it is not, and the entry says so — but that **it cannot change the verdict**, and that a reader can verify the frozen rule's output themselves. A defence a reader can check beats an assertion of good faith.
+[Goodhart] The project's quality metric is "did the apparatus work", and a **null result flatters the apparatus**. If `M2` had cleared the bar the same code would have been praised for different reasons. The checks must be shown to be **sign-independent** — the leakage suite, the KKT certificate and the zero-tolerance reproduction would each have returned the same verdict had `M2` won — because otherwise "rigour" is a story that happens to end well.
+[Path Dependence] F26 is an artefact of build order, and it compresses to one reusable rule: **validate a pipeline against a throwaway configuration, never the registered one.** Recorded here as the generalisable lesson, since it is the only part of this entry that is worth anything to someone else.
+[Second-Order Thinking] Publishing a non-confirmatory null invites the reading "he ran it, did not like the answer, and demoted it". The only durable answer is to have said so first, in the ledger, in the author's own words — which is cheaper than being asked.
+
+**Reversibility:** Soft. Item 1 is a status restatement and item 5 is a file placement; both are matters of record, not code. Nothing frozen is amended: §6.4, §12.1 and the registered parameters are untouched, and no result changes.
+
+**Revisit trigger:**
+A genuinely new sample becomes available and a confirmatory test can be registered blind -> this entry's item 6 is satisfied and a new registration is appended. A reader disputes the relabelling -> item 3's reasoning is the answer, and if the dispute has force, a new entry restates the conclusion rather than editing this one. `results_reporting_and_claims_policy.md` (E3) is written -> the "non-confirmatory" phrasing rule moves there and E7 §5 becomes a pointer.
+
+**Expected value assessment:**
+- Probability a careful reader would have inferred the F26 label problem from the artefacts unaided: moderate (~35%) -- the registry says REGISTERED and the run says exploratory, which is a visible seam.
+- Probability that disclosing it in the author's own words costs credibility rather than gaining it: low (~15%). The framework's own failure mode here is understating a defect and being caught; overstating it is recoverable.
+- Probability a future reader needs item 6 (what a valid test requires) to judge the project fairly: high (~75%) -- the natural question is "so will you test it properly?", and "no, and here is why not yet" is a better answer than a promise.
+- Probability the NOTICE placement matters (item 5): low for licensing outcome (~10%), high for reviewability (~80%) -- a `NOTICE.txt` in the diff can be read; a licence field inside a generated manifest is easy to miss.
+
+**Pre-mortem:**
+Six weeks from now this entry has failed in one of three ways. (a) A public artefact says "confirmatory", or says "the confirmatory test failed" -- detectable by grepping the published material for the word and requiring it to appear only inside the F26 disclosure. (b) The registry index says RE-DESIGNATED but the entry's own Conclusion section still reads as though K1 fired, so two parts of the same ledger disagree -- detectable by reading the index row and the entry's Decision line together. (c) Item 5's deviation was implemented by editing `manifest.json` after all, so the archive's hashed record carries an editorial licence statement -- detectable by opening the published `manifest.json` and finding no `license`/`notice` key of this kind.
+
+---
+
 ## Appendix A — Experiment Registry (Ledger)
 
 This appendix is the append-only ledger of pre-registered experiments. Registry *rules* (what counts as an experiment, ID format, denominator rules, invalidation rules) live in `evaluation_protocol.md` §12 and, until Phase C completes, in `experiment_registry_and_preregistration.md`. This appendix holds the *entries*.
@@ -1353,7 +1409,7 @@ This appendix is the append-only ledger of pre-registered experiments. Registry 
 | EXP-H1-20261015-001 | 2026-10-15 | X (exploratory) | ARCHIVED | Phase 1 smoke test (retroactively logged per DEC-20261015-012) |
 | EXP-X-20261017-001 | 2026-10-17 | X (exploratory) | REGISTERED | Test B — cap-sensitivity sweep (cap-artifact diagnostic) |
 | EXP-X-20261017-002 | 2026-10-17 | X (exploratory) | REGISTERED | Test C — window sensitivity, windows {36, 60} (window-artifact diagnostic) |
-| EXP-H2-20261017-001 | 2026-10-17 | H2 / H3 (confirmatory) | REGISTERED | Test D — confirmatory evaluation of the robust methods (H2.4); N = 1 at registration |
+| EXP-H2-20261017-001 | 2026-10-17 | H2 / H3 (confirmatory) | RE-DESIGNATED — EXECUTED (NON-CONFIRMATORY) | Test D — evaluation of the robust methods (H2.4); N = 1 at registration; blindness lost to F26, so it does not count (DEC-20261017-034) |
 | EXP-X-20261017-003 | 2026-10-17 | X (exploratory) | EXECUTED (non-confirmatory) | First end-to-end run of the reporting layer — report-generator validation on the frozen configuration (see F26) |
 
 ### EXP-H1-20261015-001
@@ -1488,9 +1544,9 @@ This appendix is the append-only ledger of pre-registered experiments. Registry 
 
 ### EXP-H2-20261017-001
 
-**Status:** REGISTERED (not executed)
+**Status:** **RE-DESIGNATED — EXECUTED (NON-CONFIRMATORY)**, 2026-10-17 (finding F26; DEC-20261017-034). The registration below is unchanged — hypothesis, parameters, metrics, decision rule and denominator are exactly as pre-registered.
 **Registered date:** 2026-10-17
-**Family:** H2 / H3 (**confirmatory — counts** toward the denominator)
+**Family:** H2 / H3 (**confirmatory slot — does not count**; the registration was confirmatory, the execution was not blind, so it contributes nothing to any denominator, §12.10 by analogy)
 **Related hypotheses:** H2.1, H2.2, H2.3, **H2.4**; H3.1, H3.2, H3.3.
 **Related decision triggers:** **§8.6 K1** (if no method is successful, the primary objective is falsified → stop-and-report).
 **Related decision log entries:** DEC-20261017-023 (spec freeze), DEC-20261017-025 (snapshot), DEC-20261017-026 (this registration)
@@ -1541,9 +1597,13 @@ This appendix is the append-only ledger of pre-registered experiments. Registry 
 
 **8. Pre-registration signature.** Author: Ken Ira Lacson Talingting. Date: 2026-10-17. Git commit at registration: `1b71e13`. Registry version at registration: `decision_log.md` v1.3, Appendix A scaffold.
 
-**Results:** pending execution.
-**Conclusion:** pending.
-**Decision:** pending.
+**Results:** Executed 2026-10-17 as **`EXP-X-20261017-003` — one execution, one record, two labels** (DEC-20261017-034). The run is logged in full under that entry and is deliberately not duplicated here. Snapshot `yahoo-usetf-2007-01-01_2026-09-30-2026-10-17-2ad06139`; the §3 parameters above, unchanged; 168 rebalances, 14 folds, 1,176 solves, §5.6 certificate clean.
+
+**Conclusion:** **Not a confirmation, and no H2.4 statement is made.** Under the frozen §6.4 rule the verdict is **FAILURE** for both candidates. `M2` net Sharpe **0.8538** against the best baseline `B3` **0.7896** is a gap of **+0.064** against the registered **≥ 0.20** bar; `M1` is **−0.004**. PSR **0.587** and **0.495** against the registered **0.95** bar. The §6.3 concentration clause is independently binding — `M2`'s largest fold contributes **51.3%** of its advantage. **K1 does not fire**: K1 belongs to a confirmatory test, and this execution was not blind. The primary objective is therefore **untested**, not falsified.
+
+Two things make the relabelling honest rather than a way out, and both are recorded here rather than left for a reader to notice. **(1)** It changes *which entry carries the verdict*, not the verdict: the §6.4 outcome is `FAILURE` either way, so nothing is rescued by relabelling it. **(2)** The hypothesis, parameters, metrics, thresholds, decision rule and denominator were frozen before the number was seen and the rule is mechanical, so the observation cannot have moved the verdict even though it destroyed the blindness.
+
+**Decision:** Re-designated **EXECUTED (NON-CONFIRMATORY)** per DEC-20261017-034. **No replacement confirmatory test is registered** — see that entry for what a valid one would require. Nothing in this entry may be cited for or against H2.4.
 
 ---
 
@@ -1640,6 +1700,8 @@ This appendix is the migration record for the open items in `docs/TODO.md` (v1.1
 
 **Update 2026-10-17 (DEC-20261017-033).** **E7 closes**: `open_source_and_license_policy.md` is written as **v1.0 Draft** and registered as the eighth active document, removed from "Not yet written". It separates the licence by artefact class — **MIT for the code**, and explicitly **not** for the Yahoo-sourced snapshot archive — because the release chain the previous entry built uploads third-party data that MIT cannot cover. Finding **F30** is raised: publishing the archive is a **redistribution**, which the release plan had assumed it was not, so the disposition is a `[PROPOSED]` **owner** decision — publish the archive with a NOTICE (recommended), publish only the derived series, or publish the digest alone. The contribution model is `[PROPOSED]` (issues and PRs, no CLA), and an **attribution clause** records that findings describe this implementation, not `cvxpy` or `pandas` defects, since F19 and F28 document upstream behaviour working as specified. The **F26** recommendation is presented and deliberately **not** resolved: re-designate `EXP-H2-20261017-001` as **EXECUTED (NON-CONFIRMATORY)**, record its execution as the *same* run as `EXP-X-20261017-003` (one execution, one record, two labels), and register **no** replacement confirmatory test now, because a test designed after the answer is known is a test designed by the answer. **Owner decisions requested on F26 and on the two `[PROPOSED]` items.** Nothing pushed; no release cut.
 
+**Update 2026-10-17 (DEC-20261017-034).** Both requests are answered. **F26:** `EXP-H2-20261017-001` is re-designated **EXECUTED (NON-CONFIRMATORY)**; its execution is the *same run* as `EXP-X-20261017-003` (one execution, one record, two labels), **no replacement confirmatory test is registered**, and because K1 belongs to a confirmatory test, K1 **does not fire** — H2.4 is **untested, not falsified**. Family H2/H3 now holds a spent, empty confirmatory slot. The entry states, in the ledger rather than in a reader's reconstruction, why this cannot be used to rescue the hypothesis: the §6.4 verdict is `FAILURE` for both candidates either way, so the relabelling changed *which entry carries the verdict*, not the verdict. **E7:** `open_source_and_license_policy.md` is **v1.0 Frozen** with both `[PROPOSED]` items confirmed — publish the snapshot archive with a NOTICE, and accept contributions as issues and PRs with no CLA. One deliberate deviation from DEC-033's own wording is recorded: the NOTICE lives in a **`NOTICE.txt` member inside the archive**, generated by `scripts/pack_snapshot.py`, rather than as a field in `manifest.json`, because the manifest is the data layer's hashed record and a licensing statement is not data. **Nothing pushed; no release cut; the release now has no open governance gate.**
+
 ---
 
 ## Revision history
@@ -1669,6 +1731,7 @@ This appendix is the migration record for the open items in `docs/TODO.md` (v1.1
 | 2026-10-17 | Added DEC-20261017-031 (reporting layer lands — `metrics.py` rewritten to spec §7.1-§7.7 with the Phase 1 turnover definition deleted, new `stats.py` and `report.py`, and the single command `scripts/run_experiment.py`; findings F24 (calibration object / volatility half), F25 (§6.3 "advantage" metric) and F26 (the report's validation consumed Test D's blind look) recorded as open owner decisions; first end-to-end run logged as `EXP-X-20261017-003`, exploratory and non-counting, with `B3` the best baseline and both candidates returning FAILURE). Updated the Appendix A index and ledger, the Appendix B note, and `docs/README.md`. | Ken Ira Lacson Talingting |
 | 2026-10-17 | Added DEC-20261017-032 (release packaging chain: the frozen snapshot packs into a deterministic 1.67 MB release archive with an external `.sha256`; `scripts/verify_release.py` re-runs the harness against the extracted archive and asserts equality with the published table at tolerance zero; the run directory publishes `net_excess_returns.csv`; `scripts/make_figures.py` draws both headline figures; a `CI` workflow runs the fresh-clone suite and, when the release asset exists, the full reproduction). Findings **F27** (the bundle hash covers four files, not the five `manifest.json` lists — the first verifier rejected every valid snapshot), **F28** (`pandas.read_csv`'s default parser is lossy by one ULP) and **F29** (`docs/README.md`'s version header had drifted behind its own history, and the status board asserted a version for this file that this file did not declare) recorded. Added `tests/test_release_packaging.py`, `tests/test_docs_index.py`, and a `**Version:**` header to this file so the status board's claim about it is checkable. Nothing pushed; no release cut; F24-F26 remain open, so no public confirmatory language. `docs/README.md` to v1.14. | Ken Ira Lacson Talingting |
 | 2026-10-17 | Added DEC-20261017-033 (**E7 closed**: `open_source_and_license_policy.md` v1.0 Draft written and registered as the eighth active document — MIT for code, explicitly **not** for the Yahoo-sourced snapshot archive). Finding **F30** raised: the published archive is a redistribution of third-party market data, so its disposition is a `[PROPOSED]` owner decision (publish with a NOTICE, recommended). The contribution model is `[PROPOSED]`; an attribution clause is added so F19/F28 are not read as upstream bugs. The **F26** recommendation (re-designate Test D as non-confirmatory, do not register a replacement) is presented as an owner decision and **not** resolved by this entry. `docs/README.md` to v1.15. | Ken Ira Lacson Talingting |
+| 2026-10-17 | Added DEC-20261017-034 (**F26 resolved**: `EXP-H2-20261017-001` re-designated **EXECUTED (NON-CONFIRMATORY)**, its execution recorded as the *same run* as `EXP-X-20261017-003`, no replacement confirmatory test registered, and K1 not fired — so H2.4 is **untested rather than falsified**. The Appendix A index row, the entry's status, family line, Results, Conclusion and Decision are restated, and the reason the relabelling cannot rescue the hypothesis is recorded *inside the entry*. **E7 closed**: `open_source_and_license_policy.md` frozen at v1.0 with both `[PROPOSED]` items confirmed. The NOTICE placement deviates deliberately from DEC-033's wording — a `NOTICE.txt` member in the archive instead of a field in `manifest.json` — and the deviation is recorded rather than absorbed). `docs/README.md` to v1.16, `decision_log.md` to v1.9. | Ken Ira Lacson Talingting |
 
 ---
 
