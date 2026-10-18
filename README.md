@@ -7,13 +7,14 @@ This repository is the benchmark that answers that question under a pre-register
 [![protocol](https://img.shields.io/badge/protocol-v2.4%20frozen-blue)](docs/evaluation_protocol.md)
 [![spec](https://img.shields.io/badge/spec-v1.1%20frozen-blue)](docs/model_and_method_spec.md)
 [![CI](https://github.com/kira-ml/robustfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/kira-ml/robustfolio/actions/workflows/ci.yml)
+[![release](https://img.shields.io/github/v/release/kira-ml/robustfolio)](https://github.com/kira-ml/robustfolio/releases/latest)
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 ---
 
 ## Result
 
-> **Exploratory, non-confirmatory** (DEC-20261015-012). These numbers may not be cited for or against any hypothesis. The registered confirmatory test (`EXP-H2-20261017-001`) has not been executed; see [Limitations](#limitations) and findings F24–F26.
+> **Exploratory, non-confirmatory** (DEC-20261015-012). These numbers may not be cited for or against any hypothesis. The registered confirmatory test (`EXP-H2-20261017-001`) is **executed (non-confirmatory)**: its answer was observed before it ran, because validating the report generator required executing the frozen configuration (finding **F26**, DEC-20261017-034). No confirmatory test therefore exists, and the hypotheses are **untested, not falsified**. See [Limitations](#limitations) and findings F24–F26, F31.
 
 **Neither robust method was successful under the frozen decision rule.** Over 168 out-of-sample months on a point-in-time universe of 18 US ETFs, the best baseline was `B3` — plain sample-covariance, sample-mean MVO, the method the project set out to critique.
 
@@ -52,24 +53,25 @@ git clone https://github.com/kira-ml/robustfolio.git && cd robustfolio
 python -m pip install -e .
 ```
 
-**Exact reproduction** — the frozen snapshot, which is the input the table above was computed from. It is a 1.67 MB asset on the Releases page:
+**Exact reproduction** — the frozen snapshot, which is the input the table above was computed from. It is a 1.67 MB asset on the [Releases page](https://github.com/kira-ml/robustfolio/releases/latest):
 
 ```bash
 # The asset, named for its content hash:
 #   robustfolio-snapshot-yahoo-usetf-2007-01-01_2026-09-30_2026-10-17-2ad06139.tar.gz
 #   SHA-256 7a3fc20991b664099ada44a308dfde57d8080994ff498e2f5a0dd98f2ecab77d
-#   That digest is of the *archive* — the data **plus** its NOTICE.txt. The snapshot's
+#   That digest is of the *archive* -- the data **plus** its NOTICE.txt. The snapshot's
 #   own identity is the bundle hash 2ad0613913df9065b62ba2291abc391402c1eb13d36937ba8c2bbc09d637d707
 #   recorded in manifest.json. The two are different things, deliberately (finding F31).
-curl -LO https://github.com/kira-ml/robustfolio/releases/download/v1.0.0/<asset-from-the-release-page>
-python scripts/pack_snapshot.py --verify <asset> --extract-to data/snapshots
+ASSET=robustfolio-snapshot-yahoo-usetf-2007-01-01_2026-09-30_2026-10-17-2ad06139.tar.gz
+curl -LO "https://github.com/kira-ml/robustfolio/releases/download/v1.0.0/$ASSET"
+python scripts/pack_snapshot.py --verify "$ASSET" --extract-to data/snapshots
 
 # Regenerate the headline number and every table behind it.
 python scripts/run_experiment.py --out results/run
 
 # Re-run every method from the archive and assert it equals the published table.
-# Tolerance is exactly zero; this prints EXACT or a non-zero exit.
-python scripts/verify_release.py --archive <asset> --run results/run
+# Tolerance is exactly zero; this prints EXACT or exits non-zero.
+python scripts/verify_release.py --archive "$ASSET" --run results/run
 
 # The headline figure, from the run directory alone.
 python scripts/make_figures.py --run results/run
