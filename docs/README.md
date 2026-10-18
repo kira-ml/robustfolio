@@ -1,6 +1,6 @@
 # robustfolio Documentation Index
 
-**Version:** 1.14
+**Version:** 1.15
 **Status:** Active
 **Last Updated:** 2026-10-17
 
@@ -27,13 +27,14 @@ The active documentation set is seven files. All other Tier 0 documents have bee
 
 | # | Document | Version | Status | Purpose | Last Updated |
 |---|----------|---------|--------|---------|--------------|
-| 1 | [`README.md`](README.md) | 1.14 | Active | Index and status board | 2026-10-17 |
+| 1 | [`README.md`](README.md) | 1.15 | Active | Index and status board | 2026-10-17 |
 | 2 | [`problem_framing.md`](problem_framing.md) | 2.4 | Foundational | Problem statement, stakeholders, causal model, references | 2026-10-17 |
 | 3 | [`scope_and_non_goals.md`](scope_and_non_goals.md) | 1.4 | **Active** | Authoritative scope: MVP, extensions, out-of-scope | 2026-10-17 |
 | 4 | [`evaluation_protocol.md`](evaluation_protocol.md) | 2.4 | **Frozen** | Metrics, protocol, thresholds, hypotheses, triggers, firewalls, governance, baselines, data contract, cost model, registry rules | 2026-10-17 |
 | 5 | [`model_and_method_spec.md`](model_and_method_spec.md) | 1.1 | **Frozen** | Exact method, estimator, optimizer, harness, and metric definitions (absorbs F7) | 2026-10-17 |
-| 6 | [`decision_log.md`](decision_log.md) | 1.7 | Active | Immutable record of governance, experiment, and pivot decisions; includes the experiment registry ledger (Appendix A) | 2026-10-17 |
+| 6 | [`decision_log.md`](decision_log.md) | 1.8 | Active | Immutable record of governance, experiment, and pivot decisions; includes the experiment registry ledger (Appendix A) | 2026-10-17 |
 | 7 | [`risk_register_and_premortem.md`](risk_register_and_premortem.md) | 1.4 | **Active** | Failure modes, ratings, mitigations, triggers, pre-mortem scenarios | 2026-10-17 |
+| 8 | [`open_source_and_license_policy.md`](open_source_and_license_policy.md) | 1.0 | Draft | Licensing of code vs. third-party data, what is published, contributions, attribution | 2026-10-17 |
 
 **Working inputs (not Tier 0 documents):** the freeze worksheet [`../notes/freeze_worksheet_2026-10-17.md`](../notes/freeze_worksheet_2026-10-17.md) (the decisions behind protocol v2.3, with rationale and sources); the Tests B/C/D specification [`../notes/tests_BCD_spec_2026-10-17.md`](../notes/tests_BCD_spec_2026-10-17.md); the freeze inputs [`../notes/freeze_inputs_2026-10-15.md`](../notes/freeze_inputs_2026-10-15.md); the Phase 1 DSR inputs [`../notes/dsr_inputs_phase1.json`](../notes/dsr_inputs_phase1.json); the confirmed point-in-time candidate universe [`../notes/pit_universe_2026-10-17.md`](../notes/pit_universe_2026-10-17.md) v1.0 (18 ETFs, anchor 2012-06 — DEC-20261017-024) with its machine-readable list [`../notes/pit_candidates_2026-10-17.csv`](../notes/pit_candidates_2026-10-17.csv); the snapshot and leakage-suite evidence record [`../notes/snapshot_and_leakage_evidence_2026-10-17.md`](../notes/snapshot_and_leakage_evidence_2026-10-17.md) v1.0 (snapshot `…-2ad06139`, §5.4.8 suite pass — DEC-20261017-025); the design diagnostics [`../notes/power_and_effective_bets_2026-10-17.md`](../notes/power_and_effective_bets_2026-10-17.md) v1.1 (effective bets of the universe, power of the registered tests, finding F15 — DEC-20261017-028).
 
@@ -79,7 +80,6 @@ The following documents are referenced by other documents but do not exist yet.
 1. `reproducibility_and_environment.md` — written when the Python environment is first set up.
 2. `results_reporting_and_claims_policy.md` — written before Phase 4 (reporting).
 3. `architecture_decision_records/` — created when the first irreversible technical decision is made.
-4. `open_source_and_license_policy.md` — written before public release.
 
 ---
 
@@ -126,6 +126,7 @@ The following documents are referenced by other documents but do not exist yet.
 | 2026-10-17 | 1.12 | Added a **harness and certificate status** paragraph: the walk-forward harness (spec §6) lands, and certification now drives the harness rather than re-implementing it. The engine certifies **1,176 solves with zero rejections** (worst residual `1.49e-11`). Findings **F19–F23** recorded (DEC-20261017-030) — layout-dependent estimator results, the certificate's `nu` fallback, a redundant L1 auxiliary bound, the risk-parity acceptance bypass, and the certification script's divergence from production. `SOLVER_TOL` re-confirmed; `config.py`'s evidence table moved to whole-run figures. | Ken Ira Lacson Talingting |
 | 2026-10-17 | 1.13 | Added a **reporting layer status** paragraph: the spec §7 metric registry is rewritten with the Phase 1 turnover definition deleted, `stats.py` (PSR/DSR/block bootstrap) and `report.py` land, and one command (`scripts/run_experiment.py`) regenerates the whole run directory. Findings **F24** (§7.8's calibration object; the volatility half is not implemented) and **F25** (§6.3's "advantage" metric — the reading decides the verdict) recorded as open owner decisions, plus **F26** (the report generator's validation consumed Test D's blind look). The first end-to-end run is logged as `EXP-X-20261017-003` (exploratory, non-counting): `B3` is the best baseline at 0.7896 [0.3311, 1.3176], `M2` 0.8538, `M1` 0.7860, both candidates FAILURE under §6.4. Corrected the status-board row for this file, which still read 1.11 after the 1.12 revision. `decision_log.md` → 1.6. DEC-20261017-031. The design/detectability appendix required by finding F15 (DEC-20261017-028) is implemented and reports `rho(M1, B3) = 0.9845`, `rho(M2, B3) = 0.9856`. | Ken Ira Lacson Talingting |
 | 2026-10-17 | 1.14 | Added a **release packaging status** paragraph: the snapshot now packs into a deterministic 1.67 MB release archive with an external `.sha256`, and `scripts/verify_release.py` re-runs the harness against the extracted archive and asserts equality with the published table at tolerance zero (`EXACT`, max abs diff `0.000e+00`, 18 columns). Findings **F27** (the bundle hash covers four files, not the five `manifest.json` lists — the first verifier rejected every valid snapshot), **F28** (`pandas.read_csv`'s default parser is lossy by one ULP; only `float_precision="round_trip"` is exact) and **F29** (`docs/README.md`'s own version header had drifted behind its history) recorded. The run directory publishes `net_excess_returns.csv`; `scripts/make_figures.py` draws the figures from the run directory alone; a `CI` workflow runs the suite on a fresh clone and the full reproduction once the release asset exists. Fixed the header drift F29 names, and added `tests/test_docs_index.py` so index-versus-document agreement is enforced mechanically rather than by discipline. `decision_log.md` → 1.7. DEC-20261017-032. | Ken Ira Lacson Talingting |
+| 2026-10-17 | 1.15 | Added **`open_source_and_license_policy.md` v1.0 Draft** as the eighth active document and removed it from "Not yet written" (Appendix B item E7, recorded as "must be written before public release"). Its §2 raises finding **F30**: the frozen snapshot archive published for verification contains third-party Yahoo Finance data that the MIT licence does not cover, so the archive's redistribution disposition is a `[PROPOSED]` owner decision, with a required NOTICE if it is confirmed. DEC-20261017-033. | Ken Ira Lacson Talingting |
 
 ---
 
