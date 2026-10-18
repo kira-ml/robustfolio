@@ -3,7 +3,7 @@
 **Project:** `robustfolio`
 **Owner:** Ken Ira Lacson Talingting
 **Created:** 2026-10-14
-**Version:** 1.10
+**Version:** 1.11
 **Last Updated:** 2026-10-17
 **Purpose:** Immutable record of every governance, experiment, and pivot decision in the project. Entries are append-only. Supersession is by a new entry, not by editing an old one.
 
@@ -1281,7 +1281,7 @@ Six weeks from now this entry has failed in one of four ways. (a) The snapshot a
 
 ### DEC-20261017-033
 
-**Date:** 2026-10-17
+**Date:** 2026-10-18
 **Type:** GOVERNANCE
 **Status:** ACTIVE
 **Authority:** Owner
@@ -1340,7 +1340,7 @@ Six weeks from now this entry has failed in one of four ways. (a) The archive wa
 
 ### DEC-20261017-034
 
-**Date:** 2026-10-17
+**Date:** 2026-10-18
 **Type:** GOVERNANCE
 **Status:** ACTIVE
 **Authority:** Owner
@@ -1396,7 +1396,7 @@ Six weeks from now this entry has failed in one of three ways. (a) A public arte
 
 ### DEC-20261017-035
 
-**Date:** 2026-10-17
+**Date:** 2026-10-18
 **Type:** IMPLEMENTATION
 **Status:** ACTIVE
 **Authority:** Owner (implements DEC-20261017-033 and DEC-20261017-034)
@@ -1786,6 +1786,7 @@ This appendix is the migration record for the open items in `docs/TODO.md` (v1.1
 | 2026-10-17 | Added DEC-20261017-033 (**E7 closed**: `open_source_and_license_policy.md` v1.0 Draft written and registered as the eighth active document — MIT for code, explicitly **not** for the Yahoo-sourced snapshot archive). Finding **F30** raised: the published archive is a redistribution of third-party market data, so its disposition is a `[PROPOSED]` owner decision (publish with a NOTICE, recommended). The contribution model is `[PROPOSED]`; an attribution clause is added so F19/F28 are not read as upstream bugs. The **F26** recommendation (re-designate Test D as non-confirmatory, do not register a replacement) is presented as an owner decision and **not** resolved by this entry. `docs/README.md` to v1.15. | Ken Ira Lacson Talingting |
 | 2026-10-17 | Added DEC-20261017-034 (**F26 resolved**: `EXP-H2-20261017-001` re-designated **EXECUTED (NON-CONFIRMATORY)**, its execution recorded as the *same run* as `EXP-X-20261017-003`, no replacement confirmatory test registered, and K1 not fired — so H2.4 is **untested rather than falsified**. The Appendix A index row, the entry's status, family line, Results, Conclusion and Decision are restated, and the reason the relabelling cannot rescue the hypothesis is recorded *inside the entry*. **E7 closed**: `open_source_and_license_policy.md` frozen at v1.0 with both `[PROPOSED]` items confirmed. The NOTICE placement deviates deliberately from DEC-033's wording — a `NOTICE.txt` member in the archive instead of a field in `manifest.json` — and the deviation is recorded rather than absorbed). `docs/README.md` to v1.16, `decision_log.md` to v1.9. | Ken Ira Lacson Talingting |
 | 2026-10-17 | Added DEC-20261017-035 (the NOTICE implemented: `pack_snapshot.py` generates a deterministic `NOTICE.txt` member from a version-controlled template and refuses an on-disk copy; `verify_release.py` asserts the notice is present and unchanged before re-running the methods, so an archive that lost it fails loudly instead of publishing data with no statement attached. Archive digest `28e1d907…` → **`7a3fc209…`**, bundle hash and snapshot id **unmoved**. **Finding F31** recorded — the archive digest identifies the *distribution* and the snapshot id identifies the *data*, and an editorial addition moves one but not the other; the README now states what the digest is of. Four new packaging tests. Re-verification with the notice check active: `EXACT`, max abs diff `0.000e+00`, 18 columns). `docs/README.md` to v1.17, `decision_log.md` to v1.10. | Ken Ira Lacson Talingting |
+| 2026-10-18 | Corrected the **Date** field of DEC-20261017-033/034/035 from 2026-10-17 to 2026-10-18. The entries carried the previous day forward by inertia across local midnight; their commit timestamps (`4541cc8`, `1444f3f`, `7e4067b`) are all 2026-10-18 and are the independent evidence — the record was checked against git, not against itself. The **IDs are deliberately not renamed**: an identifier has to stay stable, renaming would break references in `docs/README.md`, `open_source_and_license_policy.md`, `notes/` and this file's own text, and the Date field is the field that carries the date. DEC-20261017-032 is left at 2026-10-17 because its work straddles the boundary (`33dabdb`, 2026-10-18 00:35). **No entry content changed** — no decision, claim, result or reason. | Ken Ira Lacson Talingting |
 
 ---
 
