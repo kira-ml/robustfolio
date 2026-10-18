@@ -16,8 +16,10 @@ four defences generically, with the solver and library failures as its evidence.
 
 ## What every piece is subject to
 
-The claims rules are [E3, a draft](../docs/results_reporting_and_claims_policy.md) — the reporting template
-and the operational form of protocol §14.2. In brief, and binding on all three essays:
+The claims rules are [**E3, frozen at v1.0**](../docs/results_reporting_and_claims_policy.md) — the reporting
+template and the operational form of protocol §14.2, with every rule marked `[§14]` (a restatement of the
+frozen protocol, which wins any conflict) or `[E3]` (the policy's own rule). In brief, and binding on all
+three essays:
 
 - The run is **exploratory and non-confirmatory**; it may not be cited for or against any hypothesis. No
   confirmatory test exists (finding F26, DEC-20261017-034), so the hypotheses are **untested, not
@@ -27,6 +29,9 @@ and the operational form of protocol §14.2. In brief, and binding on all three 
 - Gross Sharpe appears only as a labelled diagnostic beside the net figure.
 - No p-value without its benchmark — here the DSR/PSR contrast *is* the finding.
 - No superiority claim without its interval; no claim from a single cost level or a single fold.
+- **The verdict rests on a named reading.** §6.3's "advantage" is not pinned to a metric; the confirmed
+  reading (fold wins on net Sharpe, the concentration clause on the per-fold mean return difference) is
+  what produces `FAILURE` for `M2`, and E3 §8 records it as load-bearing rather than leaving it implicit.
 - Findings describe **this implementation**, not upstream library bugs: F19 and F28 document upstream
   behaviour working as specified.
 

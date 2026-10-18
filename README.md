@@ -163,6 +163,7 @@ The contracts live in [`docs/`](docs/) and are the authority: **if this README a
 - [`docs/problem_framing.md`](docs/problem_framing.md) · [`docs/scope_and_non_goals.md`](docs/scope_and_non_goals.md)
 - [`docs/risk_register_and_premortem.md`](docs/risk_register_and_premortem.md) — how this project fails
 - [`docs/decision_log.md`](docs/decision_log.md) — every governance decision, the experiment registry, and findings F1–F34
+- [`docs/results_reporting_and_claims_policy.md`](docs/results_reporting_and_claims_policy.md) — what may be claimed from a result, and the reporting template that binds future experiments (v1.0, frozen)
 - [`essays/`](essays/) — the written account: what the four defences caught, the one that failed, and two audience-specific cuts (§14.2 governs them, and every number in them is checkable against this repository)
 
 ---

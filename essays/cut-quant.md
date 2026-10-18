@@ -39,7 +39,10 @@ probabilistic Sharpe ratio ≥ **0.95**. Both, not either.
 | `M2` Bayesian (Black–Litterman) MVO | **0.8538** | [0.426, 1.369] | 2.14 |
 
 `M2`'s advantage over `B3` is **+0.064** against a 0.20 bar; its PSR against `B3` is **0.587** against a
-0.95 bar. Both candidates return **FAILURE** (`M1` at −0.004). Every interval overlaps `B3`'s.
+0.95 bar. Both candidates return **FAILURE** (`M1` at −0.004). Every interval overlaps `B3`'s. One
+disclosure on the verdict: §6.3's "advantage" is not pinned to a metric, and the confirmed reading —
+fold wins on net Sharpe, the concentration clause on the per-fold mean return difference — is the
+binding one for `M2` (51.3%), so a *stated reading*, not the arithmetic alone, produces that `FAILURE`.
 
 The materiality bar does the work here, and that is the point of having one. A 0.064 improvement in net
 Sharpe on a strategy that carries *more* turnover than the baseline is not a result you could act on even

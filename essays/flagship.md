@@ -66,8 +66,9 @@ It makes it impossible to move the bar after seeing the number. Impossible to sw
 that flatters the candidate. Impossible to quietly drop a method that embarrassed you. The protocol, the
 method spec, the thresholds and the decision rule are versioned files that were frozen and dated before
 the run; where a reading was ambiguous, it is disclosed rather than resolved in whichever direction helps
-(finding **F24**: one threshold is not pinned to a metric, and *that reading decides the verdict here* —
-so it says so).
+(findings **F24** and **F25**: two readings were under-specified, and the F25 one — fold wins counted on
+net Sharpe, the concentration clause on the per-fold mean return difference — *is what produces this
+verdict*, so it is stated in the claims policy rather than chosen after the fact).
 
 There is a subtler payoff, and for anyone who works on panels it is the useful part. The standard worry
 with testing several things is multiple testing, and the standard fix is a correction. But if you fire

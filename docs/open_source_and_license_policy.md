@@ -1,8 +1,9 @@
 # Open Source and License Policy — robustfolio
 
-**Version:** 1.0
+**Version:** 1.1
 **Status:** **Frozen**
 **Frozen:** 2026-10-17 (see DEC-20261017-033 for the draft, DEC-20261017-034 for the confirmations)
+**Revised:** 2026-10-18, v1.0 → 1.1 — §5 reduced to a pointer at DEC-20261018-040, which is what its review trigger said would happen when `results_reporting_and_claims_policy.md` (E3) was written. No licence, disposition or archive-affecting content changed.
 **Owner:** Ken Ira Lacson Talingting
 **Created:** 2026-10-17
 
@@ -65,15 +66,17 @@ The repository's most load-bearing output is a **frozen snapshot archive**, publ
 2. not change a frozen value — a threshold, a seed, a metric definition, the cost model, or a registered hypothesis — without a `decision_log.md` entry, because those values are what make the numbers quotable;
 3. state, if it changes a result, **which** result changed and by how much.
 
-Findings are welcome. This project publishes its own defects (F1–F29) on the view that a documented defect is evidence about the method rather than an embarrassment; a report that a specific finding is wrong is treated the same way.
+Findings are welcome. This project publishes its own defects (F1–F34) on the view that a documented defect is evidence about the method rather than an embarrassment; a report that a specific finding is wrong is treated the same way.
 
 ---
 
 ## 5. Attribution and what a reader may claim
 
-Quoting a number is fine, and encouraged, provided it is quoted **with its interval, its cost level, and its exploratory status**. The full prohibitions live in protocol §14.2 and, once written, in `results_reporting_and_claims_policy.md` (Appendix B item **E3**). No metric here may be presented as a return, a forecast, or a recommendation.
+**Reduced to a pointer on 2026-10-18** (DEC-20261018-040), as this section's own review trigger said it would be. The claim rules stated here in v1.0 now live in exactly one place:
 
-Findings recorded in `docs/decision_log.md` describe **this project's implementation and readings**, not defects in `cvxpy`, `scikit-learn`, `pandas`, or any other upstream library. Two of them (F19, F28) document behaviour of upstream code that is working as specified; they must not be cited as upstream bugs.
+- [`results_reporting_and_claims_policy.md`](results_reporting_and_claims_policy.md) — **§5** (quoting a number: with its interval, its cost level and its exploratory status; no metric presented as a return, a forecast or a recommendation) and **§6** (findings describe this project's implementation, not defects in upstream libraries, and F19 and F28 must not be cited as upstream bugs).
+
+Protocol §14.2 remains the authority and E3 operationalises it; nothing is stated there that is not either a restatement of §14 or a rule E3 identifies as its own.
 
 ---
 
@@ -82,4 +85,4 @@ Findings recorded in `docs/decision_log.md` describe **this project's implementa
 - Both dispositions confirmed 2026-10-17 → **v1.0 Frozen**.
 - Yahoo, FRED, or an ETF issuer changes its terms, or any third party objects to the archive → §2 is re-examined and the asset's disposition revisited, with the outcome recorded in `decision_log.md`.
 - A contribution-model dispute arises → §4 revisited.
-- `results_reporting_and_claims_policy.md` (E3) is written → §5 is reduced to a pointer, so that the claim rules exist in exactly one place.
+- `results_reporting_and_claims_policy.md` (E3) is written → §5 is reduced to a pointer, so that the claim rules exist in exactly one place. **Fired 2026-10-18**: E3 was written, frozen at v1.0, and §5 reduced to a pointer (DEC-20261018-040).

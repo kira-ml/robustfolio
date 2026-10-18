@@ -184,7 +184,7 @@ Strip the finance entirely. Keep §1, §3, §4, §5, §6, §9. Translate:
 
 - [x] **F26 closed** — re-designated **executed (non-confirmatory)**, no replacement test registered (DEC-20261017-034).
 - [x] **E7** — `docs/open_source_and_license_policy.md` v1.0 **Frozen**; the archive carries its own `NOTICE.txt` (DEC-20261017-035).
-- [x] **E3** — `docs/results_reporting_and_claims_policy.md` v0.1 written as a **Draft** (DEC-20261018-039). Every rule is marked `[frozen]` (binds now, source named) or `[PROPOSED]` (binds nothing until the owner confirms); its §8 collects the five open values as P1–P5. Protocols §14.2 already governed the claims, so this is the single home, not the gate.
+- [x] **E3** — `docs/results_reporting_and_claims_policy.md` **frozen at v1.0** (DEC-20261018-040; draft at DEC-20261018-039). Every rule is marked `[§14]` (a restatement of the frozen protocol, which wins any conflict) or `[E3]` (the policy's own rule); §8 is the freeze record for the five values P1–P5 and for the two specification readings F24/F25, one of which (F25) produces the published `FAILURE` verdict.
 - [x] Snapshot uploaded as a release asset and the digest quoted in the release notes.
 - [x] Tag `v1.0.0`, cut the Release — published 2026-10-18, both assets uploaded, anonymous re-download matches the quoted digest.
 - [x] The README's own reproduction command verified by running it: the name it quoted returned **404** until F32 was fixed (DEC-20261018-036).
