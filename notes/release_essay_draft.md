@@ -54,7 +54,8 @@ re-derive any of these while writing; copy them.**
 | Paired differences | +0.4% and +0.6% per year | `design.csv` |
 | Snapshot archive | 1.67 MB, SHA-256 `7a3fc209…` | `pack_snapshot.py` |
 | Reproduction check | `EXACT`, max abs diff `0.000e+00`, 18 columns | `verify_release.py` |
-| Suite | 154 passed, 1 skipped | `pytest -q` |
+| CI | regenerates **and** verifies bit-for-bit against `docs/published-run/outcomes.csv`, pinned to the archive digest | `ci.yml` |
+| Suite | 159 passed, 1 skipped | `pytest -q` |
 
 ### Claims this piece may **not** make (protocol §14.2)
 

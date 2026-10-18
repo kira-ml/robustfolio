@@ -57,21 +57,22 @@ python -m pip install -e .
 
 ```bash
 # The asset, named for its content hash:
-#   robustfolio-snapshot-yahoo-usetf-2007-01-01_2026-09-30_2026-10-17-2ad06139.tar.gz
+#   robustfolio-snapshot-yahoo-usetf-2007-01-01_2026-09-30-2026-10-17-2ad06139.tar.gz
 #   SHA-256 7a3fc20991b664099ada44a308dfde57d8080994ff498e2f5a0dd98f2ecab77d
 #   That digest is of the *archive* -- the data **plus** its NOTICE.txt. The snapshot's
 #   own identity is the bundle hash 2ad0613913df9065b62ba2291abc391402c1eb13d36937ba8c2bbc09d637d707
 #   recorded in manifest.json. The two are different things, deliberately (finding F31).
-ASSET=robustfolio-snapshot-yahoo-usetf-2007-01-01_2026-09-30_2026-10-17-2ad06139.tar.gz
+ASSET=robustfolio-snapshot-yahoo-usetf-2007-01-01_2026-09-30-2026-10-17-2ad06139.tar.gz
 curl -LO "https://github.com/kira-ml/robustfolio/releases/download/v1.0.0/$ASSET"
 python scripts/pack_snapshot.py --verify "$ASSET" --extract-to data/snapshots
 
 # Regenerate the headline number and every table behind it.
 python scripts/run_experiment.py --out results/run
 
-# Re-run every method from the archive and assert it equals the published table.
-# Tolerance is exactly zero; this prints EXACT or exits non-zero.
-python scripts/verify_release.py --archive "$ASSET" --run results/run
+# Re-run every method from the archive and assert it reproduces the published
+# table, bit-for-bit. Tolerance is exactly zero: this prints EXACT or exits
+# non-zero. The reference table is committed, so no prior run is needed.
+python scripts/verify_release.py --archive "$ASSET" --run docs/published-run
 
 # The headline figure, from the run directory alone.
 python scripts/make_figures.py --run results/run
@@ -81,10 +82,12 @@ python scripts/make_figures.py --run results/run
 
 ```bash
 python scripts/certify_engine.py    # 7 methods x 168 rebalances, KKT certificate
-python -m pytest -q                 # 154 passed, 1 skipped
+python -m pytest -q                 # 159 passed, 1 skipped
 ```
 
 `run_experiment.py` writes `manifest.json` (snapshot id, git commit, protocol and spec versions, seed, environment), `outcomes.csv`, `decisions.csv`, `calibration.csv`, `design.csv`, `folds_<M>.csv`, `net_excess_returns.csv`, and `report.md`.
+
+**The reference table is in the repository.** `docs/published-run/outcomes.csv` is the metric table these numbers come from, committed (4.8 KB) so that the reproduction check can be a *comparison*. Without it a verifier can only ever say "my run finished", which is a different and much weaker statement. CI runs exactly the command above against the release archive, so a code change or a re-uploaded asset fails the build instead of being noticed in six months — see [`docs/published-run/README.md`](docs/published-run/README.md).
 
 **Rebuilding the snapshot is not reproduction.** Yahoo Finance revises history, so `scripts/build_snapshot.py --end 2026-09-30 --retrieval-date <another date>` produces a *different* snapshot with a different content hash and slightly different numbers. That is why the frozen snapshot ships as an asset, and why the archive's digest is published: exact reproduction means the same input, not a similar one.
 
@@ -122,9 +125,9 @@ A **release archive** is those five files plus a generated `NOTICE.txt` recordin
 | Optimizer | CVXPY + CLARABEL, **no fallback path**, every rebalance certified by a primal KKT residual against a frozen tolerance |
 | Engine certificate | 7 methods × 168 rebalances = **1,176 solves, zero rejections**; worst KKT residual `1.49e-11` vs `1e-7` acceptance |
 | Leakage suite | protocol §5.4.8 — 14 pass, 1 recorded skip (the survivorship test is vacuous in-sample; see below) |
-| Tests | 154 passed, 1 skipped — including the leakage suite, release-packaging integrity (the notice included), and the documentation index |
+| Tests | 159 passed, 1 skipped — including the leakage suite, release-packaging integrity (the notice included), snapshot-name integrity, and the documentation index |
 | Release chain | Frozen snapshot packs to a deterministic 1.67 MB archive with a published SHA-256 and a `NOTICE.txt` recording the data's provenance and licence; `verify_release.py` re-runs the harness from the archive and asserts equality with the published table at zero tolerance |
-| Continuous integration | Hermetic suite green on a fresh clone; full reproduction when the release asset is present |
+| Continuous integration | Hermetic suite green on a fresh clone by design; with the release asset present, CI also re-runs every method and **verifies the archive reproduces the committed published table at tolerance zero**, and fails if it does not |
 
 ---
 

@@ -9,9 +9,15 @@ name: CI
 #
 # The suite is green on a fresh clone by construction: tests that need the frozen
 # snapshot skip with an explanatory reason (see tests/conftest.py), because a CI
-# that is red until you download 2.4 MB teaches people to ignore CI. When the
-# frozen snapshot *is* available -- as a release asset -- the second half of this
-# workflow fetches it and runs the whole thing, including the reproduction.
+# that is red until you download 2.4 MB teaches people to ignore CI.
+#
+# When the release asset *is* available the same job stops skipping and does two
+# more things: it regenerates the numbers with the command the README shows, and
+# it runs verify_release.py against the committed published table. Those are not
+# the same check. Regeneration can only show the code runs; the comparison is what
+# can show it produces *the same numbers*, at tolerance exactly zero. Both are
+# here because "one command regenerates the number" is a README claim, and a claim
+# that runs in CI is a different kind of claim from a claim that is written down.
 
 on:
   push:
@@ -22,9 +28,16 @@ on:
 env:
   # Frozen inputs. If the snapshot is ever rebuilt, these two lines are the only
   # ones that change, and the snapshot id changes with the content by design.
+  # The names are checked against each other, and against the snapshot on disk, by
+  # tests/test_snapshot_name_literals.py: one wrong separator here is a 404 that
+  # looks exactly like the right name (finding F32).
   RELEASE_TAG: v1.0.0
   SNAPSHOT_ASSET: robustfolio-snapshot-yahoo-usetf-2007-01-01_2026-09-30-2026-10-17-2ad06139.tar.gz
   SNAPSHOT_ID: yahoo-usetf-2007-01-01_2026-09-30-2026-10-17-2ad06139
+  # The digest quoted in the release notes and the README. Pinned here so that a
+  # silently re-uploaded asset fails the build, instead of being verified against
+  # the sidecar that was downloaded alongside it.
+  ARCHIVE_SHA256: 7a3fc20991b664099ada44a308dfde57d8080994ff498e2f5a0dd98f2ecab77d
 
 jobs:
   tests:
@@ -48,19 +61,39 @@ jobs:
         id: snapshot
         # Optional by design: absent on a fresh clone, present once the release
         # exists. The un-flagged tests below then stop skipping, so the same job
-        # covers both the hermetic suite and the end-to-end reproduction.
+        # covers both the hermetic suite and the end-to-end checks.
         continue-on-error: true
         run: |
           mkdir -p data/snapshots
-          curl -fsSL -o /tmp/snapshot.tar.gz \
-            "https://github.com/${{ github.repository }}/releases/download/${RELEASE_TAG}/${SNAPSHOT_ASSET}"
-          python scripts/pack_snapshot.py \
-            --verify /tmp/snapshot.tar.gz --extract-to data/snapshots
-          echo "ok=true" >> "$GITHUB_OUTPUT"
+          if curl -fsSL -o /tmp/snapshot.tar.gz \
+              "https://github.com/${{ github.repository }}/releases/download/${RELEASE_TAG}/${SNAPSHOT_ASSET}"; then
+            python scripts/pack_snapshot.py \
+              --verify /tmp/snapshot.tar.gz --extract-to data/snapshots
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            # A skipped end-to-end check has to be visible. `continue-on-error`
+            # keeps a pre-release run green, but it must not let a missing or
+            # misnamed asset look like a passing verification.
+            echo "::warning title=Release asset not fetched::The end-to-end checks (bit-for-bit reproduction against docs/published-run) were SKIPPED. Expected only before the release exists; otherwise the asset name or the tag is wrong."
+          fi
 
       - name: Confirm the snapshot is the frozen one, not merely present
         if: steps.snapshot.outputs.ok == 'true'
         run: python scripts/pack_snapshot.py --verify-dir "data/snapshots/${SNAPSHOT_ID}"
+
+      - name: The archive reproduces the published table, bit-for-bit
+        if: steps.snapshot.outputs.ok == 'true'
+        # The strongest check in the repository, made standing rather than a
+        # one-off: all seven methods are re-run from the archive and compared to
+        # docs/published-run/outcomes.csv. It prints EXACT or exits non-zero, and
+        # the tolerance is exactly zero, so "regenerates something similar" cannot
+        # pass. The digest is pinned in env above, so this also fails if the asset
+        # is ever re-uploaded with different bytes.
+        run: |
+          python scripts/verify_release.py \
+            --archive /tmp/snapshot.tar.gz \
+            --run docs/published-run \
+            --expect-sha256 "${{ env.ARCHIVE_SHA256 }}"
 
       - name: Tests
         run: python -m pytest -q

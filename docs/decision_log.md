@@ -3,7 +3,7 @@
 **Project:** `robustfolio`
 **Owner:** Ken Ira Lacson Talingting
 **Created:** 2026-10-14
-**Version:** 1.11
+**Version:** 1.12
 **Last Updated:** 2026-10-17
 **Purpose:** Immutable record of every governance, experiment, and pivot decision in the project. Entries are append-only. Supersession is by a new entry, not by editing an old one.
 
@@ -1445,6 +1445,64 @@ Three ways this fails later. **(a)** The release notes quote `28e1d907…` from 
 
 ---
 
+### DEC-20261018-036
+
+**Date:** 2026-10-18
+**Type:** IMPLEMENTATION
+**Status:** ACTIVE
+**Authority:** Owner (implements the CI change agreed at DEC-20261017-034)
+**Related docs:** `README.md`, `.github/workflows/ci.yml`, `docs/published-run/README.md`, `tests/test_snapshot_name_literals.py` (new), `docs/README.md` (v1.19), `decision_log.md` (v1.12)
+**Related risks:** R-E01
+
+**Context:**
+Making CI verify bit-for-bit rather than merely regenerate required `verify_release.py` to compare against a committed reference table, and that required the frozen snapshot to be named in one more place. Before adding it, every literal in the repository that quotes the snapshot id was checked against the filesystem rather than against the other literals. Four were wrong. One of them is **published**: the README's reproduction command, whose `curl` returns 404 for any reader who follows it.
+
+The wrong form is a single character — an extra underscore where the window end meets the retrieval date, `2026-09-30_2026-10-17` instead of `2026-09-30-2026-10-17`. It came from an earlier summary of this project and every later copy inherited it. While investigating, a **fresh hand-typed copy in the workflow was wrong in exactly the same way within minutes**, which is the finding: the defect is hand-typing, not the typo.
+
+**Decision:**
+
+1. **Finding F32 recorded.** The snapshot id is quoted by hand in the README, the CI workflow, and a document; a wrong separator is indistinguishable from the right one by reading, and fails as a 404. Load-bearing fact for the record: **the release is unaffected** — the published asset was named by `pack_snapshot.py` from the filesystem, so its name was always correct, its digest is unchanged, and CI's committed `SNAPSHOT_ID` was correct. The defect was confined to documentation and to one envelope variable that had not yet been exercised.
+
+2. **All four literals corrected**, and the corrected README command checked by running it, not by reading it.
+
+3. **`tests/test_snapshot_name_literals.py` added** — five checks: the archive name is *derived* from the id rather than compared to it; every quoted literal equals the workflow's `SNAPSHOT_ID`; the README's `ASSET` equals the workflow's `SNAPSHOT_ASSET`; the id equals the snapshot directory on disk when one is present; and the new `docs/published-run` document names the frozen snapshot. On a fresh clone this is a consistency check; in CI — which fetches the archive — it is checked against a real directory.
+
+4. **The guard was shown to fail.** Reintroducing the bad separator fails **4 of the 5** tests. A check that has never been seen to fail is decoration.
+
+5. **`docs/published-run/outcomes.csv` is committed** as the published metric table (4,777 bytes), and CI runs `verify_release.py --archive <fetched asset> --run docs/published-run --expect-sha256 <pinned digest>`. The workflow therefore compares a freshly computed table against the published one at tolerance zero — which is what the README claimed and previously did not do.
+
+6. **A skipped end-to-end check now announces itself.** The fetch step keeps `continue-on-error: true` (a fresh clone and a pre-release repository have nothing to fetch, and a red CI teaches people to ignore CI) but emits a `::warning::` annotation naming exactly what was skipped.
+
+**Alternatives considered:**
+- **Fix the four literals and stop.** Rejected: the same mistake was made twice inside the hour, the second time by an agent that had just written the first fix.
+- **Have the README derive the asset name from the release page rather than set `ASSET=`.** Rejected as the primary fix — a copy-pasteable command is worth more to a reader — but the literal is now enforced rather than trusted.
+- **Make the fetch step fail when the asset cannot be fetched.** Rejected for the reason the workflow's own header gives: before a release exists there is nothing to fetch, and a CI that is red on a fresh clone is a CI people learn to ignore. A visible warning is the honest middle.
+- **Exempt the workflow's `SNAPSHOT_ID` from the naming test because CI checks it anyway.** Rejected: CI is precisely where it matters, and the step that would catch it sits behind the `continue-on-error` fetch.
+- **Rename the snapshot to match the typo.** Rejected without discussion: the id is content-derived and embedded in the published asset name and the archive manifest.
+
+**Rationale:**
+[First Principles] An identifier that a human retypes is hand-entered data, and the filesystem already knows the answer. The fix is not care, it is derivation, plus a test for the places where derivation is not possible.
+[Map is Not the Territory] The four literals agreed with each other's *shape* and disagreed with the thing itself. Comparing copies to copies would have found nothing; the defect was found only by comparing to the filesystem.
+[Inversion] Ask how a 404 stays invisible: it is wrapped in `continue-on-error`, and the step it feeds is one whose absence looks like success. So the second half of the fix is making the skip announce itself.
+[Goodhart] The tempting measure is "the README has a reproduction command". The measure that matters is "the command works", knowable only by running it against the thing it names.
+[Path Dependence] The wrong form came from an early summary and was inherited by every later copy. Cheap to fix now, expensive to keep, which is the argument for one authoritative source and a test rather than for proofreading.
+
+**Reversibility:** Soft. Four literals, one new test file, one workflow step, one committed CSV.
+
+**Revisit trigger:**
+A genuinely different snapshot id appears in the repository (e.g. after a rebuild) -> the literal goes into the test's allowlist with a reason, rather than the test being loosened. A second snapshot exists on disk -> the "exactly one" assertion becomes a loop over the snapshots actually present. The release asset is renamed -> the warning annotation says so, and the name is fixed at its source of truth: the filesystem.
+
+**Expected value assessment:**
+- Probability a reader would have hit the 404 before anything else: **high (~60%)** — it is the first command in the reproduction block, and the block is the repository's central claim.
+- Probability the class recurs without a test: **high (~70%)**, evidenced by a repeat within the same hour.
+- Probability the committed reference table catches a real regression: **moderate** — it fires on any change to the pipeline's arithmetic, which is the point, and will be annoying exactly once.
+- Residual risk, stated rather than hidden: a wrong asset name is still a warning and not a failure. Accepted because the alternative is a CI that is red on every fresh clone; mitigated because the name is now pinned by a test rather than by attention.
+
+**Pre-mortem:**
+Three ways this fails later. **(a)** Someone silences the naming test by allowlisting a literal with no reason — detectable because the allowlist is a short, commented set that a reviewer must read. **(b)** CI shows a warning nobody reads, and the end-to-end half quietly stops running for months — detectable by checking that a recent run names a step "The archive reproduces the published table, bit-for-bit" rather than skipping it. **(c)** The committed reference table is regenerated from a buggy run, making the check agree with the bug — detectable because the digest of the archive is pinned separately, so the table and the archive cannot drift together without the pinned digest also changing.
+
+---
+
 ## Appendix A — Experiment Registry (Ledger)
 
 This appendix is the append-only ledger of pre-registered experiments. Registry *rules* (what counts as an experiment, ID format, denominator rules, invalidation rules) live in `evaluation_protocol.md` §12 and, until Phase C completes, in `experiment_registry_and_preregistration.md`. This appendix holds the *entries*.
@@ -1787,6 +1845,7 @@ This appendix is the migration record for the open items in `docs/TODO.md` (v1.1
 | 2026-10-17 | Added DEC-20261017-034 (**F26 resolved**: `EXP-H2-20261017-001` re-designated **EXECUTED (NON-CONFIRMATORY)**, its execution recorded as the *same run* as `EXP-X-20261017-003`, no replacement confirmatory test registered, and K1 not fired — so H2.4 is **untested rather than falsified**. The Appendix A index row, the entry's status, family line, Results, Conclusion and Decision are restated, and the reason the relabelling cannot rescue the hypothesis is recorded *inside the entry*. **E7 closed**: `open_source_and_license_policy.md` frozen at v1.0 with both `[PROPOSED]` items confirmed. The NOTICE placement deviates deliberately from DEC-033's wording — a `NOTICE.txt` member in the archive instead of a field in `manifest.json` — and the deviation is recorded rather than absorbed). `docs/README.md` to v1.16, `decision_log.md` to v1.9. | Ken Ira Lacson Talingting |
 | 2026-10-17 | Added DEC-20261017-035 (the NOTICE implemented: `pack_snapshot.py` generates a deterministic `NOTICE.txt` member from a version-controlled template and refuses an on-disk copy; `verify_release.py` asserts the notice is present and unchanged before re-running the methods, so an archive that lost it fails loudly instead of publishing data with no statement attached. Archive digest `28e1d907…` → **`7a3fc209…`**, bundle hash and snapshot id **unmoved**. **Finding F31** recorded — the archive digest identifies the *distribution* and the snapshot id identifies the *data*, and an editorial addition moves one but not the other; the README now states what the digest is of. Four new packaging tests. Re-verification with the notice check active: `EXACT`, max abs diff `0.000e+00`, 18 columns). `docs/README.md` to v1.17, `decision_log.md` to v1.10. | Ken Ira Lacson Talingting |
 | 2026-10-18 | Corrected the **Date** field of DEC-20261017-033/034/035 from 2026-10-17 to 2026-10-18. The entries carried the previous day forward by inertia across local midnight; their commit timestamps (`4541cc8`, `1444f3f`, `7e4067b`) are all 2026-10-18 and are the independent evidence — the record was checked against git, not against itself. The **IDs are deliberately not renamed**: an identifier has to stay stable, renaming would break references in `docs/README.md`, `open_source_and_license_policy.md`, `notes/` and this file's own text, and the Date field is the field that carries the date. DEC-20261017-032 is left at 2026-10-17 because its work straddles the boundary (`33dabdb`, 2026-10-18 00:35). **No entry content changed** — no decision, claim, result or reason. | Ken Ira Lacson Talingting |
+| 2026-10-18 | Added DEC-20261018-036 (**finding F32**: the snapshot id was quoted by hand in four places and one carried a wrong separator — an extra underscore where the window end meets the retrieval date — so the README's own reproduction command returned **404** for any reader who followed it. Found by checking the literals against the filesystem rather than against each other; a fresh hand-typed copy in the workflow was wrong the same way within minutes, which is the real finding. All four corrected; `tests/test_snapshot_name_literals.py` added (five checks, shown to fail 4-of-5 when the defect is reintroduced); CI's optional fetch step now emits a warning naming what it skipped instead of failing silently, and `docs/published-run/outcomes.csv` is committed so the workflow can verify bit-for-bit rather than merely regenerate. **The release itself is unaffected**: the published asset name and digest were always correct). `docs/README.md` to v1.19. | Ken Ira Lacson Talingting |
 
 ---
 
