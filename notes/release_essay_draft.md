@@ -60,7 +60,7 @@ re-derive any of these while writing; copy them.**
 | **The check failing again on its second run** | **13** of 18 columns, worst `4.698e-12`, on an identical environment (51 packages, empty set difference) but a different machine | CI run 39134078120 |
 | The experiment that located it | same pipeline at 1 and at 4 BLAS threads: byte-identical, and equal to the published table | `OPENBLAS_NUM_THREADS` |
 | The conclusion the second failure forced | decisions **exact**, measurements bounded by a documented `1e-9` — a solver's output is defined only to its tolerance | DEC-20261018-038 |
-| Suite | 172 passed, 1 skipped | `pytest -q` |
+| Suite | 173 passed, 1 skipped | `pytest -q` |
 
 ### Claims this piece may **not** make (protocol §14.2)
 
@@ -153,7 +153,10 @@ Strip the finance entirely. Keep §1, §3, §4, §5, §6, §9. Translate:
   as solid as the table it sits in. The correct repair is not a wider tolerance: it is to notice that
   **exactness belongs to the decisions and approximation belongs to the measurements**, and to check
   each with the tool it deserves. The final claim is stronger than the one I started with, because it
-  is the one that survived being tested.
+  is the one that survived being tested. And the ending is concrete rather than rhetorical: the check
+  now runs on every push, prints the difference it actually saw (`4.698e-12`) rather than the bound it
+  was allowed, and reports that every decision is identical — on a machine that has never seen this
+  repository before.
 
 ---
 
@@ -181,9 +184,9 @@ Strip the finance entirely. Keep §1, §3, §4, §5, §6, §9. Translate:
 - [x] Snapshot uploaded as a release asset and the digest quoted in the release notes.
 - [x] Tag `v1.0.0`, cut the Release — published 2026-10-18, both assets uploaded, anonymous re-download matches the quoted digest.
 - [x] The README's own reproduction command verified by running it: the name it quoted returned **404** until F32 was fixed (DEC-20261018-036).
-- [ ] **CI verifies the archive against the committed published table**: every decision-bearing
+- [x] **CI verifies the archive against the committed published table**: every decision-bearing
   quantity exactly, the measurements within a documented `1e-9`. It failed twice — F33 and F34 — and
-  the split claim is committed locally with `EXACT` on Windows; **the Linux re-check is the last piece
-  of evidence still owed**, and neither the essay nor any public artefact may state it as passing
-  until it returns green.
+  then passed end to end on a third machine (run 39136157646): `max abs diff : 4.698e-12`, tolerance
+  `1e-09`, every decision-bearing quantity identical, all eleven steps run rather than skipped. The
+  number to quote is the *observed* one, not the bound.
 - [ ] Re-read every public artefact against §14.2 **after** the release exists, since the release notes are themselves an artefact.

@@ -81,6 +81,35 @@ def test_index_version_matches_its_revision_history() -> None:
     assert keys == sorted(keys), f"revision history is not monotonic: {rows}"
 
 
+def test_the_prose_count_of_active_documents_matches_the_board() -> None:
+    """The sentence above the board said *seven* while the board listed *eight*.
+
+    It had said seven since E7 was added as row 8 -- the same class of error this
+    file already exists to catch (finding F29: a value written down twice drifts),
+    except with a count instead of a version. The repair is not a careful count; it
+    is to stop keeping the number by hand and count it here, where the table is.
+    """
+    words = {
+        "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6,
+        "seven": 7, "eight": 8, "nine": 9, "ten": 10, "eleven": 11, "twelve": 12,
+    }
+    text = INDEX.read_text(encoding="utf-8")
+    match = re.search(
+        r"The active documentation set is \*\*([a-z]+)\*\* files", text
+    )
+    assert match, (
+        "the sentence stating how many active documents there are has changed shape; "
+        "either restore the countable form or update this test with it"
+    )
+
+    stated = words[match.group(1)]
+    board = BOARD_ROW.findall(text)
+    assert stated == len(board), (
+        f"the index says the active set is {stated} ({match.group(1)}) files "
+        f"but the board lists {len(board)}"
+    )
+
+
 def test_status_board_agrees_with_each_document() -> None:
     board = list(BOARD_ROW.finditer(INDEX.read_text(encoding="utf-8")))
     assert board, "no status-board rows parsed; the table format changed"

@@ -3,7 +3,7 @@
 **Project:** `robustfolio`
 **Owner:** Ken Ira Lacson Talingting
 **Created:** 2026-10-14
-**Version:** 1.14
+**Version:** 1.15
 **Last Updated:** 2026-10-17
 **Purpose:** Immutable record of every governance, experiment, and pivot decision in the project. Entries are append-only. Supersession is by a new entry, not by editing an old one.
 
@@ -1640,6 +1640,19 @@ DEC-20261018-037 had fixed one metric's arithmetic and written, in its item 5, t
 
 **Reversibility:** Soft. One script, one test file, one diagnostic field in the manifest, and prose. Reverting restores a claim that is known false on at least one machine out of three observed.
 
+**Outcome (2026-10-18, same day).** CI run 39136157646 on `089541f` — a *third* distinct machine, `GitHub Actions 1000000270` — ran the reworked comparison end to end and passed:
+
+```
+notice       : NOTICE.txt present, unchanged
+methods      : 7
+columns      : 18
+max abs diff : 4.698e-12
+tolerance    : 1e-09
+WITHIN 1e-09: ... every decision-bearing quantity ... is identical.
+```
+
+Three things are worth recording rather than celebrating. First, the verifier printed the **observed** difference, not the bound: a reader of the log sees `4.698e-12`, not "within tolerance". Second, the value is **identical** to the worst difference on the failing run, which suggests a stable platform difference rather than random variation — so the bound was set above a quantity that repeats. Third, and stated against interest: this run's machine agrees with the *failing* run's machine while the *first* run's machine agreed with Windows on seventeen of eighteen columns. The evidence base is three machines; it establishes that the difference exists, that it is bounded and reproducible, and that it does not move any decision. It does **not** establish which kernel differs, and no entry here should be read as claiming otherwise.
+
 **Revisit trigger:**
 CI fails on the measurement comparison with a *large* difference (`> 1e-8`) -> this is not kernel noise; treat it as a genuine reproduction failure and look for a changed estimator or a changed window before touching the constant. CI fails on the measurement comparison with a small difference (`~1e-12`) on a third distinct hardware configuration -> the empirical bound was too tight, **measure again and raise it with the measurement recorded**, never silently. A decision-bearing quantity appears in the published table as a continuous column -> add it to the exact checks (`EXACT_COLUMNS` or a new exact comparison), because a probability that is compared with a tolerance is a decision that can move. Exact cross-platform equality becomes a requirement (a reviewer asks for it) -> attempt the deterministic covariance named above, with the `max abs diff` line as the metric. `np.show_config`'s shape changes -> `_blas_context` degrades to `"unavailable"` rather than failing a run, which the test allows for by pinning the keys only.
 
@@ -1651,6 +1664,56 @@ CI fails on the measurement comparison with a *large* difference (`> 1e-8`) -> t
 
 **Pre-mortem:**
 Three ways this fails later. **(a)** Someone raises `TOLERANCE` to silence a red build — detectable because the constant is asserted by a test, documented in a comment that gives its derivation, and named in the README and in `docs/published-run/README.md`; a change is a visible diff in four places rather than a quiet edit in one. **(b)** A future decision rule moves onto a continuous quantity (a probability rather than a ranking) and the exact half silently stops covering it — detectable because `HEADLINE_METRIC` is asserted by a test, and because this entry's revisit trigger names the case. **(c)** A reader concludes that "within `1e-9`" means the numbers are soft — answerable with one command, which prints the actual difference (`0.000e+00` on the reference machine) rather than the bound, and with the release digest pinned so the comparison cannot drift with the input.
+
+---
+
+### DEC-20261018-039
+
+**Date:** 2026-10-18
+**Type:** GOVERNANCE
+**Status:** ACTIVE (the document it introduces is a **Draft** and binds nothing)
+**Authority:** Owner (freeze deferred; see item 5)
+**Related docs:** `docs/results_reporting_and_claims_policy.md` (v0.1, Draft), `docs/README.md` (v1.23), `tests/test_docs_index.py`, `notes/release_essay_draft.md`
+**Related risks:** R-G01
+
+**Context:**
+Protocol §14 says "Every experiment result is reported in a standard format. See `results_reporting_and_claims_policy.md` for the full template (to be written before Phase 4)"; Appendix B item **E3** carries it as pending; and two frozen documents promise to reduce to a pointer once it exists (E7 §5, and DEC-20261017-034's non-confirmatory phrasing rule). The rules themselves already bind — §14.2 is frozen — but they live in four places, and a rule that lives in four places is a rule that will be quoted from whichever copy flatters the claim.
+
+**Decision:**
+
+1. **E3 is written, as a Draft.** `docs/results_reporting_and_claims_policy.md` v0.1, `**Status:** Draft`, registered on the status board as row 9 so that the board's own cross-check covers it. It binds nothing until the owner confirms it (item 5), and its purpose is stated in its opening: two questions — how a result is reported, and what may be claimed from it.
+2. **Every rule in it is marked `[frozen]` or `[PROPOSED]`, with the `[frozen]` ones naming their source.** This is the document's central design choice rather than a formatting one. A policy that quietly acquires authority it was never granted is the same failure as a claim that outruns its number, and this project has spent the day finding that failure twice (F33, F34). A reader can therefore tell at a glance what is a restatement of a binding rule and what is a proposal.
+3. **The reporting template maps §14.1's nine disclosures to exact fields** (§2), because "the disclosures are reported" is a claim, and a claim is worth what its checkable form is worth. The mapping surfaced one fact worth naming: `psr_benchmark` is a **column**, so "no p-value without its benchmark" is enforced mechanically rather than remembered — which matters more here than the multiple-testing correction, because with `N = 1` the deflation is inert and the benchmark *is* the finding.
+4. **§4 operationalises §14.2's six prohibitions with the compliant form for each**, plus four additions each tied to a defect this repository actually had: a reproduction claim names its command (F32), is stated at the strength its check has (F33/F34), distinguishes a mechanism from a result, and never quotes a table without naming the table's status. §3 fixes the status vocabulary, including that an `EXECUTED (NON-CONFIRMATORY)` verdict is `FAILURE` while the hypothesis remains **untested, not falsified**.
+5. **Freeze is deferred, and the five open values are collected as one decision-ready table (§8, P1–P5)** rather than scattered through the text. They are: whether E3 becomes a governed document; whether `CONFIRMATORY` requires a blind registration against a sample that does not yet exist; whether the template binds future experiments or describes this run; whether a public post is a governance event for §4; and whether the two shorter cuts of the flagship essay are governed identically. **Per the standing rule, no value has been chosen silently.**
+6. **A drift was found while adding the board row, and the fix is structural.** The sentence above the status board said the active documentation set was *seven* files while the board listed *eight*, and had said so since E7 became row 8 — in the same document whose revision history reports fixing exactly that class of error (**F29**: a value written down twice drifts). The count is now **counted against the table** by a new test rather than kept by hand, which is F32's lesson ("derive identifiers, do not retype them") applied to a number.
+
+**Alternatives considered:**
+- **Write E3 as a section of the protocol instead of a document.** Rejected: the protocol is Frozen at v2.4, and amending it to add a reporting template would be a versioned contract revision for material that is operational rather than definitional.
+- **Write E3 and mark it Frozen now.** Rejected on the project's own rule: write and freeze are separate acts, and freeze requires owner confirmation. A document that declares itself frozen without that confirmation is the ambiguity `tests/test_docs_index.py` exists to prevent.
+- **Skip E3 for v1, since §14.2 already governs claims and Phase 4 is not reached.** Rejected, narrowly: the flagship essay and its two cuts will cite these rules, and citing four documents is worse than citing one. But the *reason* it is safe to write now is that it binds nothing — which is also why it is a Draft.
+- **Fold the `[PROPOSED]` items into the document body without marking them.** Rejected: that is how an unconfirmed value acquires authority.
+- **Fix the board's prose count by writing "nine" carefully.** Rejected as the repair of a symptom: the count had already drifted once, and the class is fixed by counting it where the table is.
+
+**Rationale:**
+[First Principles] What is a claims policy for? To make it impossible to state something true-looking that the numbers do not support. That means its rules must be *checkable where possible* and *explicitly marked* where they are not — which is why §2 maps disclosures to columns and §1 says an unenforceable rule is written with its enforcement gap named.
+[Map is Not the Territory] The document distinguishes what binds from what is proposed because the map here is partly aspirational. Saying so is what keeps the map usable.
+[Goodhart] The tempting measure of a policy is that it exists. The measure that matters is whether a reader can tell which sentences are binding, and whether the binding ones are checkable. §2 and the `[frozen]`/`[PROPOSED]` marking are both aimed at that, not at completeness.
+[Path Dependence] The rules accumulated in four places because each was written when it was needed — §14.2 in the protocol, the licence policy's §5 for the release, DEC-034 for the relabelling. Consolidating them creates a single point of failure in exchange for a single point of truth, which is only acceptable if the consolidation is faithful; hence §9's rule that a revision of §14 revises this document in the same act or kills it.
+[Inversion] How does E3 make things worse? By becoming a document people cite *instead of* the protocol. §1's precedence rule is the whole defence: §14 wins any conflict, and this document may not weaken it.
+
+**Reversibility:** Trivial. One unregistered-feeling document, one board row, one test. Deleting it restores the status quo ante with no decision unmade, because nothing in it binds.
+
+**Revisit trigger:**
+Owner confirms P1–P5 -> the document goes to **v1.0 Frozen**, E7 §5 and DEC-034's phrasing rule reduce to pointers, and the freeze is recorded in a new entry. P1 rejected -> the document is withdrawn and its rules stay where they are; §9 records that the duplication is accepted. Protocol §14 revised -> this document is revised in the same act or deleted. A contested public claim is resolved by a rule not found here -> §4 gains the rule, or the document is shown to be incomplete and says so.
+
+**Expected value assessment:**
+- Probability the essays cite this document rather than §14.2 directly: **high** — and that is the value, provided the precedence rule is respected, because a single citable home is what stops the four copies from being quoted selectively.
+- Probability an open value (P1–P5) is resolved wrongly by this document acting as if confirmed: **low by construction**, because none of them is asserted as a rule and all five are collectable in one table.
+- Probability the marking discipline (frozen vs proposed) survives contact with future edits: **moderate** — the risk is that a later editor writes a rule in the flat voice the other documents use. The mitigation is the opening paragraph, which explains *why* the marking exists rather than merely requiring it.
+
+**Pre-mortem:**
+Three ways this fails later. **(a)** E3 is cited as authority for a claim that only §14 governs — detectable because §1 states the precedence and the first thing a dispute would check is the protocol. **(b)** The `[PROPOSED]` markers are stripped when the document is frozen without confirming P1–P5 — detectable because freezing is recorded in a new entry that must name each confirmation. **(c)** It becomes a tenth document nobody reads, and the four original copies are quoted again — detectable by the board row's "Draft" status persisting without a freeze decision, which is a visible unresolved state rather than a silent one.
 
 ---
 
