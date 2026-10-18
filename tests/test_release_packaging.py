@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import json
 import sys
+import tarfile
 from pathlib import Path
 
 import pandas as pd
@@ -31,6 +32,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
 from pack_snapshot import (  # noqa: E402
+    NOTICE_NAME,
+    NOTICE_TEXT,
     VerificationError,
     _archive_digest,
     pack,
@@ -112,7 +115,7 @@ def test_pack_is_deterministic(snapshot_dir: Path, tmp_path: Path) -> None:
 
     assert digest_a == digest_b
     assert listing == "\n".join(
-        sorted(p.name for p in snapshot_dir.iterdir() if p.is_file())
+        sorted([p.name for p in snapshot_dir.iterdir() if p.is_file()] + [NOTICE_NAME])
     )
 
 
@@ -145,6 +148,62 @@ def test_unpack_verifies_and_places_the_snapshot(snapshot_dir: Path, tmp_path: P
     assert restored.name == SNAPSHOT_ID
     assert dm.snapshot_digests(restored) == dm.snapshot_digests(snapshot_dir)
     assert not list(destination.glob(".unpack-*")), "staging directory was left behind"
+
+
+# --------------------------------------------------------------------------- #
+# The notice travels with the data (finding F30)
+# --------------------------------------------------------------------------- #
+
+def test_archive_carries_the_notice(snapshot_dir: Path, tmp_path: Path) -> None:
+    """F30: the data must not travel without the statement that MIT is not its licence."""
+    archive = tmp_path / "snap.tar.gz"
+    pack(snapshot_dir, archive)
+
+    with tarfile.open(archive, "r:gz") as tar:
+        assert f"{SNAPSHOT_ID}/{NOTICE_NAME}" in tar.getnames()
+        member = tar.extractfile(f"{SNAPSHOT_ID}/{NOTICE_NAME}")
+        assert member is not None
+        text = member.read().decode("utf-8")
+
+    assert text == NOTICE_TEXT, "the notice in the archive is not the notice in the source"
+    assert "Yahoo" in text and "MIT" in text, "the notice must name the source and the licence"
+    assert "does NOT cover" in text
+
+
+def test_notice_travels_out_of_the_archive_with_the_data(
+    snapshot_dir: Path, tmp_path: Path
+) -> None:
+    """A notice a reader has to fetch separately is one that gets separated."""
+    archive = tmp_path / "snap.tar.gz"
+    pack(snapshot_dir, archive)
+
+    restored = unpack(archive, tmp_path / "restored")
+
+    notice = restored / NOTICE_NAME
+    assert notice.exists(), "the notice did not survive extraction"
+    assert notice.read_text(encoding="utf-8") == NOTICE_TEXT
+
+
+def test_notice_is_not_in_the_hash_chain(snapshot_dir: Path) -> None:
+    """The notice is a statement *about* the data, not an input to it.
+
+    If it ever entered ``manifest.json``'s map, the bundle hash would move with a
+    purely editorial change and the snapshot id would stop naming its data.
+    """
+    before = dm.snapshot_digests(snapshot_dir)
+    bundle_before = dm.bundle_hash({n: before[n] for n in dm.BUNDLE_FILES})
+
+    (snapshot_dir / NOTICE_NAME).write_text("a notice that drifted", encoding="utf-8")
+
+    assert dm.snapshot_digests(snapshot_dir) == before
+    assert dm.bundle_hash({n: before[n] for n in dm.BUNDLE_FILES}) == bundle_before
+
+
+def test_notice_stored_on_disk_is_refused(snapshot_dir: Path, tmp_path: Path) -> None:
+    """The template is the single source of the notice; a copy on disk could drift."""
+    (snapshot_dir / NOTICE_NAME).write_text("a stale copy", encoding="utf-8")
+    with pytest.raises(VerificationError, match="must not be stored on disk"):
+        pack(snapshot_dir, tmp_path / "snap.tar.gz")
 
 
 # --------------------------------------------------------------------------- #

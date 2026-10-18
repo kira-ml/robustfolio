@@ -1,6 +1,6 @@
 # Release essay — working draft (not a Tier 0 document)
 
-**Status:** skeleton. Working input, not a contract. Not published, and not publishable until F26 is closed.
+**Status:** skeleton. Working input, not a contract. **F26 and E7 are both closed** (DEC-20261017-034); the remaining gate before publication is the release itself, plus E3.
 **Baseline for v1.0.0:** the release packaging chain (DEC-20261017-032) and the first end-to-end run
 (`EXP-X-20261017-003`), both exploratory.
 
@@ -52,9 +52,9 @@ re-derive any of these while writing; copy them.**
 | DSR p-values (`M1`, `M2`) vs **zero** | 0.0032, 0.0017 | `outcomes.csv` |
 | Correlation with best baseline | ρ = 0.9845 (`M1`), 0.9856 (`M2`) | `design.csv` |
 | Paired differences | +0.4% and +0.6% per year | `design.csv` |
-| Snapshot archive | 1.67 MB, SHA-256 `28e1d907…` | `pack_snapshot.py` |
+| Snapshot archive | 1.67 MB, SHA-256 `7a3fc209…` | `pack_snapshot.py` |
 | Reproduction check | `EXACT`, max abs diff `0.000e+00`, 18 columns | `verify_release.py` |
-| Suite | 150 passed, 1 skipped | `pytest -q` |
+| Suite | 154 passed, 1 skipped | `pytest -q` |
 
 ### Claims this piece may **not** make (protocol §14.2)
 
@@ -66,8 +66,12 @@ re-derive any of these while writing; copy them.**
   inverts it.
 - No superiority claim without the interval.
 - No single-cost-level claim. Costs are swept; 10 bps is the headline, not the only level.
-- **No "confirmatory".** F26 is open: the registered confirmatory test's answer has already been
-  observed, so the run is a validation of the report generator and nothing else.
+- **The word "confirmatory" appears only inside the F26 disclosure.** F26 is resolved by
+  re-designation (DEC-20261017-034): the registered confirmatory test's answer was observed before it
+  ran, so it is **executed (non-confirmatory)** and **no confirmatory test now exists**. The public
+  description is **"pre-registered, mechanically evaluated, non-confirmatory"**, and the hypotheses
+  are **untested, not falsified** — the frozen rule returns failure for both candidates either way,
+  but it was never applied blind, and this piece will not call it a test.
 
 ---
 
@@ -127,7 +131,7 @@ Strip the finance entirely. Keep §1, §3, §4, §5, §6, §9. Translate:
 
 ---
 
-## 5. Distribution (after F26 is closed and v1.0.0 is cut)
+## 5. Distribution (after v1.0.0 is cut)
 
 1. **Direct outreach first, 10–20 named people.** Ask for critique of a specific section, not for a
    job and not for a share. Expected conversion is 10–50× public posting; the point is substantive
@@ -145,9 +149,9 @@ Strip the finance entirely. Keep §1, §3, §4, §5, §6, §9. Translate:
 
 ## 6. Open items before anything is published
 
-- [ ] **F26 closed by the owner** (disclose and proceed / re-designate Test D / register a new test). Blocks all public material.
-- [ ] **E7** — `docs/open_source_and_license_policy.md`, recorded as "must be written before public release".
-- [ ] **E3** — `docs/results_reporting_and_claims_policy.md`, "must be written before Phase 4"; governs what may be claimed.
+- [x] **F26 closed** — re-designated **executed (non-confirmatory)**, no replacement test registered (DEC-20261017-034).
+- [x] **E7** — `docs/open_source_and_license_policy.md` v1.0 **Frozen**; the archive carries its own `NOTICE.txt` (DEC-20261017-035).
+- [ ] **E3** — `docs/results_reporting_and_claims_policy.md`, "must be written before Phase 4"; governs what may be claimed. Not a hard gate — protocol §14.2 already governs the claims — but the natural single home for the rules these pieces cite.
 - [ ] Snapshot uploaded as a release asset and the digest quoted in the release notes.
 - [ ] Tag `v1.0.0`, cut the Release.
 - [ ] Re-read every public artefact against §14.2 **after** the release exists, since the release notes are themselves an artefact.

@@ -57,7 +57,10 @@ python -m pip install -e .
 ```bash
 # The asset, named for its content hash:
 #   robustfolio-snapshot-yahoo-usetf-2007-01-01_2026-09-30_2026-10-17-2ad06139.tar.gz
-#   SHA-256 28e1d9073844d43be2b256bc7b1ba6c6cf4d050e50703472e206d5ca4052f11e
+#   SHA-256 7a3fc20991b664099ada44a308dfde57d8080994ff498e2f5a0dd98f2ecab77d
+#   That digest is of the *archive* — the data **plus** its NOTICE.txt. The snapshot's
+#   own identity is the bundle hash 2ad0613913df9065b62ba2291abc391402c1eb13d36937ba8c2bbc09d637d707
+#   recorded in manifest.json. The two are different things, deliberately (finding F31).
 curl -LO https://github.com/kira-ml/robustfolio/releases/download/v1.0.0/<asset-from-the-release-page>
 python scripts/pack_snapshot.py --verify <asset> --extract-to data/snapshots
 
@@ -76,12 +79,14 @@ python scripts/make_figures.py --run results/run
 
 ```bash
 python scripts/certify_engine.py    # 7 methods x 168 rebalances, KKT certificate
-python -m pytest -q                 # 150 passed, 1 skipped
+python -m pytest -q                 # 154 passed, 1 skipped
 ```
 
 `run_experiment.py` writes `manifest.json` (snapshot id, git commit, protocol and spec versions, seed, environment), `outcomes.csv`, `decisions.csv`, `calibration.csv`, `design.csv`, `folds_<M>.csv`, `net_excess_returns.csv`, and `report.md`.
 
 **Rebuilding the snapshot is not reproduction.** Yahoo Finance revises history, so `scripts/build_snapshot.py --end 2026-09-30 --retrieval-date <another date>` produces a *different* snapshot with a different content hash and slightly different numbers. That is why the frozen snapshot ships as an asset, and why the archive's digest is published: exact reproduction means the same input, not a similar one.
+
+**The snapshot is redistributed third-party data, and MIT does not cover it.** The prices and corporate actions are Yahoo Finance data, subject to Yahoo's terms, redistributed **solely so the numbers above can be verified** — non-commercially, with attribution. The repository's MIT licence covers the code and this project's own artefacts, not that data. The archive carries a `NOTICE.txt` saying exactly this, so the data cannot be separated from the statement about it. Full policy: [`docs/open_source_and_license_policy.md`](docs/open_source_and_license_policy.md).
 
 ---
 
@@ -99,6 +104,8 @@ The seam is the **snapshot directory**. A snapshot is five files, and the data l
 
 Everything else is generic: `backtest.run_method(snapshot, method_id)` runs one method through the walk-forward loop and returns its per-rebalance record, and `report.build_report(...)` turns a set of those into the table above. `scripts/build_snapshot.py` is the only file that knows how to *produce* a snapshot, and it is the only file you need to change to point the benchmark at a different price panel.
 
+A **release archive** is those five files plus a generated `NOTICE.txt` recording where the data came from and that MIT does not cover it. A snapshot you build yourself will not have one, and does not need one — the notice is about *redistributing* the data, not about reading it.
+
 ---
 
 ## What is built
@@ -113,8 +120,8 @@ Everything else is generic: `backtest.run_method(snapshot, method_id)` runs one 
 | Optimizer | CVXPY + CLARABEL, **no fallback path**, every rebalance certified by a primal KKT residual against a frozen tolerance |
 | Engine certificate | 7 methods × 168 rebalances = **1,176 solves, zero rejections**; worst KKT residual `1.49e-11` vs `1e-7` acceptance |
 | Leakage suite | protocol §5.4.8 — 14 pass, 1 recorded skip (the survivorship test is vacuous in-sample; see below) |
-| Tests | 150 passed, 1 skipped — including the leakage suite, release-packaging integrity, and the documentation index |
-| Release chain | Frozen snapshot packs to a deterministic 1.67 MB archive with a published SHA-256; `verify_release.py` re-runs the harness from the archive and asserts equality with the published table at zero tolerance |
+| Tests | 154 passed, 1 skipped — including the leakage suite, release-packaging integrity (the notice included), and the documentation index |
+| Release chain | Frozen snapshot packs to a deterministic 1.67 MB archive with a published SHA-256 and a `NOTICE.txt` recording the data's provenance and licence; `verify_release.py` re-runs the harness from the archive and asserts equality with the published table at zero tolerance |
 | Continuous integration | Hermetic suite green on a fresh clone; full reproduction when the release asset is present |
 
 ---
@@ -123,11 +130,12 @@ Everything else is generic: `backtest.run_method(snapshot, method_id)` runs one 
 
 These are the honest ones, not a disclaimer. The full list is in the report and in [`docs/decision_log.md`](docs/decision_log.md).
 
-- **The headline run is exploratory.** It is not pre-registered as confirmatory and cannot be cited for or against any hypothesis (DEC-20261015-012). Worse, validating the report generator required executing the frozen configuration, so the registered confirmatory test's answer has already been observed — **it would now be a reproduction, not a blind test** (finding F26).
+- **The headline run is exploratory, and the confirmatory slot is now empty.** Validating the report generator required executing the frozen configuration first, so the registered confirmatory test's answer was observed before the test ran. It has been re-designated **executed (non-confirmatory)** rather than repaired, because blindness cannot be restored once lost (finding **F26**, DEC-20261017-034). The consequence is worth stating plainly: **no confirmatory test now exists**, so no hypothesis is confirmed *or* falsified here — the frozen decision rule returns failure for both candidate methods either way, but it was never applied blind, and this README will not call it a test. What a valid one would require: a **new sample** (a different asset class, or a period that does not yet exist), registered before the data does.
+- **"Point-in-time" here means point-in-time *eligibility*, not point-in-time *data*.** The universe is correctly reconstructed from date-stamped eligibility windows, so no instrument appears before it existed. But the prices are what a 2026 source holds for 2012 today, and price history is revised. A perfect reconstruction of Yahoo's current history is still not the history a trader saw.
 - **168 out-of-sample months and 18 ETF candidates** (17–18 eligible at any rebalance). This sample can separate roughly a 0.13–0.20 net Sharpe difference between these highly correlated strategies, and not much less.
 - **The cost model is a flat 10 bps with no market impact, capacity, taxes, or regime dependence.** Costs cannot reach the optimizer: each rebalance is solved once and every cost level is derived from that single turnover series, so a cost level cannot influence the weights it prices.
 - **Survivorship is argued by construction, not measured.** The survivorship test (§5.4.8 test 2) is vacuous in-sample: no confirmed candidate delisted between 2012-06 and 2026-05 (§5.4.5).
-- **Data provenance is Yahoo Finance**, frozen into an immutable snapshot with a quality report. It is not an institutional point-in-time vendor feed.
+- **Data provenance is Yahoo Finance**, frozen into an immutable snapshot with a quality report. It is not an institutional point-in-time vendor feed, and the licence on the third-party data is Yahoo's, not MIT (see above and [`docs/open_source_and_license_policy.md`](docs/open_source_and_license_policy.md)).
 - **Two specification readings are disclosed, not silent.** §7.8 leaves the object of its prediction interval undefined, so only the *return* half is reported (coverage 81.5–87.0%); the volatility half is deliberately **not** implemented. §6.3's "advantage" is not pinned to a metric, so fold wins use net Sharpe and the concentration clause uses per-fold mean return — **and that reading decides the verdict here** (findings F24, F25).
 - **Not investment advice, and not a claim of tradable alpha.** Nothing here is a live trading system, and no absolute return claim is made (protocol §14.2).
 - **The verification path itself had two bugs, and both produced plausible numbers.** The first snapshot verifier rejected *every* valid snapshot, because `manifest.json`'s hash map lists five files while the content hash is derived from four (finding F27). The first comparison of the archived snapshot against the published table reported a `8.3e-17` mismatch on `B4`, because `pandas.read_csv` is lossy by one ULP at its default settings — only `float_precision="round_trip"` is exact (finding F28). Neither error was in the artefact. Both were found only because the expected answer was known to 17 digits, and both are now pinned by tests.

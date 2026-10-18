@@ -23,6 +23,12 @@ no timestamps -- so that the published ``.sha256`` of the archive stays valid
 across re-packs of identical content. A digest that changes every time you
 re-pack the same bytes is a digest nobody can verify.
 
+The archive also carries a ``NOTICE.txt`` beside the snapshot's own files, stating
+where the third-party data came from and that the repository's MIT licence does
+not cover it (finding F30, DEC-20261017-034). It is generated from a template in
+this file rather than read from disk, so it is version-controlled and cannot
+drift from the archive that carries it.
+
 Integrity chain, all four links checked here:
     file bytes -> per-file SHA-256 -> bundle hash -> snapshot id (last 8 hex)
 plus an external ``<archive>.sha256`` recorded in the release notes, so the
@@ -46,6 +52,66 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from robustfolio import data as data_mod  # noqa: E402
+
+
+# --------------------------------------------------------------------------- #
+# The notice that travels with the data
+# --------------------------------------------------------------------------- #
+#: Name of the notice member written inside the archive, beside the snapshot
+#: directory's own files. It is generated at pack time from this template rather
+#: than read from disk, so that it is version-controlled, reviewable in a diff,
+#: and impossible to lose by rebuilding a snapshot (finding F30, DEC-20261017-034).
+#:
+#: Deliberately *not* a field in ``manifest.json``: the manifest is the data
+#: layer's hashed record, and a licensing statement is neither data nor a
+#: statement about data. Excluded from the hash chain so a licence notice can
+#: never be mistaken for an input.
+NOTICE_NAME = "NOTICE.txt"
+
+NOTICE_TEXT = """\
+NOTICE -- third-party data in this snapshot
+===========================================
+
+This snapshot is a frozen copy of third-party market data, published by the
+robustfolio project so that its published results can be verified exactly
+rather than approximately. If you have it, it came from a release asset.
+
+Source
+------
+  prices_raw.parquet, actions.parquet
+      Yahoo Finance, retrieved 2026-10-17 through the yfinance library.
+      Daily OHLCV for 18 US-listed ETFs. Prices are unadjusted; corporate
+      actions are recorded separately in actions.parquet.
+  rf_dgs1mo.parquet
+      FRED series DGS1MO (1-month US Treasury constant-maturity yield).
+  universe_pit.csv
+      Instrument metadata re-expressed by this project from fund issuers'
+      fact sheets (SPDR, iShares).
+  manifest.json, quality_report.md
+      Produced by this project. manifest.json records a SHA-256 per data file.
+
+Licence
+-------
+The repository's MIT licence covers this project's code and its own text and
+artefacts. It does NOT cover the Yahoo Finance price and action data above,
+which remains subject to Yahoo's terms of service. That data is redistributed
+here for the sole purpose of verifying the published results, non-commercially
+and with attribution. For any other purpose, obtain market data from a source
+that licenses it to you.
+
+FRED series DGS1MO is US government data and is effectively public domain.
+
+Status of this file
+-------------------
+NOTICE.txt is written by scripts/pack_snapshot.py when the release archive is
+built. It is deliberately NOT listed in manifest.json's sha256 map, which covers
+the data files only: this file is a statement about them, not one of them, and
+it is kept out of the hash chain so that a licensing notice can never be
+mistaken for an input.
+
+If this notice is missing from an archive claiming to be an official one, do
+not trust that archive.
+"""
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -150,28 +216,49 @@ def pack(snapshot_dir: Path, archive: Path) -> tuple[str, str]:
     and a digest that changes when nothing changed cannot be checked. So member
     order is sorted, mtimes are pinned to the epoch, and the gzip stream carries
     no timestamp or filename.
+
+    The archive carries one member the directory does not: ``NOTICE_NAME``, the
+    third-party-data and licence statement, written from :data:`NOTICE_TEXT` in
+    this file rather than read from disk (finding F30). It is placed *inside* the
+    snapshot directory's path so that ``unpack`` carries it out with the data --
+    a notice a reader has to fetch separately is a notice that gets separated
+    from the data it describes.
     """
     archive = Path(archive)
     archive.parent.mkdir(parents=True, exist_ok=True)
+    if (snapshot_dir / NOTICE_NAME).exists():
+        raise VerificationError(
+            f"{NOTICE_NAME} already exists in {snapshot_dir}; it is generated at "
+            "pack time from a template in this script and must not be stored on "
+            "disk, where it could drift from the archive that carries it"
+        )
     names = sorted(p.name for p in snapshot_dir.iterdir() if p.is_file())
+    members = sorted(names + [NOTICE_NAME])
 
     raw = io.BytesIO()
     with tarfile.open(fileobj=raw, mode="w") as tar:
-        for name in names:
-            source = snapshot_dir / name
-            info = tar.gettarinfo(str(source), arcname=f"{snapshot_dir.name}/{name}")
+        for name in members:
+            if name == NOTICE_NAME:
+                payload = NOTICE_TEXT.encode("utf-8")
+                info = tarfile.TarInfo(f"{snapshot_dir.name}/{name}")
+                info.size = len(payload)
+                body: io.BufferedIOBase = io.BytesIO(payload)
+            else:
+                source = snapshot_dir / name
+                info = tar.gettarinfo(str(source), arcname=f"{snapshot_dir.name}/{name}")
+                body = open(source, "rb")
             info.mtime = 0
             info.uid = info.gid = 0
             info.uname = info.gname = ""
             info.mode = 0o644
-            with open(source, "rb") as fh:
+            with body as fh:
                 tar.addfile(info, fh)
 
     with open(archive, "wb") as out:
         with gzip.GzipFile(filename="", mode="wb", fileobj=out, mtime=0) as gz:
             gz.write(raw.getvalue())
 
-    return _archive_digest(archive), "\n".join(names)
+    return _archive_digest(archive), "\n".join(members)
 
 
 def unpack(archive: Path, destination: Path, *, force: bool = False) -> Path:
@@ -263,6 +350,8 @@ def main(argv: list[str] | None = None) -> int:
     print(f"snapshot   : {snapshot_id}")
     print(f"bundle     : {result['bundle_sha256']}")
     print(f"members    : {listing.replace(chr(10), ', ')}")
+    print(f"notice     : {NOTICE_NAME} ({len(NOTICE_TEXT.encode('utf-8'))} bytes, "
+          "third-party data and licence statement -- finding F30)")
     print(f"archive    : {archive}")
     print(f"archive sha: {digest}")
     print(f"size       : {size_mb:.2f} MB")

@@ -20,6 +20,11 @@ plausible number (findings F27, F28):
    lists. A verifier that recomputes the bundle from the manifest's full hash
    map rejects every valid snapshot.
 
+It also asserts something of a different kind: that the archive still **carries its
+notice** (finding F30). That is a compliance property rather than a numerical one,
+but it fails the same way -- silently, on a re-pack, with the data still looking
+fine and the licence claim no longer attached to it.
+
 Both of those were wrong in the first draft of this file's predecessor, and both
 produced numbers that looked like findings. A claim that can be checked only by
 re-deriving the checker's own bugs is not a checkable claim, so the check is
@@ -38,7 +43,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import pandas as pd  # noqa: E402
 
-from pack_snapshot import VerificationError, _archive_digest, unpack  # noqa: E402
+from pack_snapshot import (  # noqa: E402
+    NOTICE_NAME,
+    NOTICE_TEXT,
+    VerificationError,
+    _archive_digest,
+    unpack,
+)
 from robustfolio import backtest  # noqa: E402
 from robustfolio import data as data_mod  # noqa: E402
 from robustfolio import report as reporting  # noqa: E402
@@ -67,6 +78,32 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def _load_published(path: Path) -> pd.DataFrame:
     """Read a published table without the default parser's ULP-level loss."""
     return pd.read_csv(path, index_col=0, float_precision="round_trip")
+
+
+def _check_notice(snapshot_dir: Path) -> None:
+    """An archive without its notice is not the archive the release published.
+
+    Finding F30 / DEC-20261017-034: the notice states that the third-party market
+    data is *not* covered by the repository's MIT licence. It is deliberately kept
+    out of ``manifest.json``'s hash map -- it is a statement about the data, not an
+    input to it -- which also makes it cheap to lose. So its presence is asserted
+    here rather than assumed, and a re-pack that dropped it fails loudly instead of
+    publishing a data dump with no statement attached.
+    """
+    notice = snapshot_dir / NOTICE_NAME
+    if not notice.exists():
+        raise VerificationError(
+            f"{NOTICE_NAME} is missing from the snapshot. This archive redistributes "
+            "third-party data and must carry the statement about it (finding F30); "
+            "an archive without it is not the one the release published."
+        )
+    if notice.read_text(encoding="utf-8") != NOTICE_TEXT:
+        raise VerificationError(
+            f"{NOTICE_NAME} in the archive differs from the template in "
+            "pack_snapshot.py. The notice is generated, never stored on disk, so a "
+            "difference means the archive was built by different code."
+        )
+    print(f"notice       : {NOTICE_NAME} present, unchanged")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -103,10 +140,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.keep is not None:
         args.keep.mkdir(parents=True, exist_ok=True)
         snapshot_dir = unpack(args.archive, args.keep, force=True)
+        _check_notice(snapshot_dir)
         recomputed = reproduce(snapshot_dir.parent)
     else:
         with tempfile.TemporaryDirectory() as tmp:
             snapshot_dir = unpack(args.archive, Path(tmp))
+            _check_notice(snapshot_dir)
             recomputed = reproduce(Path(tmp))
 
     shared = [c for c in recomputed.columns if c in published.columns]
