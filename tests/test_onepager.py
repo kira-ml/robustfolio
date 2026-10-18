@@ -77,6 +77,31 @@ def test_the_required_gap_band_is_the_published_threshold() -> None:
     assert thresholds["psr"] == pytest.approx(0.95, abs=1e-9)   # §6.1, the p-value bar
 
 
+def test_the_page_says_which_project_it_is() -> None:
+    """A sheet opened from a feed, with the post text gone, still identifies itself.
+
+    The display title is the flagship essay's hook and names no project, so identity
+    has to live somewhere else. It lives in ``MASTHEAD``, and both halves are module
+    constants so the test and the page cannot drift apart.
+    """
+    assert onepager.PROJECT_NAME in onepager.MASTHEAD
+    assert onepager.PROJECT_SUBJECT in onepager.MASTHEAD
+
+
+def test_the_subject_keeps_the_flagship_register() -> None:
+    """The frozen guidance keeps two domain words out of the flagship's header.
+
+    ``notes/release_essay_draft.md`` argues the flagship's title should avoid
+    "portfolio" and "backtest" so the piece reads as method rather than domain, and
+    this line is part of that header. Only the *subject* is checked: the project's
+    name is a name, not a description.
+    """
+    subject = onepager.PROJECT_SUBJECT.lower()
+
+    assert "portfolio" not in subject
+    assert "backtest" not in subject
+
+
 def test_the_verdicts_on_the_page_are_the_published_ones() -> None:
     """The page prints what the decision rule returned, including the failure."""
     data = onepager.load(PUBLISHED)

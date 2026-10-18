@@ -64,7 +64,7 @@ re-derive any of these while writing; copy them.**
 | The experiment that located it | same pipeline at 1 and at 4 BLAS threads: byte-identical, and equal to the published table | `OPENBLAS_NUM_THREADS` |
 | The conclusion the second failure forced | decisions **exact**, measurements bounded by a documented `1e-9` — a solver's output is defined only to its tolerance | DEC-20261018-038 |
 | **The check passing on a third machine** | `WITHIN 1e-09`, observed `4.698e-12`, every decision-bearing quantity identical, all eleven steps run | CI run 39136157646 |
-| Suite | 192 passed, 1 skipped | `pytest -q` |
+| Suite | 194 passed, 1 skipped | `pytest -q` |
 
 ### Claims this piece may **not** make (protocol §14.2)
 

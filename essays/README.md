@@ -10,7 +10,9 @@ every claim in them can be checked against the repository that made it.
 | 3 | [`cut-ml-ds.md`](cut-ml-ds.md) — *Four defences against fooling yourself* | ML / data science engineering | ~1,600 words |
 
 **The one-page version.** [`one-pager.pdf`](one-pager.pdf) — *I tried to break my own result before I
-published it*: the four defences, the one that failed, and the null underneath, on one sheet. It is not a
+published it*: the four defences, the one that failed, and the null underneath, on one sheet. It carries
+the project name and its subject above that title, because the title is a hook and a sheet read away
+from the post still has to say which project it belongs to. It is not a
 hand-made graphic. `python scripts/make_onepager.py` redraws it from the published tables, and
 `tests/test_onepager.py` checks that its numbers are the published ones, that the disclosure the policy
 requires is on it, that no block crosses the margin, and that it still fits on one page. A number typed

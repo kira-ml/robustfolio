@@ -82,6 +82,20 @@ EYEBROW = (
     "PRE-REGISTERED, MECHANICALLY EVALUATED, NON-CONFIRMATORY"
     "    |    NET OF 10 bps ONE-WAY COSTS"
 )
+#: The project's name and its subject. ``TITLE`` is the *display* title, and it is
+#: the flagship essay's title -- ``essays/README.md`` lists this page under it -- so
+#: the title cannot also carry the identity: a sheet opened from a feed, with the
+#: post text scrolled away, has to say which project it belongs to and what that
+#: project is. The subject states the question in the flagship's register, so it
+#: keeps out the two domain words the frozen title guidance keeps out of the
+#: flagship (``notes/release_essay_draft.md``, "avoid 'portfolio' and 'backtest' in
+#: the flagship"). The name is a name and is exempt from that.
+PROJECT_NAME = "ROBUSTFOLIO"
+PROJECT_SUBJECT = (
+    "an out-of-sample, cost-aware test of robust methods against five baselines"
+)
+MASTHEAD = f"{PROJECT_NAME}  \u00b7  {PROJECT_SUBJECT}"
+
 TITLE = ("I tried to break my own result", "before I published it.")
 DECK = (
     "Four defences against fooling yourself, one that failed, "
@@ -462,25 +476,26 @@ def layout_page(data: dict):
     flow = _Flow(fig, top=0.038)
 
     # --- header ------------------------------------------------------------ #
-    flow.text(EYEBROW, size=7.0, colour=MUTED, weight="bold", gap_after=0.011)
+    flow.text(MASTHEAD, size=7.8, weight="bold", gap_after=0.009)
+    flow.text(EYEBROW, size=7.0, colour=MUTED, weight="bold", gap_after=0.010)
     flow.text(TITLE[0], size=18.0, weight="bold", gap_after=0.002)
     flow.text(TITLE[1], size=18.0, weight="bold", gap_after=0.008)
-    flow.text(DECK, size=9.6, colour=MUTED, wrap=100, gap_after=0.011)
-    flow.rule(gap_after=0.016)
+    flow.text(DECK, size=9.6, colour=MUTED, wrap=100, gap_after=0.010)
+    flow.rule(gap_after=0.013)
 
     # --- the four defences ------------------------------------------------- #
-    flow.text(SECTION_DEFENCES, size=7.6, colour=MUTED, weight="bold", gap_after=0.010)
+    flow.text(SECTION_DEFENCES, size=7.6, colour=MUTED, weight="bold", gap_after=0.009)
     for name, body in _defences(data):
         flow.text(name, size=9.3, weight="bold", gap_after=0.001, wrap=78)
-        flow.text(body, size=8.3, colour=MUTED, wrap=104, gap_after=0.008)
+        flow.text(body, size=8.3, colour=MUTED, wrap=104, gap_after=0.006)
 
     # --- the one that failed ----------------------------------------------- #
     flow.callout(FAILURE_LABEL, FAILURE_TEXT, wrap=112)
-    flow.rule(gap_before=0.014, gap_after=0.014)
+    flow.rule(gap_before=0.012, gap_after=0.012)
 
     # --- the null, and the evidence for it --------------------------------- #
     flow.text(SECTION_EVIDENCE, size=7.6, colour=MUTED, weight="bold", gap_after=0.008)
-    plot_height = 0.155
+    plot_height = 0.152
     plot_top = flow.y + 0.012
     _draw_interval_plot(
         fig, data, [MARGIN_X, 1.0 - plot_top - plot_height, CONTENT_W, plot_height]
@@ -489,16 +504,16 @@ def layout_page(data: dict):
     # gap has to include its height: 0.042 clears it, 0.026 drew the disclosure on
     # top of it.
     flow.y = plot_top + plot_height + 0.042
-    flow.text(disclosure(data), size=7.6, colour=MUTED, wrap=120, gap_after=0.014)
-    flow.rule(gap_after=0.014)
+    flow.text(disclosure(data), size=7.6, colour=MUTED, wrap=120, gap_after=0.012)
+    flow.rule(gap_after=0.012)
 
     # --- the second failure ------------------------------------------------ #
     flow.text(SECTION_REPRO, size=7.6, colour=MUTED, weight="bold", gap_after=0.008)
     for body in _reproduction_block():
-        flow.text(body, size=8.3, wrap=116, gap_after=0.007)
+        flow.text(body, size=8.3, wrap=116, gap_after=0.006)
 
     # --- footer ------------------------------------------------------------ #
-    flow.rule(gap_before=0.010, gap_after=0.013)
+    flow.rule(gap_before=0.009, gap_after=0.011)
     flow.text(FOOTER[0], size=7.4, colour=INK, weight="bold", gap_after=0.003)
     flow.text(FOOTER[1], size=7.4, colour=INK, weight="bold", gap_after=0.006)
     flow.text(FOOTER[2], size=6.4, colour=MUTED, wrap=120)
