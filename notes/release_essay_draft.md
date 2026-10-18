@@ -54,10 +54,13 @@ re-derive any of these while writing; copy them.**
 | Paired differences | +0.4% and +0.6% per year | `design.csv` |
 | Snapshot archive | 1.67 MB, SHA-256 `7a3fc209…` | `pack_snapshot.py` |
 | Reproduction check | `EXACT`, max abs diff `0.000e+00`, 18 columns | `verify_release.py` |
-| CI | regenerates **and** verifies bit-for-bit against `docs/published-run/outcomes.csv`, pinned to the archive digest | `ci.yml` |
+| CI | regenerates **and** compares against `docs/published-run/outcomes.csv`, pinned to the archive digest: decisions **exactly**, measurements within a documented `1e-9` | `ci.yml` |
 | **The check failing on its first real run** | `autocorr1` `4.163e-17` out on Linux; the other 17 of 18 columns exact | CI run 39132731808 |
 | Cost of the fix, measured rather than asserted | 46 columns compared after regenerating, **one** changed, worst `9.714e-17`, **no headline number moved** | diff of `docs/published-run/outcomes.csv` |
-| Suite | 161 passed, 1 skipped | `pytest -q` |
+| **The check failing again on its second run** | **13** of 18 columns, worst `4.698e-12`, on an identical environment (51 packages, empty set difference) but a different machine | CI run 39134078120 |
+| The experiment that located it | same pipeline at 1 and at 4 BLAS threads: byte-identical, and equal to the published table | `OPENBLAS_NUM_THREADS` |
+| The conclusion the second failure forced | decisions **exact**, measurements bounded by a documented `1e-9` — a solver's output is defined only to its tolerance | DEC-20261018-038 |
+| Suite | 172 passed, 1 skipped | `pytest -q` |
 
 ### Claims this piece may **not** make (protocol §14.2)
 
@@ -86,7 +89,7 @@ re-derive any of these while writing; copy them.**
 | 2 | What I was actually testing | 300 | Frame the question and the pre-registered rule. Enough for a quant reader, skimmable for everyone else. |
 | 3 | Defence 1 — freeze before looking | 300 | Pre-registration as a mechanism, not a virtue. Include the rule that was frozen and what it forbade. |
 | 4 | Defence 2 — prove no leakage mechanically | 350 | The leakage suite, and why "we reviewed the code" is not a defence. |
-| 5 | Defence 3 — certify the numerics | 450 | F19 (memory layout / ULP), **F33 (the bit-for-bit claim was false on a second CPU: a BLAS kernel chose its own summation order)**, F20 (the certificate rejected 7 provably optimal solutions), F23 (the certification script was certifying a different problem). The strongest section. |
+| 5 | Defence 3 — certify the numerics | 500 | F19 (memory layout / ULP), **F33 and F34 (the reproduction claim was false twice: first a BLAS kernel chose its own summation order, then a solver's tolerance made "the number" a property of the machine)**, F20 (the certificate rejected 7 provably optimal solutions), F23 (the certification script was certifying a different problem). The strongest section, and the one with the best ending: the claim that survived is the one that was tested twice. |
 | 6 | Defence 4 — significance **and** materiality **and** robustness | 300 | The sixteen-comparison conjunction, and the DSR-passes/PSR-fails demonstration. |
 | 7 | The defence that failed: F26 | 350 | The honest centrepiece. A lobe of the design (independent validation of the report generator) was in direct tension with another lobe (blindness of the confirmatory test). I chose validation, and I'm saying so. |
 | 8 | The result | 250 | The null, with intervals. Frame as: the effect is absent, not invisible (ρ ≈ 0.985, power shown). Plus the diagnostic that explains it (effective bets ≈ 3–5 of 18; 12 of 18 eigenvalues below the MP edge). |
@@ -131,14 +134,26 @@ Strip the finance entirely. Keep §1, §3, §4, §5, §6, §9. Translate:
   artefact.
 - F27/F28 as the sharpest stories for this audience: both bugs were in *my verifier*, both produced
   plausible numbers, and one of them was a library default (`pd.read_csv`) lying by one ULP.
-- **F33 is the story this audience has the vocabulary for.** I wrote down "reproduces bit-for-bit",
-  added a check that could test it, and the check failed on the first run on a different CPU — because
-  `np.corrcoef` reaches a BLAS kernel selected at import time from the CPU's features, so the
-  summation order was never specified. Nothing was wrong with the code's logic; the *claim* was
-  stronger than what any of the code entailed. Generalise it: "deterministic" is a property of an
-  algorithm *plus* its dependency graph, and the only way to know which parts are deterministic is to
-  run the same input in two places. Then the fix, and the cost of the fix measured rather than
-  asserted: regenerate, diff all 46 columns, report that exactly one moved, by `9.7e-17`.
+- **F33+F34 together are the story this audience has the vocabulary for, and one failure is not
+  enough to tell it.** I wrote down "reproduces bit-for-bit", added a check that could test it, and
+  the check failed on the first run on a different CPU — because `np.corrcoef` reaches a BLAS kernel
+  selected at import time from the CPU's features, so the summation order was never specified.
+  Nothing was wrong with the code's logic; the *claim* was stronger than what the code entailed. Fix
+  it, measure the fix (regenerate, diff all 46 columns, exactly one moved, by `9.7e-17`), and then —
+  this is the part that makes the story worth telling — **the next check failed harder**: thirteen
+  columns, worst `4.7e-12`, on an environment that was provably identical (same image, same 51
+  packages, symmetric difference empty) and therefore a *different machine*. Killed that hypothesis by
+  experiment rather than argument: run the pipeline at one BLAS thread and at four; byte-identical,
+  both equal to the published table, so it is not threading. Then notice that `turnover_annualized`
+  moved — a function of the weights alone — so the two runs solved to different portfolios.
+- **The two generalisable lessons.** (1) "Deterministic" is a property of an algorithm *plus* its
+  dependency graph, and the only way to find out which parts are deterministic is to run the same
+  input in two places. (2) A number produced by a **solver** is a property of (data, code, machine),
+  not of (data, code), because the solve is only defined to its tolerance — so "the number" was never
+  as solid as the table it sits in. The correct repair is not a wider tolerance: it is to notice that
+  **exactness belongs to the decisions and approximation belongs to the measurements**, and to check
+  each with the tool it deserves. The final claim is stronger than the one I started with, because it
+  is the one that survived being tested.
 
 ---
 
@@ -166,5 +181,9 @@ Strip the finance entirely. Keep §1, §3, §4, §5, §6, §9. Translate:
 - [x] Snapshot uploaded as a release asset and the digest quoted in the release notes.
 - [x] Tag `v1.0.0`, cut the Release — published 2026-10-18, both assets uploaded, anonymous re-download matches the quoted digest.
 - [x] The README's own reproduction command verified by running it: the name it quoted returned **404** until F32 was fixed (DEC-20261018-036).
-- [ ] **CI verifies the archive against the committed published table at tolerance exactly zero.** It failed once — on F33 — and the fix is committed locally with `EXACT` on Windows; **the Linux re-check is the last piece of evidence still owed**, and the claim is not written as true until it returns green.
+- [ ] **CI verifies the archive against the committed published table**: every decision-bearing
+  quantity exactly, the measurements within a documented `1e-9`. It failed twice — F33 and F34 — and
+  the split claim is committed locally with `EXACT` on Windows; **the Linux re-check is the last piece
+  of evidence still owed**, and neither the essay nor any public artefact may state it as passing
+  until it returns green.
 - [ ] Re-read every public artefact against §14.2 **after** the release exists, since the release notes are themselves an artefact.

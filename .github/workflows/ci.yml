@@ -15,9 +15,13 @@ name: CI
 # more things: it regenerates the numbers with the command the README shows, and
 # it runs verify_release.py against the committed published table. Those are not
 # the same check. Regeneration can only show the code runs; the comparison is what
-# can show it produces *the same numbers*, at tolerance exactly zero. Both are
-# here because "one command regenerates the number" is a README claim, and a claim
-# that runs in CI is a different kind of claim from a claim that is written down.
+# can show it produces *the same result*. It checks every decision-bearing
+# quantity exactly -- method set, rebalances, folds, headline cost level, ranking
+# by net Sharpe, and which baseline the rules select -- and the continuous metrics
+# against the documented 1e-9 that findings F33 and F34 forced the claim to admit.
+# Both steps are here because "one command regenerates the number" is a README
+# claim, and a claim that runs in CI is a different kind of claim from a claim
+# that is written down.
 
 on:
   push:
@@ -74,14 +78,14 @@ jobs:
             # A skipped end-to-end check has to be visible. `continue-on-error`
             # keeps a pre-release run green, but it must not let a missing or
             # misnamed asset look like a passing verification.
-            echo "::warning title=Release asset not fetched::The end-to-end checks (bit-for-bit reproduction against docs/published-run) were SKIPPED. Expected only before the release exists; otherwise the asset name or the tag is wrong."
+            echo "::warning title=Release asset not fetched::The end-to-end checks (re-running every method and comparing against docs/published-run) were SKIPPED. Expected only before the release exists; otherwise the asset name or the tag is wrong."
           fi
 
       - name: Confirm the snapshot is the frozen one, not merely present
         if: steps.snapshot.outputs.ok == 'true'
         run: python scripts/pack_snapshot.py --verify-dir "data/snapshots/${SNAPSHOT_ID}"
 
-      - name: The archive reproduces the published table, bit-for-bit
+      - name: The archive reproduces the published result
         if: steps.snapshot.outputs.ok == 'true'
         # The strongest check in the repository, made standing rather than a
         # one-off: all seven methods are re-run from the archive and compared to

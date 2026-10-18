@@ -39,6 +39,7 @@ than filling the gap with a plausible number:
 from __future__ import annotations
 
 import json
+import os
 import platform
 import subprocess
 import sys
@@ -109,6 +110,45 @@ SPEC_VERSION = "1.1"
 # Manifest
 # --------------------------------------------------------------------------- #
 
+def _blas_context() -> dict:
+    """The part of the environment that decides last bits (finding F34).
+
+    The manifest recorded an interpreter and two libraries and called that the
+    "environment". It was not the environment that mattered. A run's last bits are
+    chosen by whichever BLAS kernel OpenBLAS dispatches to *at run time* from the
+    CPU's feature set, and by how many threads it decides to use -- and when two
+    machines disagreed by `4.698e-12` (finding F34) the record could not say why.
+    The answer had to be found by re-running the pipeline under a forced thread
+    count and comparing byte for byte.
+
+    This records enough to see it directly next time: the BLAS build and its
+    dispatch ceiling, the thread-control variables, and the machine's shape. It is
+    the same lesson as F32, one layer down -- a record that does not name the thing
+    that varies cannot explain a difference in the thing it records.
+    """
+    context = {
+        "machine": platform.machine(),
+        "processor": platform.processor(),
+        "cpu_count": os.cpu_count(),
+        "thread_controls": {
+            name: os.environ.get(name)
+            for name in ("OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS")
+        },
+    }
+    try:
+        blas = np.show_config(mode="dicts")["Build Dependencies"]["blas"]
+        context["blas"] = {
+            "name": blas.get("name"),
+            "version": blas.get("version"),
+            # DYNAMIC_ARCH means the kernel is picked at run time from the CPU's
+            # features, which makes this a ceiling rather than the kernel in use.
+            "build_configuration": blas.get("openblas configuration"),
+        }
+    except Exception:  # pragma: no cover - a diagnostic must never break a run
+        context["blas"] = "unavailable"
+    return context
+
+
 def _git_commit() -> str:
     """The commit the numbers came from, or a loud placeholder.
 
@@ -152,6 +192,7 @@ def manifest(snapshot_id: str, *, extras: dict | None = None) -> dict:
             "platform": platform.platform(),
             "numpy": np.__version__,
             "pandas": pd.__version__,
+            "blas_context": _blas_context(),
         },
         "scope": (
             "EXPLORATORY (DEC-20261015-012): this run is non-confirmatory and may "

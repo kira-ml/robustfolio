@@ -4,7 +4,8 @@
 
 Extracts the frozen snapshot from the release archive into a temporary directory,
 re-runs all seven methods, rebuilds the metric table, and compares it against the
-run's ``outcomes.csv``. Exits non-zero on any mismatch.
+run's ``outcomes.csv``. Exits non-zero if a *decision* differs, or if a metric
+differs by more than :data:`TOLERANCE`.
 
 Why this is a script and not a paragraph in the README
 ------------------------------------------------------
@@ -28,7 +29,11 @@ fine and the licence claim no longer attached to it.
 Both of those were wrong in the first draft of this file's predecessor, and both
 produced numbers that looked like findings. A claim that can be checked only by
 re-deriving the checker's own bugs is not a checkable claim, so the check is
-shipped as code with its tolerances stated.
+shipped as code with its tolerances stated -- and the tolerance itself is the
+third thing this file learned the hard way (findings F33, F34). The claim is split
+in two: everything decision-bearing is compared exactly, and the continuous
+metrics are compared against a documented bound, with the observed difference
+always printed. See :data:`TOLERANCE` for why the bound is not zero.
 """
 
 from __future__ import annotations
@@ -42,6 +47,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import pandas as pd  # noqa: E402
+import numpy as np  # noqa: E402
 
 from pack_snapshot import (  # noqa: E402
     NOTICE_NAME,
@@ -54,10 +60,49 @@ from robustfolio import backtest  # noqa: E402
 from robustfolio import data as data_mod  # noqa: E402
 from robustfolio import report as reporting  # noqa: E402
 
-#: Exact-zero tolerance. The claim is bit-for-bit reproduction of the published
-#: floats, not "close enough": if a re-run differs at all, the artefact no longer
-#: describes what produced it and a reader deserves to know.
-TOLERANCE = 0.0
+#: Absolute tolerance for the continuous metrics. It is not zero, and that needs
+#: justifying rather than asserting -- it was zero until CI disagreed twice.
+#:
+#: The original claim was "tolerance exactly zero". It held on the machine that
+#: produced the table. It held on the first CI runner, which mismatched on one
+#: column by 4.2e-17 (finding F33). On the next runner it mismatched on thirteen
+#: columns, the worst by 4.698e-12 (finding F34). There are two causes and neither
+#: is a bug in this repository:
+#:
+#:   1. The estimator's covariance is a matrix product, evaluated by a BLAS kernel
+#:      that OpenBLAS selects from the CPU's features **at run time**. Two machines
+#:      may therefore disagree in the last bits of Sigma-hat (F33 found the same
+#:      mechanism in a single metric). Thread count is not the cause: running this
+#:      whole pipeline on one machine with one BLAS thread and with four produces
+#:      byte-identical tables, checked.
+#:   2. A quadratic program is solved only to its solver's tolerance. The frozen
+#:      ``SOLVER_TOL`` is 1e-14, so the optimal portfolio is defined to about that
+#:      much, and a 1e-16 difference in the input reappears in the weights at
+#:      ~1e-12. Asking for bit-for-bit equality of a solver's output across CPUs
+#:      asks for something the artefact never had.
+#:
+#: So the claim is split, and the stronger half is the half that matters:
+#:
+#:   * every **decision-bearing** quantity is compared **exactly** -- the method
+#:     set and its order, the rebalance and fold counts, the headline cost level,
+#:     the ranking by net Sharpe, and which baseline the §6.1/§6.2 rule selects;
+#:   * the continuous metrics are compared within ``TOLERANCE``, and the observed
+#:     worst-case difference is printed on every run rather than hidden.
+#:
+#: 1e-9 is about 200x the worst difference measured across two platforms and six
+#: orders of magnitude below the four decimals at which any of these numbers is
+#: quoted or compared. It is loose enough to survive a runtime-chosen kernel and
+#: far too tight to survive a changed estimator, cost model or window -- which is
+#: what a verifier is for.
+TOLERANCE = 1e-9
+
+#: Counts and labels rather than measurements. A different rebalance count or
+#: headline cost level is a different experiment, not a rounding difference.
+EXACT_COLUMNS = ("rebalances", "folds", "headline_cost_bps")
+
+#: The metric the §6.1/§6.2 rules rank methods by, and therefore a decision
+#: rather than a measurement.
+HEADLINE_METRIC = "net_sharpe"
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -106,6 +151,76 @@ def _check_notice(snapshot_dir: Path) -> None:
     print(f"notice       : {NOTICE_NAME} present, unchanged")
 
 
+def compare(
+    recomputed: pd.DataFrame,
+    published: pd.DataFrame,
+    *,
+    tolerance: float = TOLERANCE,
+) -> tuple[float, list[str], list[str]]:
+    """Classify a re-run against the published table.
+
+    Returns ``(worst_absolute_difference, columns_beyond_tolerance,
+    exact_comparisons_that_failed)``. The split is the whole point of the
+    function: *which* method won, over how many rebalances, at which cost level,
+    and against which benchmark are not approximate quantities, so they are
+    compared exactly; the measurements behind them are approximate, so they are
+    compared against a documented bound.
+    """
+    problems: list[str] = []
+
+    if list(recomputed.index) != list(published.index):
+        problems.append(
+            f"method set or order differs: {list(recomputed.index)} vs {list(published.index)}"
+        )
+        return float("inf"), [], problems
+
+    shared = [column for column in recomputed.columns if column in published.columns]
+    published = published.loc[recomputed.index, shared]
+    # Counts and labels are *checked exactly* below, so they are deliberately not
+    # also measured against a tolerance: that would let a different experiment
+    # pass as a rounding difference.
+    numeric = [
+        c for c in shared
+        if pd.api.types.is_numeric_dtype(recomputed[c]) and c not in EXACT_COLUMNS
+    ]
+
+    if numeric:
+        diff = (recomputed[numeric].astype(float) - published[numeric].astype(float)).abs()
+        worst = float(diff.max().max())
+        offenders = [column for column in diff.columns if float(diff[column].max()) > tolerance]
+    else:
+        worst, offenders = 0.0, []
+
+    for column in EXACT_COLUMNS:
+        if column in shared and not np.array_equal(
+            recomputed[column].to_numpy(), published[column].to_numpy()
+        ):
+            problems.append(
+                f"{column} differs: {recomputed[column].tolist()} vs {published[column].tolist()}"
+            )
+
+    if HEADLINE_METRIC in shared:
+        order_new = list(recomputed[HEADLINE_METRIC].astype(float).sort_values(ascending=False).index)
+        order_pub = list(published[HEADLINE_METRIC].astype(float).sort_values(ascending=False).index)
+        if order_new != order_pub:
+            problems.append(
+                f"ranking by {HEADLINE_METRIC} differs: {order_new} vs {order_pub}"
+            )
+
+        baselines = [b for b in reporting.BASELINE_IDS if b in recomputed.index]
+        if baselines:
+            best_new = max(baselines, key=lambda b: float(recomputed.loc[b, HEADLINE_METRIC]))
+            best_pub = max(baselines, key=lambda b: float(published.loc[b, HEADLINE_METRIC]))
+            if best_new != best_pub:
+                problems.append(
+                    f"best baseline differs: {best_new} vs {best_pub}. Every candidate "
+                    "would be compared against a different benchmark, which is a "
+                    "different experiment, not a rounding difference."
+                )
+
+    return worst, offenders, problems
+
+
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
 
@@ -148,32 +263,56 @@ def main(argv: list[str] | None = None) -> int:
             _check_notice(snapshot_dir)
             recomputed = reproduce(Path(tmp))
 
-    shared = [c for c in recomputed.columns if c in published.columns]
-    compared = published.loc[recomputed.index, shared].astype(float)
-    diff = (recomputed[shared].astype(float) - compared).abs()
+    worst, offenders, exact_problems = compare(recomputed, published)
 
-    worst = diff.max().max()
+    shared = [column for column in recomputed.columns if column in published.columns]
     print(f"methods      : {len(recomputed)}")
     print(f"columns      : {len(shared)}")
     print(f"max abs diff : {worst:.3e}")
+    print(f"tolerance    : {TOLERANCE:.0e}")
     print()
 
-    offenders = diff.max().loc[lambda s: s > TOLERANCE].sort_values(ascending=False)
-    if len(offenders):
-        print("MISMATCH on the following columns:", file=sys.stderr)
-        for column, value in offenders.items():
-            print(f"  {column}: {value:.3e}", file=sys.stderr)
+    if exact_problems:
+        print("DECISION MISMATCH -- these are exact quantities, not measurements:", file=sys.stderr)
+        for problem in exact_problems:
+            print(f"  {problem}", file=sys.stderr)
         print(
-            "\nThe archive no longer reproduces the published run. Either the "
-            "snapshot is not the one the run used, or the code has changed since "
-            "the run was published. Both invalidate the run.",
+            "\nThe archive no longer produces the published *decisions*, which no "
+            "amount of floating-point slack can excuse: the method set, the window, "
+            "the cost level, the ranking and the benchmark are all discrete. Either "
+            "the snapshot is not the one the run used, or the code has changed since "
+            "the run was published.",
             file=sys.stderr,
         )
         return 1
 
-    print("EXACT: the release archive reproduces every published metric bit-for-bit.")
-    print("(The frozen seed, the frozen tolerance and the immutable snapshot are what")
-    print(" make this an equality rather than an approximation.)")
+    if offenders:
+        print("MISMATCH beyond tolerance on the following columns:", file=sys.stderr)
+        for column in offenders:
+            value = float((recomputed[column].astype(float) - published.loc[recomputed.index, column].astype(float)).abs().max())
+            print(f"  {column}: {value:.3e}", file=sys.stderr)
+        print(
+            f"\nThe archive no longer reproduces the published run: at least one metric "
+            f"is more than {TOLERANCE:.0e} away, which is far outside the "
+            "runtime-kernel differences this tolerance exists to absorb (findings "
+            "F33/F34). Either the snapshot is not the one the run used, or the code "
+            "has changed since the run was published. Both invalidate the run.",
+            file=sys.stderr,
+        )
+        return 1
+
+    if worst == 0.0:
+        print("EXACT: the release archive reproduces every published metric bit-for-bit,")
+        print("and every decision-bearing quantity is identical.")
+        print("(The frozen seed, the frozen tolerance and the immutable snapshot are what")
+        print(" make this an equality rather than an approximation -- on this machine.)")
+    else:
+        print(f"WITHIN {TOLERANCE:.0e}: the archive reproduces every published metric to {worst:.3e}")
+        print("on this machine, and every decision-bearing quantity -- the method set, the")
+        print("window, the cost level, the ranking and the benchmark baseline -- is identical.")
+        print("The residual is not slack in the claim: it is a BLAS kernel chosen from the")
+        print("CPU's features at run time, amplified by the solver's own tolerance. See")
+        print("finding F34 in docs/decision_log.md for how this bound was measured.")
     return 0
 
 

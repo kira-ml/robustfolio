@@ -69,9 +69,12 @@ python scripts/pack_snapshot.py --verify "$ASSET" --extract-to data/snapshots
 # Regenerate the headline number and every table behind it.
 python scripts/run_experiment.py --out results/run
 
-# Re-run every method from the archive and assert it reproduces the published
-# table, bit-for-bit. Tolerance is exactly zero: this prints EXACT or exits
-# non-zero. The reference table is committed, so no prior run is needed.
+# Re-run every method from the archive and compare against the published table.
+# Every decision-bearing quantity -- method set, rebalances, folds, cost level,
+# ranking, benchmark baseline -- is checked exactly, and a difference there fails
+# the command. The metrics are checked against the documented bound in the script
+# (1e-9), and the observed worst difference is printed. The reference table is
+# committed, so no prior run is needed.
 python scripts/verify_release.py --archive "$ASSET" --run docs/published-run
 
 # The headline figure, from the run directory alone.
@@ -82,14 +85,16 @@ python scripts/make_figures.py --run results/run
 
 ```bash
 python scripts/certify_engine.py    # 7 methods x 168 rebalances, KKT certificate
-python -m pytest -q                 # 161 passed, 1 skipped
+python -m pytest -q                 # 172 passed, 1 skipped
 ```
 
 `run_experiment.py` writes `manifest.json` (snapshot id, git commit, protocol and spec versions, seed, environment), `outcomes.csv`, `decisions.csv`, `calibration.csv`, `design.csv`, `folds_<M>.csv`, `net_excess_returns.csv`, and `report.md`.
 
 **The reference table is in the repository.** `docs/published-run/outcomes.csv` is the metric table these numbers come from, committed (4.8 KB) so that the reproduction check can be a *comparison*. Without it a verifier can only ever say "my run finished", which is a different and much weaker statement. CI runs exactly the command above against the release archive, so a code change or a re-uploaded asset fails the build instead of being noticed in six months — see [`docs/published-run/README.md`](docs/published-run/README.md).
 
-**The equality is exact on any machine, and it took a failure to make that true.** The first time CI ran the comparison it failed — by `4.2e-17`, on exactly one of the eighteen columns the verifier checks. `autocorr1` went through `np.corrcoef`, which reaches a BLAS kernel that OpenBLAS chooses from the CPU's features at import time, so the same archive and the same code agreed bit-for-bit on one platform and not on the other. It is now computed with a correctly-rounded summation (`math.fsum` and the exactly-rounded primitives), which is bit-identical on any IEEE-754 platform and slightly *more* accurate than the vectorised dot product it replaced. Finding **F33**, DEC-20261018-037.
+**The claim is split — decisions exact, measurements bounded — and it took two failures to get there.** The first CI run of the comparison failed by `4.2e-17` on exactly one of the eighteen columns: `autocorr1` reached a BLAS kernel that OpenBLAS selects from the CPU's features at run time, so the same archive and the same code agreed bit-for-bit on one machine and not on another. That metric now uses a correctly-rounded summation (`math.fsum` plus the primitives IEEE-754 requires to be correctly rounded), which is bit-identical anywhere and slightly *more* accurate — finding **F33**, DEC-20261018-037.
+
+The next run failed harder: thirteen columns, worst `4.698e-12`. That one is not fixable the same way, and the honest reading is the interesting one — **a quadratic program is solved only to its solver's tolerance**, so the optimal portfolio is defined to about `1e-14` and the published digits are a property of *(archive, code, machine)* rather than of the archive alone. Finding **F34**, DEC-20261018-038. So the verifier splits its claim instead of widening it: every **decision-bearing** quantity (method set, rebalance and fold counts, headline cost level, the ranking by net Sharpe, and which baseline the rules select) is compared **exactly** and fails the build on *any* difference, while the continuous metrics are compared against a documented `1e-9` — 200× the worst cross-platform difference measured, and six orders of magnitude below the four decimals any of these numbers is quoted at. The observed worst difference is printed on every run either way. A verifier that tolerates a reordering is not a verifier.
 
 **Rebuilding the snapshot is not reproduction.** Yahoo Finance revises history, so `scripts/build_snapshot.py --end 2026-09-30 --retrieval-date <another date>` produces a *different* snapshot with a different content hash and slightly different numbers. That is why the frozen snapshot ships as an asset, and why the archive's digest is published: exact reproduction means the same input, not a similar one.
 
@@ -127,9 +132,9 @@ A **release archive** is those five files plus a generated `NOTICE.txt` recordin
 | Optimizer | CVXPY + CLARABEL, **no fallback path**, every rebalance certified by a primal KKT residual against a frozen tolerance |
 | Engine certificate | 7 methods × 168 rebalances = **1,176 solves, zero rejections**; worst KKT residual `1.49e-11` vs `1e-7` acceptance |
 | Leakage suite | protocol §5.4.8 — 14 pass, 1 recorded skip (the survivorship test is vacuous in-sample; see below) |
-| Tests | 161 passed, 1 skipped — including the leakage suite, release-packaging integrity (the notice included), snapshot-name integrity, metric determinism, and the documentation index |
+| Tests | 172 passed, 1 skipped — including the leakage suite, release-packaging integrity (the notice included), snapshot-name integrity, metric determinism, the verifier's own exact/bounded split, and the documentation index |
 | Release chain | Frozen snapshot packs to a deterministic 1.67 MB archive with a published SHA-256 and a `NOTICE.txt` recording the data's provenance and licence; `verify_release.py` re-runs the harness from the archive and asserts equality with the published table at zero tolerance |
-| Continuous integration | Hermetic suite green on a fresh clone by design; with the release asset present, CI also re-runs every method and **verifies the archive reproduces the committed published table at tolerance zero**, and fails if it does not. That check has already failed once — on a BLAS kernel choice, not a real difference (F33) |
+| Continuous integration | Hermetic suite green on a fresh clone by design; with the release asset present, CI also re-runs every method and compares the result to the committed published table — **exactly** on every decision-bearing quantity, within a documented `1e-9` on the measurements. That check has failed twice, both times on a runtime-chosen BLAS kernel rather than a real difference (F33, F34) |
 
 ---
 
@@ -145,7 +150,7 @@ These are the honest ones, not a disclaimer. The full list is in the report and 
 - **Data provenance is Yahoo Finance**, frozen into an immutable snapshot with a quality report. It is not an institutional point-in-time vendor feed, and the licence on the third-party data is Yahoo's, not MIT (see above and [`docs/open_source_and_license_policy.md`](docs/open_source_and_license_policy.md)).
 - **Two specification readings are disclosed, not silent.** §7.8 leaves the object of its prediction interval undefined, so only the *return* half is reported (coverage 81.5–87.0%); the volatility half is deliberately **not** implemented. §6.3's "advantage" is not pinned to a metric, so fold wins use net Sharpe and the concentration clause uses per-fold mean return — **and that reading decides the verdict here** (findings F24, F25).
 - **Not investment advice, and not a claim of tradable alpha.** Nothing here is a live trading system, and no absolute return claim is made (protocol §14.2).
-- **The verification path itself had two bugs, and both produced plausible numbers.** The first snapshot verifier rejected *every* valid snapshot, because `manifest.json`'s hash map lists five files while the content hash is derived from four (finding F27). The first comparison of the archived snapshot against the published table reported a `8.3e-17` mismatch on `B4`, because `pandas.read_csv` is lossy by one ULP at its default settings — only `float_precision="round_trip"` is exact (finding F28). Neither error was in the artefact. Both were found only because the expected answer was known to 17 digits, and both are now pinned by tests.
+- **The verification path had four bugs, and all four produced plausible numbers.** The first snapshot verifier rejected *every* valid snapshot, because `manifest.json`'s hash map lists five files while the content hash is derived from four (finding **F27**). The first comparison of the archived snapshot against the published table reported an `8.3e-17` mismatch on `B4`, because `pandas.read_csv` is lossy by one ULP at its default settings — only `float_precision="round_trip"` is exact (finding **F28**). Then the comparison falsified **this repository's own claim**, twice, within two commits: first one metric that reached a BLAS kernel chosen from the CPU's features at run time (finding **F33**), then thirteen metrics on a second machine, because a solver's output is only defined to the solver's tolerance (finding **F34**). Neither was a defect in the data. Both were claims broader than the mechanism underneath them, which is the failure this project exists to look for. The limit that remains is stated above and in [`docs/published-run/README.md`](docs/published-run/README.md): **decisions reproduce exactly, measurements to a documented bound, and the number this machine actually achieved is printed on every run.**
 
 ---
 

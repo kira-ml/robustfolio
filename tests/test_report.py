@@ -270,6 +270,22 @@ def test_manifest_records_the_things_a_reproduction_needs():
     assert "EXPLORATORY" in payload["scope"]
 
 
+def test_the_manifest_records_what_decides_the_last_bits():
+    """Finding F34: two machines, one image, the same 51 packages, `4.698e-12` apart.
+
+    The record could not have explained that, because it did not record the part
+    of the environment that differs between two machines with identical software:
+    the BLAS build and the kernel it dispatches to at run time from the CPU's
+    features. A field that records only what is already identical is decoration.
+    """
+    payload = reporting.manifest("some-snapshot-id")
+    context = payload["environment"]["blas_context"]
+
+    assert context["cpu_count"] >= 1
+    assert "OPENBLAS_NUM_THREADS" in context["thread_controls"]
+    assert set(context["blas"]) == {"name", "version", "build_configuration"}
+
+
 def test_build_report_refuses_an_incomplete_method_set():
     results = make_results()
     del results["M2"]
