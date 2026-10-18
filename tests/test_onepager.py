@@ -65,6 +65,18 @@ def test_the_interval_and_the_reference_baseline_are_read_too() -> None:
     assert best["level"] == pytest.approx(0.90, abs=1e-9)
 
 
+def test_the_required_gap_band_is_the_published_threshold() -> None:
+    """The band on the chart is §6.2's bar, not a width chosen to look good.
+
+    ``load`` refuses a run whose headline cost is not the one the page states; the
+    same principle applies to the two thresholds the page draws and quotes.
+    """
+    thresholds = onepager.load(PUBLISHED)["thresholds"]
+
+    assert thresholds["gap"] == pytest.approx(0.20, abs=1e-9)   # §6.2, the band
+    assert thresholds["psr"] == pytest.approx(0.95, abs=1e-9)   # §6.1, the p-value bar
+
+
 def test_the_verdicts_on_the_page_are_the_published_ones() -> None:
     """The page prints what the decision rule returned, including the failure."""
     data = onepager.load(PUBLISHED)

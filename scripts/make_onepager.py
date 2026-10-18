@@ -396,6 +396,19 @@ def _draw_interval_plot(fig, data: dict, rect: list[float]) -> None:
                 markeredgecolor="white", markeredgewidth=0.8, zorder=3)
 
     reference = next(row["point"] for row in rows if row["method"] == best)
+    gap_bar = data["thresholds"]["gap"]
+
+    # SS6.2's materiality bar is a distance on this same axis: a candidate clears it
+    # when its dot sits at or right of the baseline plus the bar, because
+    # ``sharpe_gap = candidate - baseline``. So the strip between them is exactly the
+    # set of outcomes that fail the gate. Shading it costs one patch and no new
+    # number -- the bar is read from ``decisions.csv``, like everything else here.
+    ax.axvspan(
+        reference, reference + gap_bar,
+        facecolor=REFERENCE_COLOUR, alpha=0.13,
+        edgecolor=REFERENCE_COLOUR, linewidth=0.8, linestyle=(0, (3, 3)),
+        zorder=0.5,
+    )
     ax.axvline(reference, color=REFERENCE_COLOUR, linewidth=1.0,
                linestyle=(0, (4, 3)), zorder=1)
 
@@ -420,9 +433,15 @@ def _draw_interval_plot(fig, data: dict, rect: list[float]) -> None:
     )
     ax.annotate(
         f"{best}  (best baseline)",
-        xy=(reference, -0.42), xytext=(reference + 0.03, -0.42),
+        xy=(reference, -0.42), xytext=(reference - 0.02, -0.42),
         fontsize=8.0, color=REFERENCE_COLOUR, fontweight="bold",
-        fontfamily=FONT, va="center", ha="left", annotation_clip=False,
+        fontfamily=FONT, va="center", ha="right", annotation_clip=False,
+    )
+    ax.annotate(
+        f"\u00a76.2 requires a {gap_bar:.2f} gap over {best}",
+        xy=(reference + gap_bar, -0.42), xytext=(reference + gap_bar + 0.02, -0.42),
+        fontsize=8.0, color=MUTED, fontfamily=FONT,
+        va="center", ha="left", annotation_clip=False,
     )
     for index, row in enumerate(rows):
         ax.text(
