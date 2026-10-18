@@ -1,8 +1,9 @@
 # Published run — `outcomes.csv`
 
-**Version:** 1.0
+**Version:** 1.1
 **Status:** Frozen
 **Created:** 2026-10-18
+**Last Updated:** 2026-10-18
 
 This is the **published metric table**: the seven methods' outcomes from the first end-to-end run
 of the reporting layer, `EXP-X-20261017-003`, computed from the frozen snapshot
@@ -23,6 +24,26 @@ python scripts/verify_release.py \
 ```
 
 Expect **`EXACT`, max abs diff `0.000e+00`**.
+
+## The equality is a property of the arithmetic, not of the machine
+
+The first CI run of this comparison **failed**: one column, `autocorr1`, was `4.163e-17`
+away from the committed value — about three units in the last place — while the other seventeen
+columns the verifier checks matched bit-for-bit. Nothing was wrong with the archive or with the
+code's logic. `autocorr1` was computed with `np.corrcoef`, which reaches a BLAS `ddot`/`dgemm`
+kernel, and OpenBLAS selects its kernel at *runtime* from the CPU's feature set: the same bytes
+and the same Python produced different last bits on a different CPU.
+
+It is now computed with an exactly-rounded summation (`math.fsum` over the departures, plus the
+primitives IEEE-754 requires to be correctly rounded), so every rounding step is defined by the
+standard rather than chosen by a kernel. That is **finding F33** (`decision_log.md`,
+DEC-20261018-037). Regenerating the table after the fix moved exactly one column, in its last
+three bits, and no headline number: the diff is recorded in that decision.
+
+The residual is stated rather than hidden. The estimator's covariance still goes through
+`np.cov`, and so does the linear algebra behind the solver; those are matrix products whose
+last-bit behaviour is not this repository's to define. What is claimed is what has been checked:
+tolerance exactly zero, on two platforms, against a pinned archive digest.
 
 ## Why this is not circular
 

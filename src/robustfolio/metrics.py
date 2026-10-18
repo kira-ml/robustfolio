@@ -36,11 +36,23 @@ argument rather than treating a missing series as zero.
 **Covariance of the sample is ``ddof=1`` throughout**, matching §7.1's explicit
 ``std(..., ddof=1)`` and the §4.2 estimator convention.
 
+**Where a metric contains a reduction, it is computed without BLAS.** §7.7's
+correlation is a sum over one short series, so it is evaluated with
+:func:`_pearson_exact` -- ``math.fsum`` and the exactly-rounded primitives, which
+answer the same everywhere. ``np.corrcoef`` answers with whatever kernel OpenBLAS
+picked from the CPU's features at import time, and that made this repository's own
+bit-for-bit reproduction claim false on a second platform while looking true on
+the first (finding **F33**). The estimator's covariance still goes through
+``np.cov``, a matrix product whose last-ULP behaviour is not under this
+repository's control; that is stated as a limit rather than papered over.
+
 ``sharpe`` is the one metric that is allowed to decide anything (protocol §2);
 everything else here is a diagnostic or a constraint check.
 """
 
 from __future__ import annotations
+
+import math
 
 import numpy as np
 import pandas as pd
@@ -178,12 +190,44 @@ def autocorr1(monthly_returns: pd.Series) -> float:
     that equality rather than asserting a difference: pandas implements
     ``autocorr`` as ``self.corr(self.shift(lag))``, i.e. exactly this paired
     Pearson correlation, so there is no whole-series-mean variant to diverge from.
+
+    Computed with :func:`_pearson_exact`, **not** with ``np.corrcoef``. That is
+    finding **F33**: ``np.corrcoef`` reaches ``np.cov``, which reaches a BLAS
+    ``ddot``/``dgemm`` kernel, and OpenBLAS chooses its kernel at *runtime* from
+    the CPU's feature set. The same archive and the same code therefore produced
+    this one column 3 ULP apart on Windows and on the CI runner, while the other
+    seventeen columns matched bit-for-bit. A reproduction claim should not depend
+    on which CPU answers.
     """
     r = monthly_returns.dropna().astype(float)
     if len(r) < 3:
         return float("nan")
-    current = r.to_numpy()[1:]
-    lagged = r.to_numpy()[:-1]
+    values = r.to_numpy()
+    current = values[1:]
+    lagged = values[:-1]
     if current.std(ddof=1) == 0.0 or lagged.std(ddof=1) == 0.0:
         return float("nan")
-    return float(np.corrcoef(current, lagged)[0, 1])
+    return _pearson_exact(current, lagged)
+
+
+def _pearson_exact(a: np.ndarray, b: np.ndarray) -> float:
+    """Pearson correlation whose every rounding step is exactly defined (F33).
+
+    ``math.fsum`` is correctly rounded and answers the same on any IEEE-754
+    platform, and the remaining operations are the exactly-rounded ones every
+    conforming implementation must produce: the means (correctly-rounded sum, then
+    correctly-rounded division), the departures, the elementwise products, the
+    square root, and the final division. So the result is bit-identical anywhere,
+    whereas a BLAS reduction is bit-identical only on the same kernel. It is also
+    the more accurate of the two, since a vectorised dot product is not required
+    to be correctly rounded.
+    """
+    n = a.size
+    mean_a = math.fsum(a) / n
+    mean_b = math.fsum(b) / n
+    dev_a = a - mean_a
+    dev_b = b - mean_b
+    spread = math.sqrt(math.fsum(dev_a * dev_a) * math.fsum(dev_b * dev_b))
+    if spread == 0.0:
+        return float("nan")
+    return math.fsum(dev_a * dev_b) / spread

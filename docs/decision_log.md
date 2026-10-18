@@ -3,7 +3,7 @@
 **Project:** `robustfolio`
 **Owner:** Ken Ira Lacson Talingting
 **Created:** 2026-10-14
-**Version:** 1.12
+**Version:** 1.13
 **Last Updated:** 2026-10-17
 **Purpose:** Immutable record of every governance, experiment, and pivot decision in the project. Entries are append-only. Supersession is by a new entry, not by editing an old one.
 
@@ -1503,6 +1503,73 @@ Three ways this fails later. **(a)** Someone silences the naming test by allowli
 
 ---
 
+### DEC-20261018-037
+
+**Date:** 2026-10-18
+**Type:** IMPLEMENTATION
+**Status:** ACTIVE
+**Authority:** Owner (fixes what the CI check added at DEC-20261018-036 found)
+**Related docs:** `src/robustfolio/metrics.py`, `tests/test_metrics.py`, `README.md`, `docs/published-run/outcomes.csv`, `docs/published-run/README.md`, `docs/README.md` (v1.20), `decision_log.md` (v1.13)
+**Related risks:** R-E01
+
+**Context:**
+The workflow step added at DEC-20261018-036 re-runs every method from the release archive and compares the result to the committed published table at tolerance **exactly zero**. It ran on commit `6040f7e` and **failed** (run 39132731808):
+
+```
+MISMATCH on the following columns:
+  autocorr1: 4.163e-17
+max abs diff : 4.163e-17
+columns      : 18
+```
+
+Seventeen of the eighteen columns the verifier compares matched **bit-for-bit** across Windows and the Linux runner. The eighteenth, §7.7's lag-1 autocorrelation, was three units in the last place out.
+
+**Root cause, established rather than guessed.** `metrics.autocorr1` ended in `float(np.corrcoef(current, lagged)[0, 1])`. `np.corrcoef` builds on `np.cov`, which builds on the BLAS `ddot`/`dgemm` kernels, and OpenBLAS picks its kernel **at runtime** from the CPU's feature set. A reduction whose *order of summation* depends on the answering CPU is not required to give the same last bits. Nothing was wrong with the archive, the data, or the metric's logic: the arithmetic was under-specified, and a check that asserts equality found the place where that mattered.
+
+**Decision:**
+
+1. **Finding F33 recorded.** *A claim of bit-for-bit reproduction is a claim about arithmetic, not about the data — and it silently depends on run-time CPU dispatch in the linear-algebra layer.* This is the same family as F2 and F19 (implementation detail masquerading as a stronger property than it is), but located in a dependency rather than in this repository's code.
+
+2. **`metrics.autocorr1` no longer goes through BLAS.** It is computed by a new `metrics._pearson_exact`, which uses `math.fsum` for the means and for the sums and otherwise uses only operations IEEE-754 *requires* to be correctly rounded: subtraction, multiplication, division, square root. Every rounding step is therefore defined by the standard, so the result is bit-identical on any conforming platform. It is also the more accurate of the two formulations, because a vectorised dot product is not required to be correctly rounded.
+
+3. **The published table was regenerated, and the diff of that regeneration is the evidence rather than the assertion.** All 46 columns compared; **exactly one changed** — `autocorr1`, worst case `9.714e-17` (B3). **No headline number moved**, so every figure quoted in the ledger remains valid, and the change is invisible at the three decimals the report prints.
+
+4. **Two mechanical guards added** (`tests/test_metrics.py`). `test_autocorr1_does_not_go_through_a_blas_reduction` parses the module's call graph and asserts that nothing named `corrcoef` is *called* — a value test cannot guard this, since the formulations differ by less than any tolerance worth writing down, and it is deliberate that the guard reads calls rather than text so that the module may still document `corrcoef`. `test_pearson_exact_is_the_correctly_rounded_correlation` checks the new path against an exact-rational reference computed with `fractions.Fraction`, so it does not agree with the implementation merely by reusing its arithmetic.
+
+5. **The residual limitation is stated, not papered over.** The estimator's covariance (`np.cov`), the conditioning diagnostic (`np.linalg.cond`, `eigvalsh`) and the solver's own linear algebra still run inside BLAS/LAPACK. Their last-bit behaviour is not this repository's to define. What is claimed is what has been checked: tolerance exactly zero, against a pinned archive digest, on two platforms.
+
+6. **The release is unaffected.** The archive, its digest `7a3fc209…`, the bundle hash and the snapshot id are all unchanged; the fix is in the code that *reads* the archive and in a table that lives in the repository.
+
+**Alternatives considered:**
+- **Relax the verifier to a tolerance (e.g. 1e-15) and keep the existing wording.** Rejected: it would convert a discovered defect into a permanent caveat, and it would weaken the one check in this repository that can distinguish "the code still runs" from "the code produces the same numbers". The tolerance is exactly zero *because* that distinction is the point.
+- **Leave the comparison exact but exclude `autocorr1` as a diagnostic column.** Rejected as a first resort: it treats a symptom. The column's value was in fact reproducible; only its *computation* was not, and that is fixable in five lines. It remains available as a fallback if a genuinely unfixable column ever appears.
+- **Compute the whole estimator path without BLAS.** Rejected: an 18x18 covariance and the solver's linear algebra would have to be hand-rolled, adding more risk than the dependence removes, and correctness of those routines is *better* served by LAPACK than by this repository. Cheap where it is cheap, stated where it is not.
+- **Weaken the README claim instead of the arithmetic** ("reproduces to within floating-point tolerance"). Rejected for the same reason as the first alternative, and because the sentence had been true on the development machine for hours; the failure was the most useful thing the new check produced.
+- **Keep the fix local and skip the essay hook.** Recorded as a poor use of the finding: this is the clearest concrete instance the project has of "a claim nobody could test was softer than it sounded, and the moment it became testable it was false".
+
+**Rationale:**
+[First Principles] "Reproduces bit-for-bit" is a statement about summation order. Summation order inside a BLAS kernel is chosen at runtime by `DYNAMIC_ARCH` dispatch. So the claim was not merely unverified, it was not *entailed* by anything the repository had written down.
+[Map is Not the Territory] The map said "tolerance exactly zero, therefore exact"; the territory said seventeen columns. No amount of re-reading the map would have found it.
+[Inversion] How does a reproduction claim become false without anyone doing anything wrong? Let a dependency make a choice the standard permits, and put the claim in a place where only one platform can see it. Both halves are removed: the arithmetic is now fully specified, and a second platform now runs the check on every push.
+[Goodhart] The tempting measure is "the verifier passes". The measure that matters is "the verifier passes on another machine, at zero tolerance". Chasing the first would have ended in a tolerance parameter.
+[Path Dependence] The choice of `np.corrcoef` was made when it looked like the clearest transcription of §7.7's formula. It *is* the clearest transcription; it is simply not a *specified* one. Cheap to replace, expensive to leave.
+
+**Reversibility:** Soft. One metric function, two tests, one regenerated table. Reverting would restore a known, documented, platform-dependent defect.
+
+**Revisit trigger:**
+The verifier fails again on a different column -> the next BLAS/LAPACK dependence has surfaced, and the diagnosis starts from the same question: is the *arithmetic* specified, or merely conventional? A column whose value cannot be made platform-independent -> it becomes the first entry in a documented exception list, and the README says why. Python or numpy gains a documented determinism guarantee for the relevant reductions -> the hand-rolled reduction could be replaced by a simpler call.
+
+**Expected value assessment:**
+- Probability the new check would find something on its first real run: **observed, 1.0** — it did, within one commit of being added. That is the strongest evidence available that the check was worth adding, and it is evidence of the kind this project has repeatedly found: the interesting failures arrive the moment a claim becomes testable.
+- Probability a consumer of these numbers is affected by the `autocorr1` change: **negligible** — it is a diagnostic, it moved in the 17th digit, and the report prints three decimals.
+- Probability the class recurs elsewhere: **moderate**, because the covariance and the solver still sit on BLAS; disclosed above rather than estimated away.
+- Residual risk: the guards test the *mechanism* on this platform, not cross-platform equality. The cross-platform evidence is the CI run, which is per-push. Stated.
+
+**Pre-mortem:**
+Three ways this fails later. **(a)** Someone "simplifies" `_pearson_exact` back to `np.corrcoef` because it looks like reinvention — detectable because the guard names `corrcoef` and the docstring says why. **(b)** A future column becomes platform-dependent and the response is to add a tolerance, quietly retiring the zero-tolerance claim — detectable because the claim is written in three places and a tolerance parameter would have to be added to `verify_release.py`, which is a visible diff. **(c)** `math.fsum` on a long series becomes a performance problem in some future, larger experiment — measurable, and the fallback (pairwise summation with a fixed block order) is a known alternative rather than an unknown one.
+
+---
+
 ## Appendix A — Experiment Registry (Ledger)
 
 This appendix is the append-only ledger of pre-registered experiments. Registry *rules* (what counts as an experiment, ID format, denominator rules, invalidation rules) live in `evaluation_protocol.md` §12 and, until Phase C completes, in `experiment_registry_and_preregistration.md`. This appendix holds the *entries*.
@@ -1846,6 +1913,7 @@ This appendix is the migration record for the open items in `docs/TODO.md` (v1.1
 | 2026-10-17 | Added DEC-20261017-035 (the NOTICE implemented: `pack_snapshot.py` generates a deterministic `NOTICE.txt` member from a version-controlled template and refuses an on-disk copy; `verify_release.py` asserts the notice is present and unchanged before re-running the methods, so an archive that lost it fails loudly instead of publishing data with no statement attached. Archive digest `28e1d907…` → **`7a3fc209…`**, bundle hash and snapshot id **unmoved**. **Finding F31** recorded — the archive digest identifies the *distribution* and the snapshot id identifies the *data*, and an editorial addition moves one but not the other; the README now states what the digest is of. Four new packaging tests. Re-verification with the notice check active: `EXACT`, max abs diff `0.000e+00`, 18 columns). `docs/README.md` to v1.17, `decision_log.md` to v1.10. | Ken Ira Lacson Talingting |
 | 2026-10-18 | Corrected the **Date** field of DEC-20261017-033/034/035 from 2026-10-17 to 2026-10-18. The entries carried the previous day forward by inertia across local midnight; their commit timestamps (`4541cc8`, `1444f3f`, `7e4067b`) are all 2026-10-18 and are the independent evidence — the record was checked against git, not against itself. The **IDs are deliberately not renamed**: an identifier has to stay stable, renaming would break references in `docs/README.md`, `open_source_and_license_policy.md`, `notes/` and this file's own text, and the Date field is the field that carries the date. DEC-20261017-032 is left at 2026-10-17 because its work straddles the boundary (`33dabdb`, 2026-10-18 00:35). **No entry content changed** — no decision, claim, result or reason. | Ken Ira Lacson Talingting |
 | 2026-10-18 | Added DEC-20261018-036 (**finding F32**: the snapshot id was quoted by hand in four places and one carried a wrong separator — an extra underscore where the window end meets the retrieval date — so the README's own reproduction command returned **404** for any reader who followed it. Found by checking the literals against the filesystem rather than against each other; a fresh hand-typed copy in the workflow was wrong the same way within minutes, which is the real finding. All four corrected; `tests/test_snapshot_name_literals.py` added (five checks, shown to fail 4-of-5 when the defect is reintroduced); CI's optional fetch step now emits a warning naming what it skipped instead of failing silently, and `docs/published-run/outcomes.csv` is committed so the workflow can verify bit-for-bit rather than merely regenerate. **The release itself is unaffected**: the published asset name and digest were always correct). `docs/README.md` to v1.19. | Ken Ira Lacson Talingting |
+| 2026-10-18 | Added DEC-20261018-037 (**finding F33**: the bit-for-bit comparison added one commit earlier *failed on its first real run* — CI run 39132731808, `autocorr1: 4.163e-17`, max abs diff `4.163e-17` over 18 columns, the other seventeen exact. `np.corrcoef` reaches a BLAS kernel that OpenBLAS selects from the CPU's features at run time, so the archive reproduced exactly on Windows and not on the runner. `autocorr1` now uses an exactly-rounded summation (`math.fsum` plus only the primitives IEEE-754 requires to be correctly rounded), which is bit-identical anywhere and slightly more accurate. **The published table was regenerated and the diff is the evidence**: 46 columns compared, exactly one changed (`autocorr1`, worst `9.714e-17`), no headline number moved. Two guards added — one parses the call graph so a revert to `corrcoef` fails, one checks the new path against an exact-rational reference. Residual limits — `np.cov`, `np.linalg` and the solver still sit on BLAS/LAPACK — are recorded rather than papered over. The archive, its digest and the snapshot id are unchanged). `docs/README.md` to v1.20. | Ken Ira Lacson Talingting |
 
 ---
 

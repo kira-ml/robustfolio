@@ -196,3 +196,65 @@ def test_autocorr1_agrees_with_pandas_autocorr(months):
 
 def test_autocorr1_needs_three_observations():
     assert np.isnan(metrics.autocorr1(pd.Series([0.01, 0.02])))
+
+
+def test_autocorr1_does_not_go_through_a_blas_reduction(months):
+    """Finding F33: the cross-platform difference was a BLAS kernel choice.
+
+    ``np.corrcoef`` reaches ``np.cov``, which reaches a BLAS ``ddot``/``dgemm``
+    kernel chosen from the CPU's features at *runtime*. On the CI runner that made
+    this column 3 ULP away from the published value while the other seventeen
+    columns matched bit-for-bit -- so the repository's own reproduction check
+    failed, on a claim it had made in writing.
+
+    A value test cannot guard this, because the two formulations differ by less
+    than any tolerance worth writing down and agree exactly on some CPUs. What can
+    be guarded is the mechanism: the reduction must stay out of BLAS. This asserts
+    the source, which is where someone reverting the fix would be looking.
+    """
+    import ast
+    from pathlib import Path
+
+    tree = ast.parse(Path(metrics.__file__).read_text(encoding="utf-8"))
+    called: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            func = node.func
+            if isinstance(func, ast.Attribute):
+                called.add(func.attr)
+            elif isinstance(func, ast.Name):
+                called.add(func.id)
+
+    assert "corrcoef" not in called, (
+        "autocorr1 has been routed back through np.corrcoef; that reintroduces "
+        "the runtime-selected BLAS kernel and breaks reproduction across CPUs (F33). "
+        "This reads the module's call graph, so documenting corrcoef is still fine."
+    )
+
+
+def test_pearson_exact_is_the_correctly_rounded_correlation(months):
+    """The deterministic path must still be the standard definition.
+
+    Checked against a high-precision reference computed with ``fractions``, so the
+    test does not agree with the implementation merely by using the same code.
+    """
+    from fractions import Fraction
+
+    rng = np.random.default_rng(16)
+    values = [round(float(x), 6) for x in rng.normal(0.01, 0.03, len(months))]
+    a = np.array(values[1:], dtype=float)
+    b = np.array(values[:-1], dtype=float)
+
+    exact_a = [Fraction(v) for v in a]
+    exact_b = [Fraction(v) for v in b]
+    n = len(exact_a)
+    mean_a = sum(exact_a) / n
+    mean_b = sum(exact_b) / n
+    da = [v - mean_a for v in exact_a]
+    db = [v - mean_b for v in exact_b]
+    reference = float(
+        sum(x * y for x, y in zip(da, db))
+        / ((sum(x * x for x in da) * sum(y * y for y in db)) ** Fraction(1, 2))
+    )
+
+    assert metrics._pearson_exact(a, b) == pytest.approx(reference, rel=1e-12, abs=1e-15)

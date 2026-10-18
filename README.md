@@ -82,12 +82,14 @@ python scripts/make_figures.py --run results/run
 
 ```bash
 python scripts/certify_engine.py    # 7 methods x 168 rebalances, KKT certificate
-python -m pytest -q                 # 159 passed, 1 skipped
+python -m pytest -q                 # 161 passed, 1 skipped
 ```
 
 `run_experiment.py` writes `manifest.json` (snapshot id, git commit, protocol and spec versions, seed, environment), `outcomes.csv`, `decisions.csv`, `calibration.csv`, `design.csv`, `folds_<M>.csv`, `net_excess_returns.csv`, and `report.md`.
 
 **The reference table is in the repository.** `docs/published-run/outcomes.csv` is the metric table these numbers come from, committed (4.8 KB) so that the reproduction check can be a *comparison*. Without it a verifier can only ever say "my run finished", which is a different and much weaker statement. CI runs exactly the command above against the release archive, so a code change or a re-uploaded asset fails the build instead of being noticed in six months — see [`docs/published-run/README.md`](docs/published-run/README.md).
+
+**The equality is exact on any machine, and it took a failure to make that true.** The first time CI ran the comparison it failed — by `4.2e-17`, on exactly one of the eighteen columns the verifier checks. `autocorr1` went through `np.corrcoef`, which reaches a BLAS kernel that OpenBLAS chooses from the CPU's features at import time, so the same archive and the same code agreed bit-for-bit on one platform and not on the other. It is now computed with a correctly-rounded summation (`math.fsum` and the exactly-rounded primitives), which is bit-identical on any IEEE-754 platform and slightly *more* accurate than the vectorised dot product it replaced. Finding **F33**, DEC-20261018-037.
 
 **Rebuilding the snapshot is not reproduction.** Yahoo Finance revises history, so `scripts/build_snapshot.py --end 2026-09-30 --retrieval-date <another date>` produces a *different* snapshot with a different content hash and slightly different numbers. That is why the frozen snapshot ships as an asset, and why the archive's digest is published: exact reproduction means the same input, not a similar one.
 
@@ -125,9 +127,9 @@ A **release archive** is those five files plus a generated `NOTICE.txt` recordin
 | Optimizer | CVXPY + CLARABEL, **no fallback path**, every rebalance certified by a primal KKT residual against a frozen tolerance |
 | Engine certificate | 7 methods × 168 rebalances = **1,176 solves, zero rejections**; worst KKT residual `1.49e-11` vs `1e-7` acceptance |
 | Leakage suite | protocol §5.4.8 — 14 pass, 1 recorded skip (the survivorship test is vacuous in-sample; see below) |
-| Tests | 159 passed, 1 skipped — including the leakage suite, release-packaging integrity (the notice included), snapshot-name integrity, and the documentation index |
+| Tests | 161 passed, 1 skipped — including the leakage suite, release-packaging integrity (the notice included), snapshot-name integrity, metric determinism, and the documentation index |
 | Release chain | Frozen snapshot packs to a deterministic 1.67 MB archive with a published SHA-256 and a `NOTICE.txt` recording the data's provenance and licence; `verify_release.py` re-runs the harness from the archive and asserts equality with the published table at zero tolerance |
-| Continuous integration | Hermetic suite green on a fresh clone by design; with the release asset present, CI also re-runs every method and **verifies the archive reproduces the committed published table at tolerance zero**, and fails if it does not |
+| Continuous integration | Hermetic suite green on a fresh clone by design; with the release asset present, CI also re-runs every method and **verifies the archive reproduces the committed published table at tolerance zero**, and fails if it does not. That check has already failed once — on a BLAS kernel choice, not a real difference (F33) |
 
 ---
 
