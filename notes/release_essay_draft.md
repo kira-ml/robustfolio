@@ -1,6 +1,9 @@
 # Release essay — working draft (not a Tier 0 document)
 
-**Status:** skeleton. Working input, not a contract. **F26 and E7 are both closed** (DEC-20261017-034); the remaining gate before publication is the release itself, plus E3.
+**Status:** superseded in part. The **finished essays now live in [`../essays/`](../essays/)**
+(`flagship.md`, `cut-quant.md`, `cut-ml-ds.md`), and this file remains the working input they were written
+from: the section plan, the verified-numbers table, and the claims prohibitions. Keep it as the source of
+truth for *which numbers may be cited*; the essays are the published form.
 **Baseline for v1.0.0:** the release packaging chain (DEC-20261017-032) and the first end-to-end run
 (`EXP-X-20261017-003`), both exploratory.
 
@@ -60,6 +63,7 @@ re-derive any of these while writing; copy them.**
 | **The check failing again on its second run** | **13** of 18 columns, worst `4.698e-12`, on an identical environment (51 packages, empty set difference) but a different machine | CI run 39134078120 |
 | The experiment that located it | same pipeline at 1 and at 4 BLAS threads: byte-identical, and equal to the published table | `OPENBLAS_NUM_THREADS` |
 | The conclusion the second failure forced | decisions **exact**, measurements bounded by a documented `1e-9` — a solver's output is defined only to its tolerance | DEC-20261018-038 |
+| **The check passing on a third machine** | `WITHIN 1e-09`, observed `4.698e-12`, every decision-bearing quantity identical, all eleven steps run | CI run 39136157646 |
 | Suite | 173 passed, 1 skipped | `pytest -q` |
 
 ### Claims this piece may **not** make (protocol §14.2)
@@ -180,7 +184,7 @@ Strip the finance entirely. Keep §1, §3, §4, §5, §6, §9. Translate:
 
 - [x] **F26 closed** — re-designated **executed (non-confirmatory)**, no replacement test registered (DEC-20261017-034).
 - [x] **E7** — `docs/open_source_and_license_policy.md` v1.0 **Frozen**; the archive carries its own `NOTICE.txt` (DEC-20261017-035).
-- [ ] **E3** — `docs/results_reporting_and_claims_policy.md`, "must be written before Phase 4"; governs what may be claimed. Not a hard gate — protocol §14.2 already governs the claims — but the natural single home for the rules these pieces cite.
+- [x] **E3** — `docs/results_reporting_and_claims_policy.md` v0.1 written as a **Draft** (DEC-20261018-039). Every rule is marked `[frozen]` (binds now, source named) or `[PROPOSED]` (binds nothing until the owner confirms); its §8 collects the five open values as P1–P5. Protocols §14.2 already governed the claims, so this is the single home, not the gate.
 - [x] Snapshot uploaded as a release asset and the digest quoted in the release notes.
 - [x] Tag `v1.0.0`, cut the Release — published 2026-10-18, both assets uploaded, anonymous re-download matches the quoted digest.
 - [x] The README's own reproduction command verified by running it: the name it quoted returned **404** until F32 was fixed (DEC-20261018-036).

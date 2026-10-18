@@ -133,7 +133,7 @@ A **release archive** is those five files plus a generated `NOTICE.txt` recordin
 | Engine certificate | 7 methods × 168 rebalances = **1,176 solves, zero rejections**; worst KKT residual `1.49e-11` vs `1e-7` acceptance |
 | Leakage suite | protocol §5.4.8 — 14 pass, 1 recorded skip (the survivorship test is vacuous in-sample; see below) |
 | Tests | 173 passed, 1 skipped — including the leakage suite, release-packaging integrity (the notice included), snapshot-name integrity, metric determinism, the verifier's own exact/bounded split, and the documentation index |
-| Release chain | Frozen snapshot packs to a deterministic 1.67 MB archive with a published SHA-256 and a `NOTICE.txt` recording the data's provenance and licence; `verify_release.py` re-runs the harness from the archive and asserts equality with the published table at zero tolerance |
+| Release chain | Frozen snapshot packs to a deterministic 1.67 MB archive with a published SHA-256 and a `NOTICE.txt` recording the data's provenance and licence; `verify_release.py` re-runs the harness from the archive and compares the result to the published table — decisions exactly, measurements within the documented bound |
 | Continuous integration | Hermetic suite green on a fresh clone by design; with the release asset present, CI also re-runs every method and compares the result to the committed published table — **exactly** on every decision-bearing quantity, within a documented `1e-9` on the measurements. That check has failed twice on a runtime-chosen BLAS kernel rather than a real difference (F33, F34), and has since passed end to end on a third machine with the worst difference at `4.698e-12` and every decision identical |
 
 ---
@@ -162,7 +162,8 @@ The contracts live in [`docs/`](docs/) and are the authority: **if this README a
 - [`docs/model_and_method_spec.md`](docs/model_and_method_spec.md) — frozen method, estimator, optimizer and metric definitions
 - [`docs/problem_framing.md`](docs/problem_framing.md) · [`docs/scope_and_non_goals.md`](docs/scope_and_non_goals.md)
 - [`docs/risk_register_and_premortem.md`](docs/risk_register_and_premortem.md) — how this project fails
-- [`docs/decision_log.md`](docs/decision_log.md) — every governance decision, the experiment registry, and findings F1–F29
+- [`docs/decision_log.md`](docs/decision_log.md) — every governance decision, the experiment registry, and findings F1–F34
+- [`essays/`](essays/) — the written account: what the four defences caught, the one that failed, and two audience-specific cuts (§14.2 governs them, and every number in them is checkable against this repository)
 
 ---
 

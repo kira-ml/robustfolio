@@ -26,9 +26,9 @@ prevent that failure.
 - `[frozen]` Protocol §14.1 (required disclosures) and §14.2 (forbidden claims) bind on every public
   artefact. This document may **operationalise** them and may **not** weaken them. Any conflict
   resolves to the protocol.
-- `[PROPOSED]` "Public artefact" means: this README, anything in `docs/` or `notes/`, a release note,
-  an issue, a pull request, a post, or a message sent to a reviewer. Working notes are not governed,
-  but they are quoted, so they are written as if they were.
+- `[PROPOSED]` "Public artefact" means: this README, anything in `docs/`, `notes/` or `essays/`, a release
+  note, an issue, a pull request, a post, or a message sent to a reviewer. Working notes are not
+  governed, but they are quoted, so they are written as if they were.
 - `[PROPOSED]` A rule here is enforced by a check where a check is possible, and by a disclosure where
   it is not. An unenforceable rule is written down as a rule with its enforcement gap named, rather
   than as an aspiration that reads like a guarantee.
@@ -121,8 +121,9 @@ about an upstream defect, it is reported upstream first and cited here only afte
 
 ## 7. What this document does not do
 
-`[PROPOSED]` It does not decide whether the null result is interesting (that is the essays' and the
-fiction's job, subject to §4). It does not govern the internal working notes. It does not turn a
+`[PROPOSED]` It does not decide whether the null result is interesting — that is the narrative's job,
+subject to §4 — and it does not require that a result be interesting before it can be reported. It does
+not govern the internal working notes. It does not turn a
 bounded measurement into a guarantee: §4 item 2 is the rule that keeps the reproduction claim inside
 its check.
 
