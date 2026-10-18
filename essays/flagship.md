@@ -156,8 +156,10 @@ So the repair was not to widen a tolerance and keep the wording. It was to notic
 two different claims and dressing them identically:
 
 - **Decisions are exact.** Which methods ran, how many rebalances, how many folds, the headline cost
-  level, the ranking by net Sharpe, which baseline the rules select. These are discrete, they are what
-  the experiment is *for*, and a `1e-12` wobble cannot move them. Any difference fails the build.
+  level, the ranking by net Sharpe, which baseline the rules select — and, from the table the run
+  publishes beside its metrics, each of the eight gates the decision rule uses and the verdict itself.
+  These are discrete, they are what the experiment is *for*, and a `1e-12` wobble cannot move them.
+  Any difference fails the build.
 - **Measurements are bounded.** The continuous metrics are compared against a documented `1e-9` — about
   200 times the worst cross-platform difference I measured, and five orders of magnitude below the four
   decimals any of these numbers is ever quoted at. The observed worst difference is printed on every

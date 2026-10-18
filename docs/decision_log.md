@@ -3,8 +3,8 @@
 **Project:** `robustfolio`
 **Owner:** Ken Ira Lacson Talingting
 **Created:** 2026-10-14
-**Version:** 1.16
-**Last Updated:** 2026-10-17
+**Version:** 1.17
+**Last Updated:** 2026-10-18
 **Purpose:** Immutable record of every governance, experiment, and pivot decision in the project. Entries are append-only. Supersession is by a new entry, not by editing an old one.
 
 ---
@@ -63,6 +63,16 @@ Each entry uses the following fields:
 | DEC-20261017-029 | 2026-10-17 | GOVERNANCE | ACTIVE | Resolve F16/F17/F18 (solver acceptance, Ledoit-Wolf ddof, initial w-minus); record the engine-core certificate and its near-miss |
 | DEC-20261017-030 | 2026-10-17 | GOVERNANCE | ACTIVE | Land the walk-forward harness (spec 6); record findings F19-F23 (layout determinism, certificate nu, redundant L1 bound, risk-parity acceptance bypass, certification-evidence divergence) |
 | DEC-20261017-031 | 2026-10-17 | GOVERNANCE | ACTIVE | Land the reporting layer (spec 7-8): metrics, inference, report, one reproducible command; record findings F24-F26 and the first exploratory end-to-end result |
+| DEC-20261017-032 | 2026-10-17 | GOVERNANCE | ACTIVE | Build the release packaging chain (deterministic archive, notice, `verify_release.py`, CI reproduction); record findings F27-F29 |
+| DEC-20261017-033 | 2026-10-18 | GOVERNANCE | ACTIVE | Write E7 (`open_source_and_license_policy.md`) as a Draft; raise F30 (the archive is a redistribution) |
+| DEC-20261017-034 | 2026-10-18 | GOVERNANCE | ACTIVE | Re-designate `EXP-H2-20261017-001` **EXECUTED (NON-CONFIRMATORY)**; freeze E7 v1.0 |
+| DEC-20261017-035 | 2026-10-18 | IMPLEMENTATION | ACTIVE | Generate and assert `NOTICE.txt`; record finding F31 (archive digest vs snapshot id) |
+| DEC-20261018-036 | 2026-10-18 | IMPLEMENTATION | ACTIVE | Correct the snapshot-id literals and commit the published table; record finding F32 |
+| DEC-20261018-037 | 2026-10-18 | IMPLEMENTATION | ACTIVE | Remove the runtime BLAS choice from `autocorr1`; record finding F33 |
+| DEC-20261018-038 | 2026-10-18 | IMPLEMENTATION | ACTIVE | Split the reproduction claim (decisions exact, measurements bounded); record finding F34 |
+| DEC-20261018-039 | 2026-10-18 | GOVERNANCE | ACTIVE | Write E3 (`results_reporting_and_claims_policy.md`) as Draft v0.1, collecting the five open values as P1-P5 |
+| DEC-20261018-040 | 2026-10-18 | GOVERNANCE | ACTIVE | Freeze E3 at v1.0; confirm P1-P5 and the F24/F25 readings in the same act |
+| DEC-20261018-041 | 2026-10-18 | IMPLEMENTATION | ACTIVE | Publish `decisions.csv` and compare the verdict exactly; derive the documented margin instead of restating it |
 
 **Gap note (001–011):** Resolved by DEC-20261015-014. The seed entries referenced in DEC-20261014-000 were not written and are not recoverable. They are treated as never having existed in this log.
 
@@ -1775,6 +1785,65 @@ Three ways this fails later. **(a)** A reader cites E7 §5 for a rule that has m
 
 ---
 
+### DEC-20261018-041
+
+**Date:** 2026-10-18
+**Type:** IMPLEMENTATION
+**Status:** ACTIVE
+**Authority:** Owner (chose to close the gap before any artefact quotes the numbers it certifies)
+**Related docs:** `scripts/verify_release.py`, `tests/test_release_verification.py`, `src/robustfolio/report.py`, `docs/published-run/decisions.csv` (new), `docs/published-run/README.md` (v1.3), `README.md`, `docs/README.md` (v1.25), `decision_log.md` (this file, v1.17)
+**Related risks:** R-E01
+
+**Context:**
+The task that produced this entry was not a code task: it was "design a one-page summary of this project for LinkedIn." The first useful question it raised was *which numbers the page will quote, and where each one comes from*. Two of them — the PSR values (`0.495`, `0.587`) and the DSR p-values (`0.0032`, `0.0017`) — are computed by `stats.psr` / `stats.dsr_pvalue` from the monthly return series, and the published set contained only `outcomes.csv`. A graphic whose footer claimed to be generated from the published artefact would therefore have been false for those numbers, and DEC-20261018-038 had already recorded publishing `decisions.csv` as **deferred, not rejected**.
+
+Reading the verifier in order to close that gap found the larger defect. `verify_release.py` compared `outcomes.csv` and the *ranking of methods by net Sharpe* — and the ranking was standing in for the verdict. §6.1–§6.4 do not decide on a ranking. They decide on a conjunction of eight gates (`pass_psr`, `pass_dsr`, `pass_sharpe_gap`, `pass_turnover`, `pass_drawdown`, `pass_cost_levels`, `pass_folds`, `pass_fold_share`) followed by three summary flags (`statistical`, `material`, `robust`), and a candidate can lead the ranking and fail the conjunction. So the exact half of the claim covered the metrics and a *proxy* for the answer, and never the answer itself. It happened to agree here, which is why two CI failures and a release did not surface it.
+
+**Decision:**
+
+1. **`decisions.csv` is published** beside `outcomes.csv` in `docs/published-run/`, copied verbatim from the run (`recheck-f33`), whose `outcomes.csv` was first confirmed byte-identical to the published one by SHA-256. It is 1,116 bytes, 35 fields, two rows.
+2. **`compare_decisions()` compares every decision-bearing field exactly**: the candidate set and its order (the table's index), `baseline`, `dsr_family_size`, `dsr_v_is_convention`, the eight `pass_*` gates, `cost_levels_won`/`required`, `folds_won`/`required`, `statistical`/`material`/`robust`, and `verdict`. The statistics those fields were computed from are compared within the same documented `1e-9`. A test derives the boolean fields from the artefact's dtypes rather than listing them a second time, so a new gate cannot be added to the table and silently compared with a tolerance.
+3. **The check prints the verdict it compared**, not merely a difference: `verdicts     : M1 FAILURE / M2 FAILURE  (2 candidates)`. A reader of a CI log can see what the archive concluded without opening a CSV.
+4. **`--run` now requires `decisions.csv`** and fails with a stated reason when it is absent, rather than comparing the metrics and leaving the verdict unexamined.
+5. **One reproduction path, not two.** `reproduce()` now calls `reporting.build_report(...)` — the same function `run_experiment.py` calls to *write* the published CSVs — so the check cannot drift from the writer. This removed a second, hand-assembled call to `outcome_table`.
+6. **The documented margin is derived, not restated.** `report.PRINTED_DECIMALS` and `verify_release.TOLERANCE` are now the only two constants the margin comes from, and `tests/test_release_verification.py` asserts it. Correcting the "six orders" error in DEC-20261018-038's revision row had missed **two** further instances: one in this script, **wrapped across a line break** so that no text search for the phrase could find it, and one in `tests/test_release_verification.py` that read "six decimals" where the report prints four. The earlier search covered `docs/`, `essays/`, `notes/` and the README — and not `scripts/`, `src/` or `tests/`, which is where a search finds what a reader of the prose would not.
+7. **The published-run README is rewritten** (v1.3) to cover both tables, to say why the verdict table is pinned, and to name the verdict among the quantities compared exactly.
+8. **The index of this file is repaired.** It stopped at DEC-20261017-031; entries 032–041 were never added. Ten rows are appended, with each entry's date and type read from the entry itself rather than retyped from the revision history — which is where the corrected dates for 033–035 were found.
+9. **`docs/README.md`'s own stale paragraphs are corrected in the same act**, both found by reading it against the artefact rather than against itself. Its *Release packaging status* paragraph still claimed the verifier "asserts equality … at tolerance **exactly zero**", which DEC-20261018-038 had falsified; and its *Not yet written* list still named `results_reporting_and_claims_policy.md`, which the board in the same file lists as Frozen at row 9.
+
+**Alternatives considered:**
+- **Generate the one-pager from the run directory and say so.** Rejected: honest, but it leaves the graphic unregenerable by a stranger and leaves the published verdict certified by nothing. The gap was cheap to close and had to be closed before any artefact quoting those numbers could be truthful.
+- **Compare `decisions.csv` within the tolerance rather than exactly.** Rejected: that treats a decision as a measurement. `psr` may move by `1e-12`; the sentence the project exists to publish may not move at all.
+- **Compare `verdict` and not the gates.** Rejected: the gates are the *reason* for the verdict, and a flipped gate beside a stale verdict is precisely the internal contradiction a reader would never catch.
+- **Recompute the gates from the metrics instead of reading them.** Rejected: recomputation would silently agree with the archive even when the archive disagrees with itself, which is the one case the comparison exists for. `test_a_gate_contradicting_its_own_statistic_still_fails` pins that.
+- **Publish `net_excess_returns.csv` as well, so a stranger can recompute every statistic.** Not rejected — **deferred**. It would make the graphic's numbers recomputable without a harness run, but it is 27 KB of return series and the decision fields are what carry the claim. Recorded as the next candidate if a reader asks.
+- **Leave the two "six orders" instances as documentation debt.** Rejected: the same defect had already been corrected in four artefacts, and the remaining two were in the file that *defines* the tolerance and the test that *pins* it — the two places a reader is most entitled to trust.
+- **Leave the index stale, as it had been for ten entries.** Rejected: an index that silently stops is worse than no index, because it implies the entries are all present. Recording the repair here is what makes the earlier staleness visible instead of a quiet edit.
+
+**Rationale:**
+[First Principles] *What is claimed when a run is published?* Two different things: that the measurements are stable, and that the answer is the same. The first was checked, the second was asserted.
+[Inversion] How does this make the project worse? By adding a second table to keep in step and a second comparison that can fail. Mitigated by both tables coming from a single writer, by the exact/bounded split being one rule applied twice, and by the check printing what it compared.
+[Map is Not the Territory] The ranking was a map of the verdict. It agreed with the territory here — which is exactly why the gap survived a release and two CI failures.
+[Goodhart] The tempting measure of a verification path is "it re-runs everything and compares". The measure that matters is whether the quantity a reader *acts on* is in the comparison. A ranking is easy to test, and it is not the decision.
+[Probabilistic Claims] Publishing `decisions.csv` does not make the run confirmatory. The verdict is the frozen rules applied to a non-confirmatory run, and both `README.md` and `docs/published-run/README.md` say so where the verdict is first read.
+[LLN / Sample Complexity] No sample-size claim changes. This is bookkeeping over a run that already existed.
+
+**Reversibility:** Cheap. Deleting one file and reverting one comparison un-publishes it; the run, the archive, its digest and the release are untouched.
+
+**Revisit trigger:**
+A decision rule moves onto a continuous quantity → the exact half no longer covers it and `DECISION_EXACT_COLUMNS` is revisited in the same act. A field is added to `decisions.csv` → the dtype-derived test fails if it is boolean; a non-boolean decision field must be classified by hand. A reader asks to recompute the PSR/DSR without running the harness → publish `net_excess_returns.csv` with its auxiliary disclosure, which is the deferred option above.
+
+**Expected value assessment:**
+- Probability the published verdict is now checked on every CI run: **high** — it is an exact field in a file the command requires.
+- Probability the comparison fails spuriously: **very low** — every gate sits far from its threshold (`psr` 0.495/0.587 against 0.95; the gap at −0.004/+0.064 against 0.20; `max_fold_share` 51.3% against 50%).
+- Probability the two remaining "six orders" instances would have been caught by another pass over the docs: **low** — one was line-wrapped, so the phrase search already run could not see it, and both were outside the directories that search covered.
+- Residual risk: the exact-boolean test derives from one artefact. A second published run would need the same check, which the test's construction allows because it derives from whichever `decisions.csv` it is pointed at.
+
+**Pre-mortem:**
+Three ways this fails later. **(a)** A future `decisions.csv` gains a numeric field that *is* a decision — a probability threshold, say — and it is compared within a tolerance because nobody classified it. Detectable by asking of each new column "would I act differently if this moved by `1e-12`?" rather than "is it a number?"; the dtype test catches only the boolean case, and this is the residual the revisit trigger names. **(b)** `decisions.csv` and `outcomes.csv` come from different runs and each agrees with its own check — detectable because the verifier recomputes both inside one `build_report` call, so such a mismatch would have to be manufactured by hand. **(c)** The verdict becomes quotable without its exploratory label — detectable by reading `README.md` and `docs/published-run/README.md`, both of which state the label where the verdict is first met.
+
+---
+
 ## Appendix A — Experiment Registry (Ledger)
 
 This appendix is the append-only ledger of pre-registered experiments. Registry *rules* (what counts as an experiment, ID format, denominator rules, invalidation rules) live in `evaluation_protocol.md` §12 and, until Phase C completes, in `experiment_registry_and_preregistration.md`. This appendix holds the *entries*.
@@ -2123,6 +2192,7 @@ This appendix is the migration record for the open items in `docs/TODO.md` (v1.1
 | 2026-10-18 | Added DEC-20261018-039 (**E3** written): `results_reporting_and_claims_policy.md` v0.1 (Draft), the claims policy protocol §14 promises — §2 maps §14.1's nine disclosures to exact field names (`psr_benchmark` is a *column*, so "no p-value without its benchmark" is enforced mechanically), §3 fixes the status vocabulary (`EXECUTED (NON-CONFIRMATORY)` returns `FAILURE` while the hypothesis is **untested, not falsified**), §4 operationalises §14.2 plus four additions each tied to a real defect, and §8 collects the five open values as one decision-ready table. Every rule marked `[PROPOSED]` or as a restatement. The status board's prose count said *seven* while the table listed *eight* → now **checked against the table** by `tests/test_docs_index.py`. **Back-filled:** this revision row was omitted when the version was bumped to 1.15. | Ken Ira Lacson Talingting |
 | 2026-10-18 | **Corrected DEC-20261018-038's own numbers** after reading the claims back against the artefacts (the same defect had reached the README, `docs/published-run/README.md` and the essays): "**six** orders of magnitude below the four decimals" where the true margin is **five** (`1e-9` against `1e-4`), and an "`1e-13` to `1e-12`" range where the observed spread is `3.442e-15` to `4.698e-12`. Each corrected form now states the quantity the argument turns on. **Back-filled:** the correction was made without a revision row. | Ken Ira Lacson Talingting |
 | 2026-10-18 | Added DEC-20261018-040 (**E3 frozen at v1.0**): all five open values (**P1**–**P5**) and the two specification readings (**F24**, **F25**) confirmed by the owner in a single act rather than inferred. The draft's marking is replaced — `[§14]` (a restatement of a rule already frozen in the protocol, which wins any conflict) versus `[E3]` (this document's own rule, binding since v1.0) — and **§8 becomes the freeze record**, so a reader can tell a granted rule from an assumed one. **F25 is load-bearing and is now recorded as such:** the concentration clause binds for `M2` at 51.3%, so a *reading*, not the arithmetic, produces the published `FAILURE` verdict. The licence policy's §5 reduced to a pointer (its own review trigger, now marked fired) and E7 goes to v1.1. Documentation only: the archive, its digest, the bundle hash, the snapshot id and the published table are untouched, and the `NOTICE.txt` is code-generated and test-pinned. | Ken Ira Lacson Talingting |
+| 2026-10-18 | Added DEC-20261018-041 (**the verdict is now published and compared exactly**). Asked to design a one-page public summary, the first question that mattered was *where each number on it comes from* — and the PSR/DSR values were not in the published set. Closing that gap found the larger defect: `verify_release.py` compared the metrics and the **ranking**, and the ranking was standing in for the verdict, while §6.1–§6.4 decide on a conjunction of eight gates that no ranking represents. `docs/published-run/decisions.csv` is now committed (1,116 bytes, copied verbatim from the run whose `outcomes.csv` is byte-identical to the published one), every decision-bearing field of it is compared **exactly** — index, baseline, the eight `pass_*` gates, the three summary flags and `verdict` itself — and the check now **prints** the verdict it compared. `reproduce()` calls `reporting.build_report`, the same function that *writes* the published CSVs, so the check cannot drift from the writer. **A second, smaller defect in the same class:** correcting "six orders of magnitude" at DEC-038's revision row had missed **two** further instances — one in the verifier, **wrapped across a line break** so that no text search for the phrase could reach it, and one in `tests/test_release_verification.py` reading "six decimals" where the report prints four; the earlier search had covered `docs/`, `essays/`, `notes/` and the README and not `scripts/`, `src/` or `tests/`. The margin is now **derived** from `report.PRINTED_DECIMALS` and `verify_release.TOLERANCE` and asserted by a test rather than restated. **Also:** thirteen new hermetic tests, one of which derives the exact-column list from the artefact's dtypes so a new gate cannot be added to the table and compared with a tolerance; and **this file's own index is repaired** — it had stopped at DEC-20261017-031, ten entries earlier, with each appended row's date and type read from the entry rather than from the revision history. Release unaffected: the archive, its digest, the bundle hash, the snapshot id and `outcomes.csv` are untouched. `docs/README.md` to v1.25, `docs/published-run/README.md` to v1.3. | Ken Ira Lacson Talingting |
 
 ---
 

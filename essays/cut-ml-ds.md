@@ -106,8 +106,9 @@ is a property of the data, the code and the machine — not just the first two.*
 claim and started making two:
 
 - **Decisions are exact.** Which methods ran, how many refits, how many folds, the headline cost level,
-  the ranking, which baseline was selected. Discrete, they are what the experiment is *for*, and a
-  `1e-12` wobble cannot move them. Any difference fails the build.
+  the ranking, which baseline was selected, and the answer the decision rule returned. Discrete, they
+  are what the experiment is *for*, and a `1e-12` wobble cannot move them. Any difference fails the
+  build.
 - **Measurements are bounded.** The continuous metrics are compared within a documented `1e-9` — about
   200 times the worst measured cross-platform difference — and the observed worst difference is printed
   on every run, so the bound is spent in public rather than asserted.

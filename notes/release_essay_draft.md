@@ -56,15 +56,15 @@ re-derive any of these while writing; copy them.**
 | Correlation with best baseline | ρ = 0.9845 (`M1`), 0.9856 (`M2`) | `design.csv` |
 | Paired differences | +0.4% and +0.6% per year | `design.csv` |
 | Snapshot archive | 1.67 MB, SHA-256 `7a3fc209…` | `pack_snapshot.py` |
-| Reproduction check | `EXACT`, max abs diff `0.000e+00`, 18 columns | `verify_release.py` |
-| CI | regenerates **and** compares against `docs/published-run/outcomes.csv`, pinned to the archive digest: decisions **exactly**, measurements within a documented `1e-9` | `ci.yml` |
+| Reproduction check | `EXACT`, max abs diff `0.000e+00`, 18 columns, `M1 FAILURE / M2 FAILURE` | `verify_release.py` |
+| CI | regenerates **and** compares against both committed tables in `docs/published-run/`, pinned to the archive digest: every decision **exactly** (including the §6.4 verdict), measurements within a documented `1e-9` | `ci.yml` |
 | **The check failing on its first real run** | `autocorr1` `4.163e-17` out on Linux; the other 17 of 18 columns exact | CI run 39132731808 |
 | Cost of the fix, measured rather than asserted | 46 columns compared after regenerating, **one** changed, worst `9.714e-17`, **no headline number moved** | diff of `docs/published-run/outcomes.csv` |
 | **The check failing again on its second run** | **13** of 18 columns, worst `4.698e-12`, on an identical environment (51 packages, empty set difference) but a different machine | CI run 39134078120 |
 | The experiment that located it | same pipeline at 1 and at 4 BLAS threads: byte-identical, and equal to the published table | `OPENBLAS_NUM_THREADS` |
 | The conclusion the second failure forced | decisions **exact**, measurements bounded by a documented `1e-9` — a solver's output is defined only to its tolerance | DEC-20261018-038 |
 | **The check passing on a third machine** | `WITHIN 1e-09`, observed `4.698e-12`, every decision-bearing quantity identical, all eleven steps run | CI run 39136157646 |
-| Suite | 173 passed, 1 skipped | `pytest -q` |
+| Suite | 180 passed, 1 skipped | `pytest -q` |
 
 ### Claims this piece may **not** make (protocol §14.2)
 

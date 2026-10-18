@@ -45,6 +45,7 @@ python scripts/verify_release.py --archive <the release asset> --run docs/publis
 ```
 
 It compares every **decision-bearing** quantity exactly — method set, rebalances, folds, headline cost
-level, the ranking by net Sharpe, and the selected baseline — and the continuous metrics within a
+level, the ranking by net Sharpe, the selected baseline, and — from the published verdict table — each
+of the eight §6.1–§6.4 gates and the `verdict` itself — and the continuous quantities within a
 documented `1e-9`, printing the observed worst difference on every run. If it prints anything other than
 `EXACT` or `WITHIN`, the essays are wrong and the check is right.

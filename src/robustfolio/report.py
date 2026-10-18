@@ -77,6 +77,7 @@ __all__ = [
     "CANDIDATE_IDS",
     "PROTOCOL_VERSION",
     "SPEC_VERSION",
+    "PRINTED_DECIMALS",
     "CALIBRATION_TARGET",
     "Decision",
     "Report",
@@ -104,6 +105,13 @@ H23_TREATMENT, H23_CONTROL = "B5", "B3"
 
 PROTOCOL_VERSION = "2.4"
 SPEC_VERSION = "1.1"
+
+#: Decimal places in every number the report prints. The reproduction tolerance is
+#: stated as a margin *below* this rather than as a number of its own, so the
+#: relationship is derived from two constants instead of restated in prose -- the
+#: margin was written into six artefacts and three of them had drifted to the wrong
+#: order of magnitude before anyone read them back (the F29 class).
+PRINTED_DECIMALS = 4
 
 
 # --------------------------------------------------------------------------- #
@@ -792,7 +800,7 @@ def build_report(
 # Rendering
 # --------------------------------------------------------------------------- #
 
-def _fmt(value: object, digits: int = 4) -> str:
+def _fmt(value: object, digits: int = PRINTED_DECIMALS) -> str:
     if value is None:
         return "n/a"
     try:

@@ -13,11 +13,12 @@ name: CI
 #
 # When the release asset *is* available the same job stops skipping and does two
 # more things: it regenerates the numbers with the command the README shows, and
-# it runs verify_release.py against the committed published table. Those are not
+# it runs verify_release.py against the committed published tables. Those are not
 # the same check. Regeneration can only show the code runs; the comparison is what
 # can show it produces *the same result*. It checks every decision-bearing
 # quantity exactly -- method set, rebalances, folds, headline cost level, ranking
-# by net Sharpe, and which baseline the rules select -- and the continuous metrics
+# by net Sharpe, which baseline the rules select, and the section 6.4 gates and
+# verdict from the published verdict table -- and the continuous quantities
 # against the documented 1e-9 that findings F33 and F34 forced the claim to admit.
 # Both steps are here because "one command regenerates the number" is a README
 # claim, and a claim that runs in CI is a different kind of claim from a claim
@@ -89,10 +90,13 @@ jobs:
         if: steps.snapshot.outputs.ok == 'true'
         # The strongest check in the repository, made standing rather than a
         # one-off: all seven methods are re-run from the archive and compared to
-        # docs/published-run/outcomes.csv. It prints EXACT or exits non-zero, and
-        # the tolerance is exactly zero, so "regenerates something similar" cannot
-        # pass. The digest is pinned in env above, so this also fails if the asset
-        # is ever re-uploaded with different bytes.
+        # both tables in docs/published-run/. It prints EXACT or exits non-zero.
+        # Every decision-bearing quantity -- the method set, the counts, the cost
+        # level, the ranking, the selected baseline, and the section 6.4 gates and
+        # verdict -- is compared exactly; the measurements are compared against
+        # the bound documented in verify_release.py, so "regenerates something
+        # similar" cannot pass. The digest is pinned in env above, so this also
+        # fails if the asset is ever re-uploaded with different bytes.
         run: |
           python scripts/verify_release.py \
             --archive /tmp/snapshot.tar.gz \

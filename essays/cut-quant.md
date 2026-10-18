@@ -98,8 +98,9 @@ and has never been run — it is the most interesting thread the project left op
 ## What to check
 
 The reproduction claim is deliberately split, because a solver's output is defined only to its
-tolerance: **decisions** (method set, rebalances, folds, headline cost level, ranking, selected baseline)
-are compared exactly and fail the build on any difference, while the continuous metrics are compared
-within a documented `1e-9` and the observed worst difference — `4.698e-12` on the CI runner — is
-printed on every run rather than the bound being quoted. Clone the repository, run `verify_release.py`
-against the release archive, and if it prints anything other than `EXACT` or `WITHIN`, tell me.
+tolerance: **decisions** (method set, rebalances, folds, headline cost level, ranking, selected
+baseline, and the eight §6.4 gates with the verdict itself) are compared exactly and fail the build on
+any difference, while the continuous quantities are compared within a documented `1e-9` and the
+observed worst difference — `4.698e-12` on the CI runner — is printed on every run rather than the
+bound being quoted. Clone the repository, run `verify_release.py` against the release archive, and if
+it prints anything other than `EXACT` or `WITHIN`, tell me.
