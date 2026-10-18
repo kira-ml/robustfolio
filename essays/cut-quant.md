@@ -17,11 +17,11 @@ prices are what a 2026 source holds for 2012 today). 168 out-of-sample months, f
 1,176 optimiser solves, a 60-month rolling estimation window re-estimated monthly, monthly rebalance.
 Net Sharpe at a headline 10 bps one-way cost, with the cost levels swept rather than chosen.
 
-Five baselines and two treatments, each differing from the plain sample-covariance, sample-mean MVO
-baseline (`B3`) in **exactly one component**: `M1` swaps the sample covariance for a shrinkage estimate;
-`M2` swaps the sample mean for a Black–Litterman posterior. Everything else — universe, window,
-optimiser, cap, costs — is shared, so a difference is attributable to the component that changed and not
-to a bundle of choices.
+Five baselines and two treatments. The two treatments each differ from the plain sample-covariance,
+sample-mean MVO baseline (`B3`) in **exactly one component**: `M1` swaps the sample covariance for a
+shrinkage estimate; `M2` swaps the sample mean for a Black–Litterman posterior. Everything else —
+universe, window, optimiser, cap, costs — is shared, so a difference is attributable to the component
+that changed and not to a bundle of choices.
 
 The decision rule is a conjunction against the **best baseline**: net Sharpe advantage ≥ **0.20** *and* a
 probabilistic Sharpe ratio ≥ **0.95**. Both, not either.
@@ -77,8 +77,10 @@ reports turnover next to the metric it is supposed to protect.
 ## A diagnostic hypothesis (not a result)
 
 Eighteen assets, but the **effective number of independent bets is small**: a participation ratio of about
-3.1 and an entropy-based count of about 5.0 of 18. The correlation matrix has condition number ≈ 1.7e3,
-and twelve of eighteen eigenvalues fall below the Marchenko–Pastur upper edge for this sample size.
+3.1 and an entropy-based count of about 5.0 out of 18. The correlation matrix has condition number ≈ 1.7e3,
+and twelve of the eighteen eigenvalues fall **below the lower edge** of the Marchenko–Pastur band for an
+independent panel of this shape ([0.452, 1.762]) — the smallest at 0.0053, which is 85× below that edge.
+The estimation problem is large and genuinely near-singular (18 assets on a 60-month window).
 
 If that is the right reading, then shrinkage has almost no noise to bite on — there is very little
 independent information to shrink toward a prior — and the uniform 30% position cap is doing **more
@@ -87,14 +89,14 @@ regularisation than the estimator is**. That would explain why `M1` (shrinkage) 
 
 It is testable and I have not tested it: relax the cap across levels and compare shrinkage estimates
 within each. Until then it is a hypothesis, and a tidy one, which is exactly why it is labelled rather
-than asserted. It connects to a cap-sweep the protocol froze out of scope, and it is the most interesting
-thread the project left open.
+than asserted. It connects to a cap-sweep that was registered (`w_max` across 0.20, 0.30, 0.40 and 1.00)
+and has never been run — it is the most interesting thread the project left open.
 
 ## What to check
 
 The reproduction claim is deliberately split, because a solver's output is defined only to its
 tolerance: **decisions** (method set, rebalances, folds, headline cost level, ranking, selected baseline)
 are compared exactly and fail the build on any difference, while the continuous metrics are compared
-within a documented `1e-9` and the observed worst difference — `4.698e-12` on the reference machine — is
+within a documented `1e-9` and the observed worst difference — `4.698e-12` on the CI runner — is
 printed on every run rather than the bound being quoted. Clone the repository, run `verify_release.py`
 against the release archive, and if it prints anything other than `EXACT` or `WITHIN`, tell me.

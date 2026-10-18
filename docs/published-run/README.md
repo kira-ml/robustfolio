@@ -66,7 +66,7 @@ decisions.** So the verifier splits them:
   fails the build. These are discrete, they are what the experiment is *for*, and a `1e-12` wobble
   cannot move them.
 - **Compared within `1e-9`.** The continuous metrics. That constant is 200× the worst cross-platform
-  difference measured and six orders of magnitude below the four decimals at which any of these
+  difference measured and five orders of magnitude below the four decimals at which any of these
   numbers is quoted or compared — loose enough to survive a runtime-chosen kernel, and far too tight
   to survive a changed estimator, cost model or window, which is what a verifier is for. The observed
   worst difference is printed on every run, so a reader sees the bound being spent rather than being

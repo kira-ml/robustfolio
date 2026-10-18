@@ -9,10 +9,10 @@ about *how well I had verified it* did not — each caught by a check I had writ
 that class of error, and each of which I believed until it failed.
 
 The pattern is worth naming, because it was not random. Every one of the failures was the same failure:
-**the claim was broader than the mechanism underneath it.** "Reproduces bit-for-bit." "Certified." "No
-leakage." Each sounds like a property of the artefact. Each was really a property of the artefact *plus
-its dependency graph, plus the machine, plus my own reading of what the check proved* — and none of that
-was written down.
+**the claim was broader than the mechanism underneath it.** *"Reproduces bit-for-bit."* *"The certificate
+is correct."* *"The comparison reads the file exactly."* Each of those is a property of the artefact plus
+its dependency graph, plus the machine, plus my own reading of what the check proved — and none of that
+was written down anywhere until a check disagreed with me.
 
 Here are the four defences I built, and what each one actually bought.
 
@@ -71,7 +71,7 @@ something is that **the certificate was wrong three times**:
 A verifier is software. It has bugs, and its bugs are more dangerous than the ones it is looking for,
 because they are wrong in the direction of "everything is fine".
 
-## The verification layer's own bugs, and the claim that survived being tested twice
+## The verification layer's own bugs, and the claim that survived being falsified twice
 
 My two nastiest bugs were both in the comparison scripts, and both produced plausible numbers.
 
@@ -97,9 +97,9 @@ parsed as sets, symmetric difference empty — on an identical runner image. Not
 count? I ran the whole pipeline at one BLAS thread and at four: byte-identical output, both matching the
 published table. Not threading. The diagnosis fell out of one column that is a function of the fitted
 parameters alone, so the two machines had fit slightly *different models*, and the metric differences were
-downstream. The magnitude named the layer: a rounding difference here is `1e-16`, and these were `1e-13`
-to `1e-12` — a `1e-16` input difference amplified by an optimiser whose own acceptance tolerance is
-`1e-14`.
+downstream. The magnitude named the layer: a rounding difference here is `1e-16`, and the largest
+difference was `4.698e-12` — four orders of magnitude bigger — a `1e-16` input difference amplified by an
+optimiser whose own acceptance tolerance is `1e-14`.
 
 That is not fixable, and pretending otherwise would have been the mistake. **A number produced by a solver
 is a property of the data, the code and the machine — not just the first two.** So I stopped making one
@@ -113,8 +113,9 @@ claim and started making two:
   on every run, so the bound is spent in public rather than asserted.
 
 The check now runs on every push and prints the difference it actually saw (`4.698e-12`), not the bound it
-was allowed. That claim has now been tested twice on machines that had never seen the repository, and it
-is the only claim in the project that has survived being tested twice.
+was allowed. That claim is the only one in the project that has been falsified twice and then survived:
+the third machine to run it differed on the measurements by exactly the amount the bound had been set to
+absorb, and agreed on everything that decides.
 
 ## Defence 4 — significance, materiality and robustness together
 

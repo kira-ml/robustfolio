@@ -5,8 +5,7 @@
 ---
 
 I spent most of this project trying to falsify my own result. The result held up. My *claim* about
-it did not — twice, in two consecutive days, caught both times by a check I had written specifically
-to catch it.
+it did not — twice, in two consecutive runs of a check I had written specifically to catch it.
 
 Here is the one that still stings. I pre-registered a confirmatory test. Hypothesis, metric,
 threshold, decision rule — written down and dated before any data was touched, which is the entire
@@ -34,8 +33,8 @@ One question, framed so that a wrong answer to it is still worth something:
 
 The domain is a worked example, not the payload. Eighteen US ETFs on a point-in-time universe, 168
 out-of-sample months, fourteen non-overlapping folds, 1,176 optimiser solves. Five baselines and two
-treatments that each differ from the plain sample-covariance MVO baseline in exactly one component:
-`M1` swaps the sample covariance for a shrinkage estimate; `M2` swaps the sample mean for a
+treatments; each treatment differs from the plain sample-covariance MVO baseline in exactly one
+component: `M1` swaps the sample covariance for a shrinkage estimate; `M2` swaps the sample mean for a
 Black–Litterman posterior.
 
 The thing that decides is a *conjunction*, and that is a design choice worth defending. A candidate
@@ -143,9 +142,9 @@ drift. Thread count? I ran the whole pipeline locally with one BLAS thread and w
 tables, both matching the published one. Not threading. Then the diagnosis fell out of a single column —
 `turnover_annualized` moved, and it is a function of the portfolio weights *alone*. The two machines had
 solved to slightly different portfolios, and the metric differences were downstream of that. And the
-magnitude said which layer was responsible: a rounding error at these magnitudes is `1e-16`, and these
-were `1e-13` to `1e-12` — a `1e-16` difference in the covariance matrix, amplified by an optimiser whose
-own acceptance tolerance is `1e-14`.
+magnitude said which layer was responsible: a rounding error at these magnitudes is `1e-16`, and the
+largest difference was `4.698e-12` — four orders of magnitude bigger — a `1e-16` difference in the
+covariance matrix, amplified by an optimiser whose own acceptance tolerance is `1e-14`.
 
 That is not a bug that can be fixed, and pretending otherwise would have been the mistake. **A number
 produced by a solver is a property of the data, the code *and the machine*, not just the first two.** The
@@ -159,14 +158,15 @@ two different claims and dressing them identically:
   level, the ranking by net Sharpe, which baseline the rules select. These are discrete, they are what
   the experiment is *for*, and a `1e-12` wobble cannot move them. Any difference fails the build.
 - **Measurements are bounded.** The continuous metrics are compared against a documented `1e-9` — about
-  200 times the worst cross-platform difference I measured, and six orders of magnitude below the four
+  200 times the worst cross-platform difference I measured, and five orders of magnitude below the four
   decimals any of these numbers is ever quoted at. The observed worst difference is printed on every
   run, so the bound is spent in public rather than asserted.
 
 The check now runs on every push. It prints the difference it actually saw — `4.698e-12` — rather than
-the bound it was allowed, and reports that every decision is identical. That claim has been tested twice,
-on a machine that had never seen the repository before, and it is the only claim in the project that has
-survived being tested twice.
+the bound it was allowed, and reports that every decision is identical. That is the only claim in this
+project that has been falsified twice and then survived: the third machine to run it differed on the
+measurements by exactly the amount the bound had been set to absorb, and agreed on everything that
+decides.
 
 ## Defence 4 — significance *and* materiality *and* robustness
 
@@ -209,8 +209,9 @@ effect is **absent, not invisible** — which is a much stronger statement than 
 
 The diagnostics explain why, and I will label this as what it is: a hypothesis, not a result. Eighteen
 assets, but an effective number of independent bets of only about 3 to 5 — measured by participation
-ratio and by entropy — with a correlation matrix condition number around 1.7e3, and twelve of eighteen
-eigenvalues below the Marchenko–Pastur edge. In that regime shrinkage has very little noise to bite on,
+ratio and by entropy — with a correlation matrix condition number around 1.7e3, and twelve of the eighteen
+eigenvalues below the lower edge of the Marchenko–Pastur band for a panel of this shape (the smallest sits
+85× below that edge). In that regime shrinkage has very little noise to bite on,
 and the uniform 30% position cap is doing more regularisation than the estimator is. It is testable:
 relax the cap and compare shrinkage across cap levels. It is also, plausibly, the most interesting thing
 this project has produced, and it is exactly the kind of tidy story that a null is supposed to prevent me
