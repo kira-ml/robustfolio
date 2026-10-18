@@ -106,6 +106,13 @@ jobs:
       - name: Tests
         run: python -m pytest -q
 
+      - name: The one-pager renders from the committed tables alone
+        # Unconditional, unlike the steps below: the public page needs no snapshot
+        # and no download, because its numbers are read from docs/published-run/.
+        # If this step ever has to skip, the page has quietly started depending on
+        # something a stranger would not have.
+        run: python scripts/make_onepager.py --out /tmp/onepager
+
       - name: One command regenerates the number
         if: steps.snapshot.outputs.ok == 'true'
         # The résumé-bar item, executed rather than asserted. Certification runs

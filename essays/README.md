@@ -9,6 +9,13 @@ every claim in them can be checked against the repository that made it.
 | 2 | [`cut-quant.md`](cut-quant.md) — *A pre-registered null on robust portfolio construction* | Quant research / systematic investing | ~1,100 words |
 | 3 | [`cut-ml-ds.md`](cut-ml-ds.md) — *Four defences against fooling yourself* | ML / data science engineering | ~1,600 words |
 
+**The one-page version.** [`one-pager.pdf`](one-pager.pdf) — *I tried to break my own result before I
+published it*: the four defences, the one that failed, and the null underneath, on one sheet. It is not a
+hand-made graphic. `python scripts/make_onepager.py` redraws it from the published tables, and
+`tests/test_onepager.py` checks that its numbers are the published ones, that the disclosure the policy
+requires is on it, that no block crosses the margin, and that it still fits on one page. A number typed
+into a post has nothing to notice it drifting; this one has a test.
+
 **Read the flagship first.** It leads with the method, uses the finance result as its worked example, and
 ends with the toolkit. The two cuts are not summaries: the quant cut adds the benchmark-choice argument,
 the turnover inversion and the effective-bets diagnostic; the ML/DS cut strips the domain and states the
