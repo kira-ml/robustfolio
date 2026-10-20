@@ -89,8 +89,11 @@ python scripts/make_onepager.py --out essays/one-pager
 
 ```bash
 python scripts/certify_engine.py    # 7 methods x 168 rebalances, KKT certificate
-python -m pytest -q                 # 194 passed, 1 skipped
+python scripts/demo_the_check.py    # watch the check reject a tampered verdict
+python -m pytest -q                 # 196 passed, 1 skipped
 ```
+
+`demo_the_check.py` is the check turned on itself, and it is the fastest way to judge whether any of this is real. It tampers with in-memory copies of the published tables and prints what the comparison does with each: a measurement moved by `0.01` is **refused** and the column named; a verdict flipped `FAILURE → SUCCESS`, with every statistic untouched, is **refused** (`VERDICT differs`) — that is DEC-20261018-041 executed rather than asserted; and a `1e-12` difference, the scale a different machine produces, is **absorbed**, because a check that fails on platform noise is useless. No real run has ever disagreed with the published verdict, so this demo is the only evidence that the refusal works at all. It exits non-zero if any of the three stops behaving that way, so it is also a test. It writes nothing.
 
 `run_experiment.py` writes `manifest.json` (snapshot id, git commit, protocol and spec versions, seed, environment), `outcomes.csv`, `decisions.csv`, `calibration.csv`, `design.csv`, `folds_<M>.csv`, `net_excess_returns.csv`, and `report.md`.
 
@@ -136,7 +139,7 @@ A **release archive** is those five files plus a generated `NOTICE.txt` recordin
 | Optimizer | CVXPY + CLARABEL, **no fallback path**, every rebalance certified by a primal KKT residual against a frozen tolerance |
 | Engine certificate | 7 methods × 168 rebalances = **1,176 solves, zero rejections**; worst KKT residual `1.49e-11` vs `1e-7` acceptance |
 | Leakage suite | protocol §5.4.8 — 14 pass, 1 recorded skip (the survivorship test is vacuous in-sample; see below) |
-| Tests | 194 passed, 1 skipped — including the leakage suite, release-packaging integrity (the notice included), snapshot-name integrity, metric determinism, the verifier's own exact/bounded split for both published tables, the generated one-pager (its numbers, its required disclosure, its margins, and that it still fits on one page), and the documentation index |
+| Tests | 196 passed, 1 skipped — including the leakage suite, release-packaging integrity (the notice included), snapshot-name integrity, metric determinism, the verifier's own exact/bounded split for both published tables, the generated one-pager (its numbers, its required disclosure, its margins, and that it still fits on one page), and the documentation index |
 | Release chain | Frozen snapshot packs to a deterministic 1.67 MB archive with a published SHA-256 and a `NOTICE.txt` recording the data's provenance and licence; `verify_release.py` re-runs the harness from the archive and compares the result to the published tables — every decision exactly, including the verdict, and the measurements within the documented bound |
 | Continuous integration | Hermetic suite green on a fresh clone by design; with the release asset present, CI also re-runs every method and compares the result to the committed published tables — **exactly** on every decision-bearing quantity, including the §6.4 verdict, within a documented `1e-9` on the measurements. That check has failed twice on a runtime-chosen BLAS kernel rather than a real difference (F33, F34), and has since passed end to end on a third machine with the worst difference at `4.698e-12` and every decision identical |
 

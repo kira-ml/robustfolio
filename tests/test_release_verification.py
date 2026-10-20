@@ -356,3 +356,39 @@ def test_every_boolean_in_the_published_verdict_table_is_compared_exactly() -> N
 
     extra = [c for c in vr.DECISION_EXACT_COLUMNS if c not in published.columns]
     assert extra == [], f"the verifier compares fields the artifact does not carry: {extra}"
+
+
+def test_the_public_demo_still_demonstrates_something() -> None:
+    """The demo is a check on the check, so the build runs it too.
+
+    ``scripts/demo_the_check.py`` prints three behaviours: a measurement moved by
+    ``0.01`` must be refused, a verdict flipped to ``SUCCESS`` must be refused, and a
+    ``1e-12`` difference -- the scale a different machine produces (F34) -- must be
+    absorbed. A change that stopped the verdict comparison rejecting a flip would
+    otherwise only make the demo tell a friendlier story.
+    """
+    import demo_the_check
+
+    assert demo_the_check.main([]) == 0
+
+
+def test_the_demo_leaves_the_published_tables_alone() -> None:
+    """The demo tampers in memory. If it ever wrote, it would destroy its own subject.
+
+    Asserted on the bytes rather than on ``git status``, so the check does not depend
+    on the working tree being clean for some other reason.
+    """
+    import hashlib
+
+    import demo_the_check
+
+    tables = [
+        REPO_ROOT / "docs" / "published-run" / name
+        for name in ("outcomes.csv", "decisions.csv")
+    ]
+    before = [hashlib.sha256(path.read_bytes()).hexdigest() for path in tables]
+
+    assert demo_the_check.main([]) == 0
+
+    after = [hashlib.sha256(path.read_bytes()).hexdigest() for path in tables]
+    assert before == after, "the demo modified a published table"
