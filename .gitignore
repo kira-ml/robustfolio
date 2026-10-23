@@ -29,3 +29,7 @@ __pycache__/
 dist/
 build/
 .DS_Store
+
+# Local AI-agent prompt file: personal working instructions, not part of the
+# repository. Never committed.
+AGENTS.md
