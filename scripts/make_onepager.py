@@ -91,9 +91,16 @@ EYEBROW = (
 #: flagship (``notes/release_essay_draft.md``, "avoid 'portfolio' and 'backtest' in
 #: the flagship"). The name is a name and is exempt from that.
 PROJECT_NAME = "ROBUSTFOLIO"
-PROJECT_SUBJECT = (
-    "an out-of-sample, cost-aware test of robust methods against five baselines"
-)
+#: It says what was compared, not how it was tested. The earlier version --
+#: "an out-of-sample, cost-aware test of robust methods against five baselines" --
+#: identified the project to a specialist and to nobody else: *robust methods*,
+#: *baselines* and *cost-aware* are all vocabulary a reader needs before the
+#: title arrives. The count is checked against the published rows by
+#: ``test_onepager``, because a hand-written "7" is exactly the number that
+#: survives a run that added a method; the sample phrase is checked against
+#: ``SAMPLE_DESCRIPTION``, so the masthead and the chart cannot describe
+#: different samples.
+PROJECT_SUBJECT = "7 ways to spread money across 18 US ETFs, 168 out-of-sample months"
 MASTHEAD = f"{PROJECT_NAME}  \u00b7  {PROJECT_SUBJECT}"
 
 TITLE = ("I tried to break my own result", "before I published it.")

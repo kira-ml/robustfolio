@@ -102,6 +102,21 @@ def test_the_subject_keeps_the_flagship_register() -> None:
     assert "backtest" not in subject
 
 
+def test_the_subject_names_what_was_compared() -> None:
+    """The masthead says what the project is about, not only how it was tested.
+
+    The identity test above requires the sheet to identify itself; this one
+    requires the identity to be legible without the vocabulary of the field. Two
+    numbers are checked rather than trusted: the method count against the
+    published rows, and the sample phrase against the string the chart puts on
+    its axis.
+    """
+    data = onepager.load(PUBLISHED)
+
+    assert onepager.PROJECT_SUBJECT.startswith(f"{len(data['rows'])} ways")
+    assert onepager.SAMPLE_DESCRIPTION in onepager.PROJECT_SUBJECT
+
+
 def test_the_verdicts_on_the_page_are_the_published_ones() -> None:
     """The page prints what the decision rule returned, including the failure."""
     data = onepager.load(PUBLISHED)
