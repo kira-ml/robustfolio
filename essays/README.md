@@ -8,6 +8,7 @@ every claim in them can be checked against the repository that made it.
 | 1 | [`flagship.md`](flagship.md) — *I tried to break my own result before I published it* | General technical | ~2,800 words |
 | 2 | [`cut-quant.md`](cut-quant.md) — *A pre-registered null on robust portfolio construction* | Quant research / systematic investing | ~1,100 words |
 | 3 | [`cut-ml-ds.md`](cut-ml-ds.md) — *Four defences against fooling yourself* | ML / data science engineering | ~1,600 words |
+| 4 | [`robustfolio-working-paper.pdf`](robustfolio-working-paper.pdf) — *The benchmark is the binding constraint* | Research / systematic investing | 9 pages |
 
 **The one-page version.** [`one-pager.pdf`](one-pager.pdf) — *I tried to break my own result before I
 published it*: the four defences, the one that failed, and the null underneath, on one sheet. It carries
@@ -22,6 +23,16 @@ into a post has nothing to notice it drifting; this one has a test.
 ends with the toolkit. The two cuts are not summaries: the quant cut adds the benchmark-choice argument,
 the turnover inversion and the effective-bets diagnostic; the ML/DS cut strips the domain and states the
 four defences generically, with the solver and library failures as its evidence.
+
+**The long version.** [`robustfolio-working-paper.pdf`](robustfolio-working-paper.pdf) — *The benchmark is
+the binding constraint*: the argument at length, single column, A4, with the decisions, the cost sweep, the
+turnover inversion and the design diagnostic in one place. It is generated the same way the one-pager is.
+`python scripts/build_paper.py` writes every measurement the paper quotes into `paper/generated/numbers.typ`
+from `docs/published-run/`, and `paper/paper.typ` interpolates from it — the prose types no number of its
+own. [`tests/test_paper.py`](../tests/test_paper.py) rebuilds the PDF and fails if a table value is missing
+from the rendered text, if a measurement appears in the source, or if a claim the policy prohibits appears
+anywhere in the document. The title is the paper's actual finding: with one registered comparison, the
+deflation machinery has nothing to correct, and the benchmark is what decides the verdict.
 
 ## What every piece is subject to
 
