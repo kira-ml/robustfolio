@@ -60,7 +60,7 @@ jobs:
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e ".[dev]"
+          python -m pip install -e ".[dev,paper]"
 
       - name: Fetch the frozen snapshot (optional)
         id: snapshot
@@ -112,6 +112,13 @@ jobs:
         # If this step ever has to skip, the page has quietly started depending on
         # something a stranger would not have.
         run: python scripts/make_onepager.py --out /tmp/onepager
+
+      - name: The working paper builds from the committed tables alone
+        # Same argument as the one-pager: no snapshot, no network, one command.
+        # tests/test_paper.py rebuilds the PDF and checks every table value in it,
+        # so this step is "it compiles" and the test is "it still says what the
+        # run supports". Neither can be skipped without the other noticing.
+        run: python scripts/build_paper.py --out /tmp/working-paper.pdf
 
       - name: One command regenerates the number
         if: steps.snapshot.outputs.ok == 'true'

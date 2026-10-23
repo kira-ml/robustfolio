@@ -30,6 +30,11 @@ dist/
 build/
 .DS_Store
 
+# The working paper's generated inputs. Every measurement and the figure are
+# written by scripts/build_paper.py from docs/published-run/; the PDF in
+# essays/ is the artefact, and these two files are what produces it.
+paper/generated/
+
 # Local AI-agent prompt file: personal working instructions, not part of the
 # repository. Never committed.
 AGENTS.md

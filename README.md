@@ -86,6 +86,10 @@ python scripts/make_onepager.py --out essays/one-pager
 
 # The two shapes a post needs: a 4:5 feed card and a 2:1 link card, same tables.
 python scripts/make_cards.py --out essays/one-pager
+
+# The working paper, from the same tables. Needs the optional extra:
+#   pip install -e ".[paper]"
+python scripts/build_paper.py
 ```
 
 **Independent checks** — no data download, no network:
@@ -142,7 +146,7 @@ A **release archive** is those five files plus a generated `NOTICE.txt` recordin
 | Optimizer | CVXPY + CLARABEL, **no fallback path**, every rebalance certified by a primal KKT residual against a frozen tolerance |
 | Engine certificate | 7 methods × 168 rebalances = **1,176 solves, zero rejections**; worst KKT residual `1.49e-11` vs `1e-7` acceptance |
 | Leakage suite | protocol §5.4.8 — 14 pass, 1 recorded skip (the survivorship test is vacuous in-sample; see below) |
-| Tests | 212 passed, 1 skipped - including the leakage suite, release-packaging integrity (the notice included), snapshot-name integrity, metric determinism, the verifier's own exact/bounded split for both published tables, the generated one-pager and its two social cards (their numbers, their required disclosure, their margins, that the page still fits on one page, and that a card changed in memory changes on the image), and the documentation index |
+| Tests | 224 passed, 1 skipped - including the leakage suite, release-packaging integrity (the notice included), snapshot-name integrity, metric determinism, the verifier's own exact/bounded split for both published tables, the generated one-pager and its two social cards (their numbers, their required disclosure, their margins, that the page still fits on one page, and that a card changed in memory changes on the image), the working paper (every table value present in the rendered PDF, no measurement typed into its source, the prohibited claims absent), and the documentation index |
 | Release chain | Frozen snapshot packs to a deterministic 1.67 MB archive with a published SHA-256 and a `NOTICE.txt` recording the data's provenance and licence; `verify_release.py` re-runs the harness from the archive and compares the result to the published tables — every decision exactly, including the verdict, and the measurements within the documented bound |
 | Continuous integration | Hermetic suite green on a fresh clone by design; with the release asset present, CI also re-runs every method and compares the result to the committed published tables — **exactly** on every decision-bearing quantity, including the §6.4 verdict, within a documented `1e-9` on the measurements. That check has failed twice on a runtime-chosen BLAS kernel rather than a real difference (F33, F34), and has since passed end to end on a third machine with the worst difference at `4.698e-12` and every decision identical |
 
@@ -176,6 +180,7 @@ The contracts live in [`docs/`](docs/) and are the authority: **if this README a
 - [`docs/results_reporting_and_claims_policy.md`](docs/results_reporting_and_claims_policy.md) — what may be claimed from a result, and the reporting template that binds future experiments (v1.0, frozen)
 - [`essays/`](essays/) — the written account: what the four defences caught, the one that failed, and two audience-specific cuts (§14.2 governs them, and every number in them is checkable against this repository)
 - [`essays/one-pager.pdf`](essays/one-pager.pdf) - the one-sheet version, **generated** from the published tables by `scripts/make_onepager.py` so that no number on it was typed by hand; [`tests/test_onepager.py`](tests/test_onepager.py) checks it against `docs/published-run/` and fails if it stops fitting on one page. The same tables draw `essays/one-pager-social.png` (4:5, 1200x1500) and `essays/one-pager-card.png` (2:1, 1280x640) through `scripts/make_cards.py`, because a feed and a link preview cannot both be served by an A4 sheet
+- [`essays/robustfolio-working-paper.pdf`](essays/robustfolio-working-paper.pdf) - the working paper, **generated** by `scripts/build_paper.py` from the same tables, so its prose interpolates measurements from `paper/generated/numbers.typ` rather than quoting them; [`tests/test_paper.py`](tests/test_paper.py) fails if a table value is missing from the rendered PDF, if a measurement is typed into `paper/paper.typ`, or if a claim the policy prohibits appears in it.
 
 ---
 

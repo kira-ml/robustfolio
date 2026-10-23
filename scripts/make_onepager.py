@@ -394,8 +394,13 @@ class _Flow:
         self.y = top + height + 0.010
 
 
-def _draw_interval_plot(fig, data: dict, rect: list[float]) -> None:
-    """The seven methods, point estimate and interval, best baseline marked."""
+def _draw_interval_plot(fig, data: dict, rect: list[float], annotate_y: float = -0.42) -> None:
+    """The seven methods, point estimate and interval, best baseline marked.
+
+    ``annotate_y`` is the row-coordinate of the two header annotations, expressed in
+    row units above row 0. The default leaves them just inside the axes' top edge;
+    callers that reserve more headroom can push them further up.
+    """
     ax = fig.add_axes(rect)
     rows = data["rows"]
     best = data["best_baseline"]
@@ -454,13 +459,13 @@ def _draw_interval_plot(fig, data: dict, rect: list[float]) -> None:
     )
     ax.annotate(
         f"{best}  (best baseline)",
-        xy=(reference, -0.42), xytext=(reference - 0.02, -0.42),
+        xy=(reference, annotate_y), xytext=(reference - 0.02, annotate_y),
         fontsize=8.0, color=REFERENCE_COLOUR, fontweight="bold",
         fontfamily=FONT, va="center", ha="right", annotation_clip=False,
     )
     ax.annotate(
         f"\u00a76.2 requires a {gap_bar:.2f} gap over {best}",
-        xy=(reference + gap_bar, -0.42), xytext=(reference + gap_bar + 0.02, -0.42),
+        xy=(reference + gap_bar, annotate_y), xytext=(reference + gap_bar + 0.02, annotate_y),
         fontsize=8.0, color=MUTED, fontfamily=FONT,
         va="center", ha="left", annotation_clip=False,
     )

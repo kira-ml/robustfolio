@@ -27,6 +27,12 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
+# The working paper. Deliberately not a runtime dependency: `pip install -e .`
+# must stay enough to run the harness and the report, and a reproduction path
+# that needs a typesetting engine is not a reproduction path. Typst ships its
+# own fonts in the wheel, so the PDF renders identically on CI and on a laptop
+# without any font installation.
+paper = ["typst>=0.11", "pypdf>=5.0"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
