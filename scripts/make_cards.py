@@ -1,10 +1,12 @@
-"""Draw the two social derivatives of the one-page summary.
+"""Draw the social derivatives of the one-page summary and the working paper.
 
     python scripts/make_cards.py --out essays/one-pager
 
 Writes ``<out>-social.png`` (1200x1500, 4:5 -- the shape a feed shows without
 cropping) and ``<out>-card.png`` (1280x640, 2:1 -- the shape GitHub, Slack and X use
-for a link preview).
+for a link preview). With ``--working-paper`` it also writes that paper's feed card,
+which is a separate artefact with its own thesis: the one-pager leads with the method,
+the paper's card leads with the finding.
 
 Why derivatives rather than a crop of the A4 page: that page is 1:1.41, the feed is
 1:1.25 and the link card is 2:1, so one file cannot be all three. Cropping a
@@ -160,8 +162,11 @@ def facts(data: dict) -> dict:
     return {
         "method": top["method"],
         "baseline": data["best_baseline"],
+        "point": top["point"],
         "gap": decision["gap"],
         "bar": data["thresholds"]["gap"],
+        "psr": decision["psr"],
+        "psr_bar": data["thresholds"]["psr"],
         "verdict": decision["verdict"],
         "bps": data["headline_bps"],
     }
@@ -282,6 +287,107 @@ def layout_card(data: dict):
     return fig, cursor
 
 
+#: The working paper's card leads with the *finding*, where the one-pager leads with
+#: the method. The same project may publish two artefacts that say different things
+#: -- a paper's title is its thesis -- but it may not publish two that say the same
+#: thing in the same words, which is what two posts in a row otherwise become.
+WORKING_PAPER_TITLE = ("The best portfolio in my study", "lost.")
+WORKING_PAPER_DECK = "It finished first on net excess Sharpe. The rule was not a ranking."
+#: The block that replaces the one-pager card's "the defence that failed". The card
+#: asserts a failure, so it owes the reason: two overlapping intervals, which is the
+#: whole finding. Both intervals are read from the tables, never typed.
+WORKING_PAPER_WHY = "WHY IT FAILED"
+
+
+def layout_working_paper(data: dict):
+    """The 4:5 card for the working paper: the result first, the method after."""
+    f = facts(data)
+
+    # The headline says "the best portfolio", so the table has to agree. "Best" here
+    # means the highest estimate in the run, not merely the highest candidate: if a
+    # baseline ever outranked the candidate, the sentence would be false and this
+    # raises rather than publishing it. Checked before a figure exists, so a refused
+    # card leaves nothing behind.
+    ranked = max(data["rows"], key=lambda row: row["point"])
+    if ranked["method"] != f["method"]:
+        raise ValueError(
+            f"{f['method']} is the strongest candidate but {ranked['method']} has the "
+            "highest net Sharpe; the card calls the candidate the best portfolio and "
+            "would be wrong"
+        )
+
+    fig = plt.figure(figsize=SOCIAL_INCHES, dpi=SOCIAL_DPI, facecolor="white")
+    width_in = page.CONTENT_W * SOCIAL_INCHES[0]
+    cursor = _Cursor(fig, top=0.050, margin=page.MARGIN_X,
+                     height_in=SOCIAL_INCHES[1])
+
+    cursor.text(page.PROJECT_NAME, size=11.5, weight="bold", gap_after=0.004)
+    cursor.text(
+        wrap_to_width(page.PROJECT_SUBJECT, size=9.8, max_width_in=width_in),
+        size=9.8, colour=page.MUTED,
+    )
+    cursor.space(0.030)
+
+    cursor.text(
+        wrap_to_width(" ".join(WORKING_PAPER_TITLE), size=28.0, weight="bold",
+                      max_width_in=width_in),
+        size=28.0, weight="bold", gap_after=0.022,
+    )
+    cursor.text(
+        wrap_to_width(WORKING_PAPER_DECK, size=15.5, max_width_in=width_in),
+        size=15.5, colour=page.MUTED, gap_after=0.026,
+    )
+
+    cursor.text(f"{f['point']:.4f} \u2014 the highest of the seven.",
+                size=17.0, weight="bold", gap_after=0.002)
+    cursor.text(f"{f['gap']:+.3f} over the best baseline.",
+                size=17.0, weight="bold", gap_after=0.002)
+    cursor.text(f"The bar was {f['bar']:.2f}.   Verdict: {f['verdict']}.",
+                size=17.0, weight="bold", colour=page.ALERT, gap_after=0.028)
+
+    cursor.text(WORKING_PAPER_WHY, size=10.0, colour=page.ALERT,
+                weight="bold", gap_after=0.006)
+    cursor.text(
+        wrap_to_width(
+            f"The rule also needs a {f['psr_bar']:.2f} probability that the advantage "
+            f"over the best baseline is real. That gate scored {f['psr']:.3f}, and the "
+            "two intervals overlap.",
+            size=12.0, max_width_in=width_in,
+        ),
+        size=12.0, colour=page.MUTED,
+    )
+    # Policy SS3: for an executed, non-confirmatory test the distinction between
+    # "failed" and "never tested" must be *stated*, not left to the footer token.
+    cursor.space(0.010)
+    cursor.text(
+        wrap_to_width(
+            "Non-confirmatory: the hypothesis is untested, not falsified.",
+            size=12.0, max_width_in=width_in,
+        ),
+        size=12.0, colour=page.MUTED,
+    )
+
+    top = cursor.y + 0.014
+    height = 0.238
+    page._draw_interval_plot(
+        fig, data,
+        [page.MARGIN_X, 1.0 - top - height, page.CONTENT_W, height],
+    )
+
+    _footer(fig, margin=page.MARGIN_X, width=page.CONTENT_W, width_in=width_in,
+            status_size=9.4, url_size=8.4)
+    return fig, cursor
+
+
+def draw_working_paper(data: dict, path: Path) -> Path:
+    """The working paper's feed card, written to ``path``."""
+    fig, _ = layout_working_paper(data)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(path, facecolor="white")
+    plt.close(fig)
+    return path
+
+
 def draw(data: dict, out_base: Path) -> list[Path]:
     """Render both cards. Returns the files written."""
     out_base.parent.mkdir(parents=True, exist_ok=True)
@@ -301,13 +407,18 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
                         help="output basename; -social.png and -card.png are written")
     parser.add_argument("--published", type=Path, default=page.PUBLISHED_DIR,
                         help="directory holding the published tables")
+    parser.add_argument("--working-paper", type=Path, default=None, metavar="PATH",
+                        help="also write the working paper's 4:5 feed card here")
     return parser.parse_args(argv)
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     data = page.load(args.published)
-    for path in draw(data, args.out):
+    written = draw(data, args.out)
+    if args.working_paper is not None:
+        written.append(draw_working_paper(data, args.working_paper))
+    for path in written:
         display = path.relative_to(REPO_ROOT) if path.is_relative_to(REPO_ROOT) else path
         print(f"wrote {display}")
     return 0
