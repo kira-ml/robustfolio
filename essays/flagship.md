@@ -205,10 +205,11 @@ re-designation does not repair it — it just names it correctly.
 ## The result, read properly
 
 Here is why the null is worth more than a shrug. The candidates' return series correlate with the best
-baseline at ρ = 0.9845 and 0.9856, and the paired differences are +0.4% and +0.6% per year. This design
-was powered to separate a net Sharpe difference of roughly 0.13 to 0.20 between strategies this
-correlated, and the observed gaps are 0.064 and −0.004. Every interval overlaps the baseline's. So the
-effect is **absent, not invisible** — which is a much stronger statement than "not significant".
+baseline at ρ = 0.9845 and 0.9856. The paired test gives `M2` +0.064 [−0.011, +0.147] and `M1` −0.004
+[−0.096, +0.080]. `M2` is plausibly a little better, but the 90% interval includes zero, and both are far
+below the 0.20 bar. The effect is **small**, not absent; the 0.20 improvement the design was built to
+detect is the thing the data exclude. (The registered level PSR gate is a different, much less powerful
+test; the correction is in `notes/paired_inference_2026-11-04.md`.)
 
 The diagnostics explain why, and I will label this as what it is: a hypothesis, not a result. Eighteen
 assets, but an effective number of independent bets of only about 3 to 5 — measured by participation
@@ -216,9 +217,13 @@ ratio and by entropy — with a correlation matrix condition number around 1.7e3
 eigenvalues below the lower edge of the Marchenko–Pastur band for a panel of this shape (the smallest sits
 85× below that edge). In that regime shrinkage has very little noise to bite on,
 and the uniform 30% position cap is doing more regularisation than the estimator is. It is testable:
-relax the cap and compare shrinkage across cap levels. It is also, plausibly, the most interesting thing
-this project has produced, and it is exactly the kind of tidy story that a null is supposed to prevent me
-from believing, which is why it is labelled a hypothesis.
+relax the cap and compare shrinkage across cap levels.
+
+**Update, 2026-11-04.** I ran it. The cap explanation did not survive. `M1 − B3` stays at or below zero
+as the cap loosens, so the cap does not rescue shrinkage. The cap does bind the other treatment:
+`M2 − B3` grows with the cap, but remains below the 0.20 bar. The tidy story failed its own test; the
+result is in `notes/cap_sweep_shrinkage_2026-11-04.md`. That is the point of labelling a hypothesis
+instead of believing it.
 
 ## What a reader can do with this
 

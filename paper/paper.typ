@@ -108,7 +108,7 @@
   #v(0.95em)
   #text(size: 10pt)[Ken Ira Lacson Talingting]
   #v(0.10em)
-  #text(size: 8.5pt, fill: luma(100))[Working paper · October 2026]
+  #text(size: 8.5pt, fill: luma(100))[Working paper - October 2026; revised November 2026]
 ]
 
 #v(0.9em)
@@ -147,9 +147,11 @@
   baseline, and six robustness gates — not a ranking. Both treatments fail. The larger
   advantage, #fmt(max-gap, 3) against a bar of #fmt(gap-bar, 2), is a point estimate whose
   interval overlaps the baseline's, and it belongs to the treatment that changes the mean
-  rather than the covariance. The same two strategies clear a deflated-Sharpe test against
-  zero at p = #fmt(min-dsr, 4) and #fmt(max-dsr, 4), which places the binding constraint in
-  the declared benchmark rather than in the multiple-testing correction. Because validating
+  rather than the covariance. A post-hoc cap sweep does not rescue the shrinkage treatment;
+  the mean treatment's advantage grows as the cap loosens, but remains below the bar. The same
+  two strategies clear a deflated-Sharpe test against zero at p = #fmt(min-dsr, 4) and
+  #fmt(max-dsr, 4), which places the binding constraint in the declared benchmark rather than
+  in the multiple-testing correction. Because validating
   the reporting layer required running the frozen configuration first, no blind test exists:
   the run is exploratory and the hypotheses are untested, not falsified. The paper's second
   subject is the instrument — what a reproduction check can prove, and what it cannot.
@@ -178,9 +180,10 @@ fourth is an engineering one, and it is the one this project spent most of its e
 
 The result here is a null. Two treatments that differ from a mean--variance baseline in
 exactly one component each — a shrinkage covariance and a Black--Litterman mean — produce no
-net excess Sharpe advantage large enough to clear a bar fixed in advance, on a sample
-powered to detect an effect at that bar. Both fail the registered rule. Neither is rescued by
-a cost sweep or by the fold structure, and the intervals do not separate them from the
+net excess Sharpe advantage large enough to clear a bar fixed in advance. The paired test is
+powered to detect an effect at that bar; the registered level gate is not. Both fail the
+registered rule. Neither is rescued by a cost sweep or by the fold structure, and the
+intervals do not separate them from the
 baseline.
 
 Four things are contributed, and only the first is a result:
@@ -274,7 +277,10 @@ to zero:
 + no single fold contributing more than #pct(fold-limit, 0) of the advantage.
 
 Every threshold is read from the published verdict table rather than restated by hand, and
-@tab-gates prints the rule gate by gate for both candidates.
+@tab-gates prints the rule gate by gate for both candidates. The rule is a representation of
+the decision, not the decision itself: it compresses a return path, a drawdown path and a
+set of folds into eight gates. Whether that representation answers the question the design
+was built for is a separate question, and it is the one the correction turns on.
 
 Significance alone admits improvements too small to act on; materiality alone admits noise.
 Requiring both, plus robustness across cost levels and folds, is what makes a null
@@ -314,7 +320,9 @@ sample-covariance, sample-mean optimiser that the project set out to critique, i
 baseline at #fmt(b3.point, 4). `M2` has the highest point
 estimate of any construction, #fmt(top.point, 4),
 an advantage of #fmt(max-gap, 3). That is below the #fmt(gap-bar, 2) bar. `M1` lands on `B3`:
-its advantage is #fmt(v1.gap, 3), which is to say none.
+its advantage is #fmt(v1.gap, 3), which is to say none. The point estimate is a summary of
+one historical path, not a forecast; the interval is the uncertainty around that summary,
+not a range of possible futures.
 
 #figure(
   table(
@@ -480,9 +488,16 @@ Marchenko--Pastur band would be [#fmt(sourced.mp-low, 3), #fmt(sourced.mp-high, 
 If that is the right reading, shrinkage has little independent noise to bite on, and the
 uniform 30% cap is doing more regularisation than the estimator is. That would explain why
 `M1` lands on `B3`, and why `M2` — the only treatment that changes the mean rather than the
-covariance — is the only one that moves the point estimate at all. It is a hypothesis and it
-is labelled as one: the cap sweep that would test it, across four values of the cap, was
-registered and has never been run.
+covariance — is the only one that moves the point estimate at all.
+
+It is a hypothesis, and it is labelled as one. The cap sweep that tests it, across four
+values of the cap, was registered and has since been run (2026-11-04): it does not support
+the shrinkage version. `M1`'s difference from `B3` stays at or below zero as the cap
+loosens. The cap does bind the Black--Litterman treatment, whose advantage grows with the
+cap but remains below the materiality bar. One arm — the turnover-penalised method at the two
+looser caps — could not be certified at the frozen tolerance and is reported as incomplete
+rather than tolerated. The test is reported in the repository note, not as a result of this
+paper.
 
 // ---------------------------------------------------------------------------
 // 4
@@ -592,14 +607,15 @@ synthetically and not on a genuine disagreement.
 of roughly #fmt(sourced.paired-mde-980, 2) to #fmt(sourced.paired-mde-950, 2) between these
 highly correlated strategies, and it is silent about smaller effects. The null is therefore
 "no effect at or above the bar", not "no effect". A true improvement of half the bar would not
-have been detected here and must not be reported as though it had been.
+have been detected here and must not be reported as though it had been. The backtest is one
+path through one period, not a forecast of the next one.
 
 *The comparator.* The rule compares against the best baseline, identified mechanically after
 the run. The definition is fixed and the identity is not, which is weaker than naming the
-comparator in the registration. In this sample `B3` was the best baseline by a margin
+comparator in the registration. In this sample `B3` was the best baseline by a margin of
 #fmt(b3.point - b5.point, 4)
-over the next one, so the choice is not close; that is a fact about this run, not a property of
-the design.
+over the next one. That is a narrow margin: the comparator choice is a fragility of this run,
+not a property of the design, and `M1`'s sign already depends on it.
 
 *The cost model.* A flat one-way cost with no market impact, capacity, taxes or regime
 dependence. Costs cannot reach the optimiser: each rebalance is solved once and every cost

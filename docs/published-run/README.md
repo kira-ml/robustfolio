@@ -1,4 +1,4 @@
-# Published run — `outcomes.csv` and `decisions.csv`
+# Published run — `outcomes.csv`, `decisions.csv`, and the exploratory corrections
 
 **Version:** 1.3
 **Status:** Frozen
@@ -103,6 +103,45 @@ three of them had drifted to the wrong order of magnitude.
 The tables are a *record of an output*, not an input. Nothing in the pipeline reads them; the code
 re-derives every number from the price panel in the archive. A mismatch is therefore information
 about the code or the archive, never about these files — which is what makes them usable as a check.
+
+## The paired correction (2026-11-04)
+
+`paired_inference.json` and `paired_inference.md` are the **exploratory paired reading** of the same
+run, produced by `scripts/paired_inference.py --run <run>` and copied here so the note and the carousel
+are reproducible without a local run directory. They are not a frozen table and they do not change
+`decisions.csv` or the `verdict`:
+
+- the registered §6.1 PSR gate is a **level** test; it needs about 0.48 observed and has an 80%-power
+  MDE of about 0.72, so it could not detect a 0.20 effect most of the time;
+- the paired stationary bootstrap gives `M2` **+0.064 [−0.011, +0.147]**, `P(Δ>0) = 0.917`, and the
+  90% upper bound rules out a 0.20 advantage at the 5% one-sided level;
+- `M1` is −0.004 [−0.096, +0.080], a genuine zero;
+- the DSR at `N = 7` is 0.039 for `M2` and 0.061 for `M1`, so the "both pass the DSR" sentence is
+  robust for `M2` and fragile for `M1` once the method count is not collapsed to one.
+
+The JSON is the input to `paper/generated/paired.typ` and therefore to
+`essays/robustfolio-carousel.pdf`; `tests/test_carousel.py` checks that the rendered slides carry the
+values. The full argument is in [`notes/paired_inference_2026-11-04.md`](../../notes/paired_inference_2026-11-04.md).
+
+## The cap-sweep diagnostic (2026-11-04)
+
+`cap_sweep.csv` and `cap_sweep.json` are the exploratory mechanism test from
+`scripts/cap_sweep.py`: `B1`, `B2`, `B3`, `B4`, `M1` and `M2` at `w_max` in {0.20, 0.30, 0.40,
+1.00}, and `B5` only where its turnover epigraph passes the frozen 1e-7 KKT certificate. The
+0.30 arm reproduces the published B3/M1/M2 net Sharpes exactly.
+
+The result is deliberately not a rescue of the frozen verdict:
+
+- **shrinkage is not rescued by the cap.** `M1 − B3` is −0.004 at 0.30 and −0.003 at 1.00;
+  every paired interval includes zero;
+- **the cap did bind `M2`.** `M2 − B3` grows from +0.064 at 0.30 to +0.138 at 1.00, and the
+  1.00 interval excludes zero, but 0.138 is still below the 0.20 materiality bar;
+- `B5` at 0.40 and 1.00 fails the certificate (residuals 2.571e-7 and 1.226e-6) and is
+  reported **incomplete**, not imputed or tolerated.
+
+The JSON is the input to `paper/generated/cap_sweep.typ` and to the carousel's mechanism slide.
+The full argument, including the pre-declared decision rule and the firewall, is in
+[`notes/cap_sweep_shrinkage_2026-11-04.md`](../../notes/cap_sweep_shrinkage_2026-11-04.md).
 
 ## What it is not
 

@@ -46,9 +46,11 @@ binding one for `M2` (51.3%), so a *stated reading*, not the arithmetic alone, p
 
 The materiality bar does the work here, and that is the point of having one. A 0.064 improvement in net
 Sharpe on a strategy that carries *more* turnover than the baseline is not a result you could act on even
-if it were statistically clean. And the design was powered to separate roughly 0.13–0.20 between
-strategies correlated at ρ ≈ 0.985, so the effect is **absent, not invisible** — the paired differences
-are +0.4% and +0.6% per year.
+if it were statistically clean. The **paired** comparison is powered to separate roughly 0.13–0.20
+between strategies correlated at ρ ≈ 0.985; it gives `M2` +0.064 [−0.011, +0.147] and `M1` −0.004
+[−0.096, +0.080]. `M2` is plausibly a little better, but the interval includes zero and both are far
+below 0.20. The effect is **small**, not absent — and the registered level test is a different, much
+less powerful test.
 
 ## Why the benchmark, not the correction, is the binding constraint
 
@@ -90,10 +92,11 @@ independent information to shrink toward a prior — and the uniform 30% positio
 regularisation than the estimator is**. That would explain why `M1` (shrinkage) lands at essentially
 `B3`, and why the only candidate with a different *mean* (`M2`) is the only one that separates at all.
 
-It is testable and I have not tested it: relax the cap across levels and compare shrinkage estimates
-within each. Until then it is a hypothesis, and a tidy one, which is exactly why it is labelled rather
-than asserted. It connects to a cap-sweep that was registered (`w_max` across 0.20, 0.30, 0.40 and 1.00)
-and has never been run — it is the most interesting thread the project left open.
+It is testable, and I have now tested it. **Update, 2026-11-04:** the cap sweep across 0.20, 0.30, 0.40
+and 1.00 does **not** support the shrinkage version of this hypothesis. `M1 − B3` stays at or below zero
+as the cap loosens, so the cap does not rescue shrinkage. It does show the cap binding the
+Black–Litterman treatment, whose advantage grows with the cap but remains below the materiality bar.
+The tidy story failed its own test; the result is in `notes/cap_sweep_shrinkage_2026-11-04.md`.
 
 ## What to check
 
