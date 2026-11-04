@@ -633,10 +633,11 @@ H2.2. This is the binding limitation: the other four qualify a null, and this on
 is not a test.
 
 What would change the verdict: a confirmatory replication on a sample that did not exist when
-it was registered, with the same rule and the same bar; a cap sweep that isolates how much of
-the regularisation comes from the constraint rather than the estimator; a wider universe; and a
-cost model with impact. An effect at or above the bar, with an interval that excludes the
-baseline, would also do it — and would be the outcome the design was built to detect.
+it was registered, with the same rule and the same bar; a wider universe; and a cost model
+with impact. The cap sweep has been run and is reported above: it does not rescue shrinkage,
+and the mean treatment's cap-conditional gain remains below the bar. An effect at or above the
+bar, with an interval that excludes the baseline, would also do it — and would be the outcome
+the design was built to detect.
 
 // ---------------------------------------------------------------------------
 // 7
