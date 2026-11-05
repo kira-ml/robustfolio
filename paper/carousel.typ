@@ -60,7 +60,7 @@
 #card[
   #text(size: 11pt, weight: "bold")[What this is]
   #v(3pt)
-  #text(size: 11.5pt)[An open-source evaluation benchmark for regularized portfolio models — models that shrink noisy historical estimates before choosing weights. I built it as a third-year Machine Learning student to work on the part of ML that is easy to skip: whether a model's edge is real, and whether the evaluation can see it. It is not a trading strategy or investment advice.]
+  #text(size: 11.5pt)[An open-source evaluation benchmark for regularized portfolio models — models that shrink noisy historical estimates before choosing weights. I built it as a third-year Machine Learning student to work on the part of empirical research that is easy to skip: whether a model's edge is real, and whether the evaluation can see it. It is not a trading strategy or investment advice.]
   #v(5pt)
   #text(size: 11.5pt)[The short version: the portfolio was not clearly better, and the test was too weak to detect the improvement I said would matter.]
 ]
