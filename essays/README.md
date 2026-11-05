@@ -9,7 +9,7 @@ every claim in them can be checked against the repository that made it.
 | 2 | [`cut-quant.md`](cut-quant.md) — *A pre-registered null on robust portfolio construction* | Quant research / systematic investing | ~1,100 words |
 | 3 | [`cut-ml-ds.md`](cut-ml-ds.md) — *Four defences against fooling yourself* | ML / data science engineering | ~1,600 words |
 | 4 | [`robustfolio-working-paper.pdf`](robustfolio-working-paper.pdf) — *The benchmark is the binding constraint* | Research / systematic investing | 10 pages |
-| 5 | [`robustfolio-carousel.pdf`](robustfolio-carousel.pdf) — *I set the bar at 0.20. My own test needed 0.72.* | LinkedIn / general technical | 11 slides |
+| 5 | [`robustfolio-carousel.pdf`](robustfolio-carousel.pdf) — *My own test rejected my best method. It couldn't see a win that size.* | LinkedIn / general technical | 8 slides |
 
 **The one-page version.** [`one-pager.pdf`](one-pager.pdf) — *I tried to break my own result before I
 published it*: the four defences, the one that failed, and the null underneath, on one sheet. It carries
@@ -21,16 +21,16 @@ requires is on it, that no block crosses the margin, and that it still fits on o
 into a post has nothing to notice it drifting; this one has a test.
 
 **The carousel.** [`robustfolio-carousel.pdf`](robustfolio-carousel.pdf) — *My own test rejected my best
-method. It couldn't see a win that size.*: eleven slides for a LinkedIn document post. It opens on the
-test's blind spot, then sets out the problem, the benchmark built to address it, the rule fixed before the
-run and the result, before the correction, the mechanism test and the new sample. It defines net excess Sharpe and the decision rule in plain language, then shows the 0.8538,
-the +0.064 gap, the 0.20 bar, the paired 0.917 and the cap-sweep mechanism. It is written for a
-non-specialist audience without dropping the technical specifics: 18 ETFs, 168 months, 1,176 solves, a
-leakage suite, a numerical check and a reproduction check. The mechanism slide reports the cap sweep:
-the cap did not rescue shrinkage, but it did bind the Black–Litterman treatment. The final act reports
-the pre-registered country-ETF sample: 18 country ETFs, 2005–2026, 252 months; the best baseline is
-1/N, both treatments underperform it, and the treatment advantage does not replicate. It is drawn in
-Typst from `paper/generated/paired.typ`, `paper/generated/cap_sweep.typ` and
+method. It couldn't see a win that size.*: eight slides for a LinkedIn document post. It opens on the
+test's blind spot, then sets out the problem, the benchmark built to address it, the result and the flaw
+behind it, before the correction and the new sample. It defines net excess Sharpe and the decision rule in
+plain language, then shows the 0.8538, the +0.064 gap, the 0.20 bar, the paired 0.917 and the bound the
+data support. It is written for a non-specialist audience without dropping the technical specifics: 18
+ETFs, 168 months, 1,176 solves, a leakage suite, a numerical check and a reproduction check. The cap sweep
+is reported in one line on the correction slide: it did not rescue shrinkage, and it did bind the
+Black–Litterman treatment. The final act reports the pre-registered country-ETF sample: 18 country ETFs,
+2005–2026, 252 months; the best baseline is 1/N, both treatments underperform it, and the treatment
+advantage does not replicate. It is drawn in Typst from `paper/generated/paired.typ` and
 `paper/generated/country.typ`; `python scripts/build_paper.py` rebuilds it and
 `tests/test_carousel.py` checks the slide count, the rendered numbers and the source.
 `robustfolio-carousel-cover.png` is the 4:5 cover for a single-image post. The mechanism note is

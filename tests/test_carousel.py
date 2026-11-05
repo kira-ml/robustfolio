@@ -2,7 +2,7 @@
 
 It gets the same treatment as the one-pager and the paper:
 
-1. it must be the right shape — eleven slides, the format a LinkedIn document
+1. it must be the right shape — eight slides, the format a LinkedIn document
    post expects;
 2. every headline number must be present in the rendered PDF;
 3. the source must not contain a measurement that should have come from
@@ -41,16 +41,16 @@ def _text(path: Path, pypdf) -> str:
     return "\n".join(page.extract_text() or "" for page in pypdf.PdfReader(str(path)).pages)
 
 
-def test_it_has_eleven_slides(built):
+def test_it_has_eight_slides(built):
     out, pypdf = built
-    assert len(pypdf.PdfReader(str(out)).pages) == 11
+    assert len(pypdf.PdfReader(str(out)).pages) == 8
 
 
 def test_every_headline_number_is_in_the_pdf(built):
     out, pypdf = built
     text = _text(out, pypdf)
     for value in (
-        "0.8538", "0.72", "0.917", "0.147", "0.064", "0.587", "0.138",
+        "0.8538", "0.72", "0.917", "0.147", "0.064", "0.587",
         "0.3527", "0.3193", "0.2710",
     ):
         assert value in text, f"{value!r} is missing from the rendered carousel"
@@ -64,16 +64,14 @@ def test_the_reading_is_stated(built):
         "It couldn't see a win that size",
         "What this is",
         "Portfolio construction is an estimation problem",
+        "A portfolio is a set of assumptions",
         "A benchmark, not a backtest",
-        "One metric, one rule",
         "First on the metric",
         "The bar was",
+        "A test can be rigorous and still answer the wrong question",
         "The same data, the right test",
-        "The data exclude",
         "NOT MATERIAL",
         "paired resampling test",
-        "The cap did not rescue shrinkage",
-        "Shrinkage: not supported",
         "A new market. A different winner",
         "The benchmark lesson replicated",
         "The benchmark is the binding constraint",
