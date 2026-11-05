@@ -30,6 +30,9 @@
 
 #let eyebrow(x) = text(size: 9pt, fill: muted, tracking: 1.2pt)[#x]
 #let footer = place(bottom + left, text(size: 8pt, fill: muted)[github.com/kira-ml/robustfolio · exploratory, non-confirmatory · not investment advice])
+// The country sample was pre-registered, so it is confirmatory for that sample; the
+// project as a whole remains exploratory because the correction came from the first one.
+#let footer-registered = place(bottom + left, text(size: 8pt, fill: muted)[github.com/kira-ml/robustfolio · pre-registered sample · confirmatory for that sample · not investment advice])
 #let card(body) = block(fill: white, stroke: 0.6pt + rule, inset: 12pt, radius: 5pt, body)
 #let takeaway(body) = place(
   bottom + left,
@@ -310,7 +313,7 @@
   #text(size: 11.5pt)[The benchmark lesson replicated: the best baseline changed from B3 to 1/N. The treatment advantage did not.]
 ]
 #takeaway[The treatment edge was universe-conditional. The benchmark lesson was not.]
-#footer
+#footer-registered
 
 #pagebreak()
 
