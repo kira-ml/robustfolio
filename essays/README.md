@@ -20,10 +20,10 @@ hand-made graphic. `python scripts/make_onepager.py` redraws it from the publish
 requires is on it, that no block crosses the margin, and that it still fits on one page. A number typed
 into a post has nothing to notice it drifting; this one has a test.
 
-**The carousel.** [`robustfolio-carousel.pdf`](robustfolio-carousel.pdf) — *I set the bar at 0.20. My
-own test needed 0.72.*: eleven slides for a LinkedIn document post. It leads with the finding, then spends
-three slides on what the project is, the problem it addresses and the benchmark that was built, before
-the result. It defines net excess Sharpe and the decision rule in plain language, then shows the 0.8538,
+**The carousel.** [`robustfolio-carousel.pdf`](robustfolio-carousel.pdf) — *My own test rejected my best
+method. It couldn't see a win that size.*: eleven slides for a LinkedIn document post. It opens on the
+test's blind spot, then sets out the problem, the benchmark built to address it, the rule fixed before the
+run and the result, before the correction, the mechanism test and the new sample. It defines net excess Sharpe and the decision rule in plain language, then shows the 0.8538,
 the +0.064 gap, the 0.20 bar, the paired 0.917 and the cap-sweep mechanism. It is written for a
 non-specialist audience without dropping the technical specifics: 18 ETFs, 168 months, 1,176 solves, a
 leakage suite, a numerical check and a reproduction check. The mechanism slide reports the cap sweep:

@@ -33,7 +33,7 @@
 // The country sample was pre-registered, so it is confirmatory for that sample; the
 // project as a whole remains exploratory because the correction came from the first one.
 #let footer-registered = place(bottom + left, text(size: 8pt, fill: muted)[github.com/kira-ml/robustfolio · pre-registered sample · confirmatory for that sample · not investment advice])
-#let card(body) = block(fill: white, stroke: 0.6pt + rule, inset: 12pt, radius: 5pt, body)
+#let card(body) = block(width: 100%, fill: white, stroke: 0.6pt + rule, inset: 12pt, radius: 5pt, body)
 #let takeaway(body) = place(
   bottom + left,
   dy: -34pt,
@@ -58,14 +58,14 @@
 #let c-d2 = country.decisions.filter(d => d.id == "M2").first()
 
 // 1 -------------------------------------------------------------------------
-#v(22pt)
+#v(23pt)
 #eyebrow[ROBUSTFOLIO · AN OPEN-SOURCE PORTFOLIO BENCHMARK]
 #v(14pt)
-#text(size: 23pt, weight: "bold")[The best portfolio in my study lost.]
+#text(size: 24pt, weight: "bold")[My own test rejected my best method.]
 #v(4pt)
-#text(size: 23pt, weight: "bold", fill: red)[I couldn't tell you whether that was true.]
+#text(size: 24pt, weight: "bold", fill: red)[It couldn't see a win that size.]
 #v(14pt)
-#text(size: 12pt, fill: muted)[I built an open-source benchmark: seven ways to build a portfolio, #n-assets US ETFs, #n-months months, after trading costs, one rule fixed before the run. The rule said no. So I checked whether it could have said yes.]
+#text(size: 12pt, fill: muted)[I built an open-source benchmark: seven ways to build a portfolio, #n-assets US ETFs, #n-months months, after trading costs, one rule fixed before the run. Then I re-read the result with the test the design was built for, and ran it on a market I had never seen.]
 #v(14pt)
 #table(
   columns: (1.25fr, 2.35fr, auto),
@@ -87,7 +87,7 @@
   #v(3pt)
   #text(size: 11.5pt)[A model can be built correctly and still be judged by a test that cannot see its effect. That is the failure this project exists to catch — and the first one it caught was mine.]
 ]
-#takeaway[The result is a correction of the test, not a win for the portfolio.]
+#takeaway[The edge didn't survive a new market. The lesson did.]
 #footer
 
 #pagebreak()
@@ -115,6 +115,8 @@
 #eyebrow[WHAT I BUILT]
 #v(10pt)
 #text(size: 23pt, weight: "bold")[A benchmark, not a backtest.]
+#v(8pt)
+#text(size: 12pt)[A backtest is a model of a market. A benchmark tests whether the model's edge survives data it has not seen — and whether the test could see the edge at all.]
 #v(10pt)
 #set text(size: 11.5pt)
 #table(
@@ -130,6 +132,8 @@
 #set text(size: 14pt)
 #v(10pt)
 #text(size: 11pt, fill: muted)[#n-solves optimizer solves; every one checked numerically. The code and the frozen data snapshot are public.]
+#v(6pt)
+#text(size: 11pt, fill: muted)[*What it is not:* a live system, a forecast, or a claim of alpha. One asset family, one period, flat costs.]
 #takeaway[The benchmark is the deliverable, not just the headline number.]
 #footer
 
@@ -157,7 +161,7 @@
 // 5 -------------------------------------------------------------------------
 #eyebrow[THE RESULT]
 #v(12pt)
-#text(size: 23pt, weight: "bold")[It finished first. It still failed.]
+#text(size: 23pt, weight: "bold")[First on the metric. Failed on the decision.]
 #v(8pt)
 #text(size: 44pt, weight: "bold")[#fmt(m2.candidate-sr, 4)]
 #v(2pt)
@@ -236,7 +240,7 @@
 )
 #v(12pt)
 #text(size: 12pt)[The two strategies hold almost the same portfolio (ρ = #fmt(m2.rho, 3)), so comparing them month by month is far more sensitive than comparing each to zero.]
-#takeaway[The original test was not wrong. It was answering a different question.]
+#takeaway[Pairing is what turns a noisy comparison into a usable one.]
 #footer
 
 #pagebreak()
@@ -263,7 +267,7 @@
 #pagebreak()
 
 // 9 -------------------------------------------------------------------------
-#eyebrow[THE MECHANISM TEST]
+#eyebrow[WHY IT FAILED]
 #v(10pt)
 #text(size: 22pt, weight: "bold")[The cap did not rescue shrinkage.]
 #v(6pt)
@@ -284,6 +288,8 @@
 #text(size: 11.5pt)[*Shrinkage: not supported.* The gap stays at or below zero; every interval includes zero.]
 #v(4pt)
 #text(size: 11.5pt)[*Black–Litterman: depends on the cap.* The gap grows as the cap loosens, but remains below #fmt(paired.bar, 2). The looser cap also means larger positions: the largest holding rises from #fmt(cs-m2.at(1).maxw, 2) to #fmt(cs-m2.at(3).maxw, 2).]
+#v(6pt)
+#text(size: 10.5pt, fill: muted)[Post-hoc, and reported as post-hoc: this tests an explanation for the null, not a new hypothesis.]
 #takeaway[The mechanism test did not support the shrinkage explanation. It did show the cap binding the mean treatment.]
 #footer
 
@@ -292,9 +298,9 @@
 // 10 ------------------------------------------------------------------------
 #eyebrow[THE NEW SAMPLE]
 #v(10pt)
-#text(size: 22pt, weight: "bold")[I ran the new sample. It also failed.]
+#text(size: 22pt, weight: "bold")[A new market. A different winner.]
 #v(4pt)
-#text(size: 11.5pt, fill: muted)[#country.n-assets country ETFs · 2005–2026 · #country.n-months months · #country.n-folds folds. The best baseline was 1/N, not sample MVO.]
+#text(size: 11.5pt, fill: muted)[#country.n-assets country ETFs · 2005–2026 · #country.n-months months · #country.n-folds folds. The best baseline was equal weight (B1), not sample MVO (B3).]
 #v(10pt)
 #table(
   columns: (auto, 1.2fr, 1fr),
@@ -306,15 +312,17 @@
     [#r.id], [#fmt(r.net, 4)], [#fmt(r.turnover, 2)]
   )).flatten(),
 )
+#v(6pt)
+#text(size: 8.5pt, fill: muted)[B1 equal weight · B2 risk parity · B3 sample MVO · B4 minimum variance · B5 turnover-penalised · M1 shrinkage · M2 Black–Litterman.]
 #v(8pt)
 #text(size: 11pt)[*M2 vs B1:* #signed(c-d2.delta, 3) [#fmt(c-d2.low, 3), #fmt(c-d2.high, 3)]. *M1 vs B1:* #signed(c-d1.delta, 3) [#fmt(c-d1.low, 3), #fmt(c-d1.high, 3)]. Both upper bounds are below #fmt(paired.bar, 2); both won 0 of 5 cost levels; both traded about #fmt(c-d2.turnover-ratio, 1)× the baseline.]
 #v(8pt)
 #card[
   #text(size: 11.5pt, weight: "bold")[What replicated — and what did not]
   #v(3pt)
-  #text(size: 11.5pt)[The benchmark lesson replicated: the best baseline changed from B3 to 1/N. The treatment advantage did not.]
+  #text(size: 11.5pt)[The benchmark lesson replicated: the best baseline changed from B3 to B1. The treatment advantage did not.]
 ]
-#takeaway[The treatment edge was universe-conditional. The benchmark lesson was not.]
+#takeaway[The edge depended on the market. The lesson did not.]
 #footer-registered
 
 #pagebreak()
@@ -323,19 +331,27 @@
 #eyebrow[WHAT THIS SHOWS]
 #v(14pt)
 #text(size: 24pt, weight: "bold")[The benchmark is the binding constraint.]
+#v(8pt)
+#text(size: 12pt)[What you compare against decides the verdict. The metric is a summary; the benchmark is the decision.]
 #v(10pt)
-#text(size: 12.5pt)[*The first sample:* `M2` beat `B3`, but not the #fmt(paired.bar, 2) bar.]
-#v(6pt)
-#text(size: 12.5pt)[*The new sample:* equal weight beat both treatments.]
-#v(6pt)
-#text(size: 12.5pt)[*The correction:* a better test on the same data, not a new strategy.]
-#v(6pt)
-#text(size: 12.5pt)[*As an ML student,* the lesson I would carry: a model can be well implemented and still be judged by a test that cannot see its effect.]
+#text(size: 12pt)[*First sample:* the top number failed the rule — #signed(m2.delta, 3) against #fmt(paired.bar, 2).]
+#v(5pt)
+#text(size: 12pt)[*Second sample:* equal weight beat both treatments.]
+#v(5pt)
+#text(size: 12pt)[*The correction:* the same data, read with the test the design was built for.]
+#v(5pt)
+#text(size: 12pt)[*The limit:* every number here belongs to its sample, not to markets in general.]
 #v(12pt)
-#card[
-  #text(size: 11.5pt, weight: "bold")[What I would check in my own work]
-  #v(3pt)
-  #text(size: 11.5pt)[Before trusting a metric, ask what decision it is supposed to support. A test can be rigorous and still answer the wrong question.]
+#block(width: 100%)[
+  #card[
+    #text(size: 11pt, weight: "bold")[What I would carry into the next study]
+    #v(4pt)
+    #text(size: 11.5pt)[— Fix the decision rule before the data.]
+    #v(3pt)
+    #text(size: 11.5pt)[— Audit the test's power, not only the strategy's return.]
+    #v(3pt)
+    #text(size: 11.5pt)[— Replicate on a sample that did not inform the design.]
+  ]
 ]
 #takeaway[Code, paper and the reproduction check: github.com/kira-ml/robustfolio]
 #footer

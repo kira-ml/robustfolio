@@ -60,13 +60,13 @@ def test_the_reading_is_stated(built):
     out, pypdf = built
     text = " ".join(_text(out, pypdf).split()).replace("\u2019", "'")
     for phrase in (
-        "The best portfolio in my study lost",
-        "I couldn't tell you whether that was true",
+        "My own test rejected my best method",
+        "It couldn't see a win that size",
         "What this is",
         "Portfolio construction is an estimation problem",
         "A benchmark, not a backtest",
         "One metric, one rule",
-        "It finished first",
+        "First on the metric",
         "The bar was",
         "The same data, the right test",
         "The data exclude",
@@ -74,7 +74,7 @@ def test_the_reading_is_stated(built):
         "paired resampling test",
         "The cap did not rescue shrinkage",
         "Shrinkage: not supported",
-        "I ran the new sample. It also failed",
+        "A new market. A different winner",
         "The benchmark lesson replicated",
         "The benchmark is the binding constraint",
         "equal weight beat both treatments",
