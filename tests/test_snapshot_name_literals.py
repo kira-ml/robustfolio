@@ -114,20 +114,21 @@ def test_the_readme_downloads_the_asset_that_exists() -> None:
     )
 
 
-def test_the_named_snapshot_is_the_one_on_disk() -> None:
+def test_the_named_snapshot_is_on_disk() -> None:
     """The literals are checked against a real directory, not against each other.
 
     Skipped on a fresh clone, where there is nothing to compare to -- but present
     in CI, which fetches the archive, and locally, where the snapshot was built.
+    Extra snapshots are allowed: the release asset is the usetf sample, and the
+    country-ETF sample is a separate experiment.
     """
     directories = [p.name for p in SNAPSHOTS_DIR.iterdir() if p.is_dir()] if SNAPSHOTS_DIR.is_dir() else []
     if not directories:
         pytest.skip("no frozen snapshot on disk: the literals can only be checked for consistency")
 
-    assert len(directories) == 1, f"expected one frozen snapshot, found {directories}"
-    assert directories[0] == _ci_env()["SNAPSHOT_ID"], (
-        "the workflow names a snapshot that is not the one on disk -- so the literal "
-        "is wrong, or the snapshot was rebuilt without updating the literal"
+    assert _ci_env()["SNAPSHOT_ID"] in directories, (
+        "the workflow names a snapshot that is not on disk -- so the literal is "
+        f"wrong, or the snapshot was rebuilt without updating the literal; found {directories}"
     )
 
 

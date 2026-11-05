@@ -1,5 +1,6 @@
 #import "generated/paired.typ": paired
 #import "generated/cap_sweep.typ": cap-sweep
+#import "generated/country.typ": country
 #import "generated/numbers.typ": sourced, verdicts, psr-bar, headline-bps, n-assets, n-months, n-folds, n-solves
 
 #let accent = rgb("#1f5c99")
@@ -46,6 +47,12 @@
 #let m1 = paired.methods.M1
 #let cs-m1 = cap-sweep.m1
 #let cs-m2 = cap-sweep.m2
+#let c-b1 = country.rows.filter(r => r.id == "B1").first()
+#let c-b3 = country.rows.filter(r => r.id == "B3").first()
+#let c-m1 = country.rows.filter(r => r.id == "M1").first()
+#let c-m2 = country.rows.filter(r => r.id == "M2").first()
+#let c-d1 = country.decisions.filter(d => d.id == "M1").first()
+#let c-d2 = country.decisions.filter(d => d.id == "M2").first()
 
 // 1 -------------------------------------------------------------------------
 #v(20pt)
@@ -278,15 +285,45 @@
 #pagebreak()
 
 // 10 ------------------------------------------------------------------------
+#eyebrow[THE NEW SAMPLE]
+#v(10pt)
+#text(size: 22pt, weight: "bold")[I ran the new sample. It also failed.]
+#v(4pt)
+#text(size: 11.5pt, fill: muted)[#country.n-assets country ETFs · 2005–2026 · #country.n-months months · #country.n-folds folds. The best baseline was 1/N, not sample MVO.]
+#v(10pt)
+#table(
+  columns: (auto, 1.2fr, 1fr),
+  align: (right, right, right),
+  inset: 3.5pt,
+  stroke: none,
+  [*Method*], [*Net Sharpe*], [*Turnover*],
+  ..country.rows.map(r => (
+    [#r.id], [#fmt(r.net, 4)], [#fmt(r.turnover, 2)]
+  )).flatten(),
+)
+#v(8pt)
+#text(size: 11pt)[*M2 vs B1:* #signed(c-d2.delta, 3) [#fmt(c-d2.low, 3), #fmt(c-d2.high, 3)]. *M1 vs B1:* #signed(c-d1.delta, 3) [#fmt(c-d1.low, 3), #fmt(c-d1.high, 3)]. Both upper bounds are below #fmt(paired.bar, 2); both won 0 of 5 cost levels; both traded about #fmt(c-d2.turnover-ratio, 1)× the baseline.]
+#v(8pt)
+#card[
+  #text(size: 11.5pt, weight: "bold")[What replicated — and what did not]
+  #v(3pt)
+  #text(size: 11.5pt)[The benchmark lesson replicated: the best baseline changed from B3 to 1/N. The treatment advantage did not.]
+]
+#takeaway[The treatment edge was universe-conditional. The benchmark lesson was not.]
+#footer
+
+#pagebreak()
+
+// 11 ------------------------------------------------------------------------
 #eyebrow[WHAT THIS SHOWS]
 #v(14pt)
-#text(size: 24pt, weight: "bold")[The benchmark itself is the result.]
+#text(size: 24pt, weight: "bold")[The benchmark is the binding constraint.]
 #v(10pt)
-#text(size: 12.5pt)[*The headline number was not enough.* The test, the benchmark and the decision rule decide what a number means.]
+#text(size: 12.5pt)[*The first sample:* `M2` beat `B3`, but not the #fmt(paired.bar, 2) bar.]
 #v(6pt)
-#text(size: 12.5pt)[*The correction is a better test on the same data,* not a new strategy.]
+#text(size: 12.5pt)[*The new sample:* equal weight beat both treatments.]
 #v(6pt)
-#text(size: 12.5pt)[*A real test needs a new sample,* registered before I look at it.]
+#text(size: 12.5pt)[*The correction:* a better test on the same data, not a new strategy.]
 #v(6pt)
 #text(size: 12.5pt)[*As an ML student,* the lesson I would carry: a model can be well implemented and still be judged by a test that cannot see its effect.]
 #v(12pt)

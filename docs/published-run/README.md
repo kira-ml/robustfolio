@@ -143,6 +143,15 @@ The JSON is the input to `paper/generated/cap_sweep.typ` and to the carousel's m
 The full argument, including the pre-declared decision rule and the firewall, is in
 [`notes/cap_sweep_shrinkage_2026-11-04.md`](../../notes/cap_sweep_shrinkage_2026-11-04.md).
 
+## The country-ETF sample (2026-11-05)
+
+`country-sample/` holds the published tables for the pre-registered second sample: 18
+current-listed country ETFs, 2005-07 to 2026-06, 252 months, 21 folds, the corrected paired
+significance gate. The best baseline is **1/N**, both treatments underperform it, and the
+treatment advantage does not replicate. The benchmark lesson does. See
+[`country-sample/README.md`](country-sample/README.md) and
+[`notes/country_sample_result_2026-11-05.md`](../../notes/country_sample_result_2026-11-05.md).
+
 ## What it is not
 
 **Exploratory and non-confirmatory.** These are the numbers of `EXP-X-20261017-003`, which was

@@ -8,8 +8,8 @@ every claim in them can be checked against the repository that made it.
 | 1 | [`flagship.md`](flagship.md) — *I tried to break my own result before I published it* | General technical | ~2,800 words |
 | 2 | [`cut-quant.md`](cut-quant.md) — *A pre-registered null on robust portfolio construction* | Quant research / systematic investing | ~1,100 words |
 | 3 | [`cut-ml-ds.md`](cut-ml-ds.md) — *Four defences against fooling yourself* | ML / data science engineering | ~1,600 words |
-| 4 | [`robustfolio-working-paper.pdf`](robustfolio-working-paper.pdf) — *The benchmark is the binding constraint* | Research / systematic investing | 9 pages |
-| 5 | [`robustfolio-carousel.pdf`](robustfolio-carousel.pdf) — *I set the bar at 0.20. My own test needed 0.72.* | LinkedIn / general technical | 10 slides |
+| 4 | [`robustfolio-working-paper.pdf`](robustfolio-working-paper.pdf) — *The benchmark is the binding constraint* | Research / systematic investing | 10 pages |
+| 5 | [`robustfolio-carousel.pdf`](robustfolio-carousel.pdf) — *I set the bar at 0.20. My own test needed 0.72.* | LinkedIn / general technical | 11 slides |
 
 **The one-page version.** [`one-pager.pdf`](one-pager.pdf) — *I tried to break my own result before I
 published it*: the four defences, the one that failed, and the null underneath, on one sheet. It carries
@@ -21,18 +21,21 @@ requires is on it, that no block crosses the margin, and that it still fits on o
 into a post has nothing to notice it drifting; this one has a test.
 
 **The carousel.** [`robustfolio-carousel.pdf`](robustfolio-carousel.pdf) — *I set the bar at 0.20. My
-own test needed 0.72.*: ten slides for a LinkedIn document post. It leads with the finding, then spends
+own test needed 0.72.*: eleven slides for a LinkedIn document post. It leads with the finding, then spends
 three slides on what the project is, the problem it addresses and the benchmark that was built, before
 the result. It defines net excess Sharpe and the decision rule in plain language, then shows the 0.8538,
 the +0.064 gap, the 0.20 bar, the paired 0.917 and the cap-sweep mechanism. It is written for a
 non-specialist audience without dropping the technical specifics: 18 ETFs, 168 months, 1,176 solves, a
 leakage suite, a numerical check and a reproduction check. The mechanism slide reports the cap sweep:
-the cap did not rescue shrinkage, but it did bind the Black–Litterman treatment. It is drawn in Typst
-from `paper/generated/paired.typ` and `paper/generated/cap_sweep.typ`;
-`python scripts/build_paper.py` rebuilds it and `tests/test_carousel.py` checks the slide count, the
-rendered numbers and the source. `robustfolio-carousel-cover.png` is the 4:5 cover for a single-image
-post. The mechanism note is
-[`notes/cap_sweep_shrinkage_2026-11-04.md`](../notes/cap_sweep_shrinkage_2026-11-04.md).
+the cap did not rescue shrinkage, but it did bind the Black–Litterman treatment. The final act reports
+the pre-registered country-ETF sample: 18 country ETFs, 2005–2026, 252 months; the best baseline is
+1/N, both treatments underperform it, and the treatment advantage does not replicate. It is drawn in
+Typst from `paper/generated/paired.typ`, `paper/generated/cap_sweep.typ` and
+`paper/generated/country.typ`; `python scripts/build_paper.py` rebuilds it and
+`tests/test_carousel.py` checks the slide count, the rendered numbers and the source.
+`robustfolio-carousel-cover.png` is the 4:5 cover for a single-image post. The mechanism note is
+[`notes/cap_sweep_shrinkage_2026-11-04.md`](../notes/cap_sweep_shrinkage_2026-11-04.md); the new
+sample is [`notes/country_sample_result_2026-11-05.md`](../notes/country_sample_result_2026-11-05.md).
 
 **Read the flagship first.** It leads with the method, uses the finance result as its worked example, and
 ends with the toolkit. The two cuts are not summaries: the quant cut adds the benchmark-choice argument,
@@ -49,7 +52,10 @@ from the rendered text, if a measurement appears in the source, or if a claim th
 anywhere in the document. The title is the paper's actual finding: with one registered comparison, the
 deflation machinery has nothing to correct, and the benchmark is what decides the verdict. The paper
 also reports the post-hoc cap sweep: it does not rescue shrinkage, and the mean treatment's
-cap-conditional advantage remains below the bar.
+cap-conditional advantage remains below the bar. The country-ETF sample is the external-validity
+test: the best baseline is 1/N, both treatments underperform it, and the treatment advantage does
+not replicate. Its values are generated into `paper/generated/country.typ` from
+`docs/published-run/country-sample/`; the prose types none of them.
 
 ## What every piece is subject to
 

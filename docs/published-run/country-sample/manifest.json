@@ -1,0 +1,10 @@
+{
+  "snapshot_id": "yahoo-countryetf-1998-01-01_2026-09-30-2026-11-05-269a4565",
+  "start": "2005-07-01",
+  "end": "2026-06-30",
+  "n_rebalances": 252,
+  "n_folds": 21,
+  "headline_cost_bps": 10,
+  "best_baseline": "B1",
+  "status": "pre-registered new sample; paired significance gate"
+}

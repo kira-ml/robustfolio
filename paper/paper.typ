@@ -1,4 +1,5 @@
 #import "generated/numbers.typ": *
+#import "generated/country.typ": country
 
 // ---------------------------------------------------------------------------
 // Formatting helpers. Every number below comes from generated/numbers.typ;
@@ -40,6 +41,13 @@
 #let b3 = rows.filter(r => r.id == best).first()
 #let b5 = rows.filter(r => r.id == "B5").first()
 #let top = rows.first()
+
+#let c-b1 = country.rows.filter(r => r.id == "B1").first()
+#let c-b3 = country.rows.filter(r => r.id == "B3").first()
+#let c-m1 = country.rows.filter(r => r.id == "M1").first()
+#let c-m2 = country.rows.filter(r => r.id == "M2").first()
+#let c-d1 = country.decisions.filter(d => d.id == "M1").first()
+#let c-d2 = country.decisions.filter(d => d.id == "M2").first()
 
 // ---------------------------------------------------------------------------
 // Page and type
@@ -148,8 +156,11 @@
   advantage, #fmt(max-gap, 3) against a bar of #fmt(gap-bar, 2), is a point estimate whose
   interval overlaps the baseline's, and it belongs to the treatment that changes the mean
   rather than the covariance. A post-hoc cap sweep does not rescue the shrinkage treatment;
-  the mean treatment's advantage grows as the cap loosens, but remains below the bar. The same
-  two strategies clear a deflated-Sharpe test against zero at p = #fmt(min-dsr, 4) and
+  the mean treatment's advantage grows as the cap loosens, but remains below the bar. A
+  pre-registered country-ETF sample does not rescue the treatments: equal weight is the best
+  baseline, both treatments underperform it, and the treatment advantage does not replicate.
+  The benchmark lesson does. The same two strategies clear a deflated-Sharpe test against zero
+  at p = #fmt(min-dsr, 4) and
   #fmt(max-dsr, 4), which places the binding constraint in the declared benchmark rather than
   in the multiple-testing correction. Because validating
   the reporting layer required running the frozen configuration first, no blind test exists:
@@ -186,10 +197,12 @@ registered rule. Neither is rescued by a cost sweep or by the fold structure, an
 intervals do not separate them from the
 baseline.
 
-Four things are contributed, and only the first is a result:
+Five things are contributed, and only the first is a result:
 
 + a single-factor registered comparison, in which each treatment differs from the baseline in
   one component, so a difference is attributable to that component rather than to a bundle;
++ a pre-registered second sample on country ETFs, where the treatment advantage does not
+  replicate and the best baseline changes from sample MVO to 1/N;
 + evidence that under a single registered comparison the deflation machinery is inert, and
   the *declared benchmark* is what decides the test — which makes fixing the comparator a
   statistical requirement rather than bookkeeping;
@@ -439,6 +452,79 @@ Both p-values answer "is this strategy's Sharpe greater than zero", not "is it b
 baseline". A reader who takes p = #fmt(min-dsr, 4) as evidence of improvement has answered a
 question nobody asked. This is the sentence the project exists to make difficult to skip.
 
+== The new sample: country ETFs, 2005--2026
+
+The first sample is one universe and one period. To test whether the reading survives a
+different cross-section, I pre-registered a second sample before running it: #country.n-assets
+current-listed iShares MSCI country ETFs, 2005-07 to 2026-06, #country.n-months months in
+#country.n-folds folds, the same seven methods, the same #fmt(gap-bar, 2) bar, and the corrected
+paired significance gate. The protocol is `notes/confirmatory_country_etfs_2026-11-05.md`; the
+result is reported regardless of its direction.
+
+@tab-country reports the net Sharpe. The best baseline is #country.best at
+#fmt(c-b1.net, 4); `B3` is #fmt(c-b3.net, 4). `M2` is #fmt(c-m2.net, 4), below the best
+baseline, and `M1` is #fmt(c-m1.net, 4).
+
+#figure(
+  table(
+    columns: (auto, 1.0fr, 0.9fr, 0.9fr),
+    align: (left, right, right, right),
+    table.hline(stroke: 0.8pt),
+    table.header([Method], [Net excess Sharpe], [Turnover], [Max drawdown]),
+    table.hline(stroke: 0.4pt),
+    ..country.rows.map(r => (
+      id-cell(r),
+      [#fmt(r.net, 4)],
+      [#fmt(r.turnover, 2)],
+      [#pct(r.drawdown, 1)],
+    )).flatten(),
+    table.hline(stroke: 0.8pt),
+  ),
+  caption: [The country-ETF sample: #country.n-months months, #country.n-folds folds,
+    #country.n-assets current-listed country ETFs. Net excess Sharpe at the #headline-bps bps
+    headline cost. Pre-registered before execution; the same methods, costs and constraints as
+    the first sample.],
+) <tab-country>
+
+The paired comparison is negative for both treatments. `M1` is #fmt(c-d1.delta, 3)
+[#fmt(c-d1.low, 3), #fmt(c-d1.high, 3)]; `M2` is #fmt(c-d2.delta, 3)
+[#fmt(c-d2.low, 3), #fmt(c-d2.high, 3)]. Both 90% upper bounds are below
+#fmt(gap-bar, 2), so the data exclude a material improvement over #country.best at the 5%
+one-sided level. Both won #c-d1.cost-won of the #n-cost-levels cost levels; they won
+#c-d1.folds-won and #c-d2.folds-won of #country.n-folds folds, below the
+#c-d1.folds-required target; and both traded at about #fmt(c-d2.turnover-ratio, 1) times the
+baseline's turnover. Both fail. @tab-country-gates reports the two candidates.
+
+#figure(
+  table(
+    columns: (auto, 0.9fr, 1.5fr, 0.8fr, 0.8fr, 0.8fr, auto),
+    align: (left, right, right, right, right, right, center),
+    table.hline(stroke: 0.8pt),
+    table.header([Candidate], [Paired delta], [90% interval], [Gap], [Turnover], [Cost levels], [Verdict]),
+    table.hline(stroke: 0.4pt),
+    ..country.decisions.map(d => (
+      [#d.id],
+      [#fmt(d.delta, 3)],
+      [#ci(d.low, d.high)],
+      [#fmt(d.gap, 3)],
+      [#fmt(d.turnover-ratio, 2)],
+      [#d.cost-won / #n-cost-levels],
+      strong(d.verdict),
+    )).flatten(),
+    table.hline(stroke: 0.8pt),
+  ),
+  caption: [The new sample's two candidate comparisons against the best baseline. The
+    significance gate is the paired 5th percentile above zero, not the level PSR. Both
+    candidates fail.],
+) <tab-country-gates>
+
+The treatment advantage did not replicate. The benchmark lesson did. In the first sample `B3`
+was the best baseline; here `B1` is. A treatment can beat sample MVO and still lose to equal
+weight. The comparator, not the correction, is doing the work — and the comparator is a
+property of the sample. The result is conditional on a current-listed country-ETF list, one
+period, one asset class, one cost model and a 30% cap; it is a pre-registered replication, not
+a universal test.
+
 == The cost sweep, and the turnover inversion
 
 @tab-sweep reports the same metric at each of the #n-cost-levels cost levels. Across them the
@@ -610,6 +696,11 @@ highly correlated strategies, and it is silent about smaller effects. The null i
 have been detected here and must not be reported as though it had been. The backtest is one
 path through one period, not a forecast of the next one.
 
+*The second sample.* The country-ETF sample is current-listed, one asset class and one period;
+the same survivorship limitation applies, and the data are still Yahoo's revised history. It is
+a pre-registered replication, not a universal test, and it is reported because it failed as
+well as because it ran.
+
 *The comparator.* The rule compares against the best baseline, identified mechanically after
 the run. The definition is fixed and the identity is not, which is weaker than naming the
 comparator in the registration. In this sample `B3` was the best baseline by a margin of
@@ -632,10 +723,11 @@ been run, and the paper does not claim it would change the result.
 H2.2. This is the binding limitation: the other four qualify a null, and this one says the null
 is not a test.
 
-What would change the verdict: a confirmatory replication on a sample that did not exist when
-it was registered, with the same rule and the same bar; a wider universe; and a cost model
-with impact. The cap sweep has been run and is reported above: it does not rescue shrinkage,
-and the mean treatment's cap-conditional gain remains below the bar. An effect at or above the
+What would change the verdict: a confirmatory replication on a sample that was not used to
+derive the correction, with the same rule and the same bar; a wider universe; and a cost
+model with impact. The country-ETF sample is one such replication; it did not change the
+treatment conclusion. The cap sweep has been run and is reported above: it does not rescue
+shrinkage, and the mean treatment's cap-conditional gain remains below the bar. An effect at or above the
 bar, with an interval that excludes the baseline, would also do it — and would be the outcome
 the design was built to detect.
 

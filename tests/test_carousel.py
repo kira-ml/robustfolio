@@ -41,15 +41,18 @@ def _text(path: Path, pypdf) -> str:
     return "\n".join(page.extract_text() or "" for page in pypdf.PdfReader(str(path)).pages)
 
 
-def test_it_has_ten_slides(built):
+def test_it_has_eleven_slides(built):
     out, pypdf = built
-    assert len(pypdf.PdfReader(str(out)).pages) == 10
+    assert len(pypdf.PdfReader(str(out)).pages) == 11
 
 
 def test_every_headline_number_is_in_the_pdf(built):
     out, pypdf = built
     text = _text(out, pypdf)
-    for value in ("0.8538", "0.72", "0.917", "0.147", "0.064", "0.587", "0.138"):
+    for value in (
+        "0.8538", "0.72", "0.917", "0.147", "0.064", "0.587", "0.138",
+        "0.3527", "0.3193", "0.2710",
+    ):
         assert value in text, f"{value!r} is missing from the rendered carousel"
 
 
@@ -71,7 +74,10 @@ def test_the_reading_is_stated(built):
         "paired resampling test",
         "The cap did not rescue shrinkage",
         "Shrinkage: not supported",
-        "The benchmark itself is the result",
+        "I ran the new sample. It also failed",
+        "The benchmark lesson replicated",
+        "The benchmark is the binding constraint",
+        "equal weight beat both treatments",
     ):
         assert phrase in text, f"{phrase!r} is missing from the rendered carousel"
 
