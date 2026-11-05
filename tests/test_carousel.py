@@ -2,7 +2,7 @@
 
 It gets the same treatment as the one-pager and the paper:
 
-1. it must be the right shape — seven slides, the format a LinkedIn document
+1. it must be the right shape — eleven slides, the format a LinkedIn document
    post expects;
 2. every headline number must be present in the rendered PDF;
 3. the source must not contain a measurement that should have come from
@@ -58,10 +58,10 @@ def test_every_headline_number_is_in_the_pdf(built):
 
 def test_the_reading_is_stated(built):
     out, pypdf = built
-    text = " ".join(_text(out, pypdf).split())
+    text = " ".join(_text(out, pypdf).split()).replace("\u2019", "'")
     for phrase in (
-        "I set the bar",
-        "My own test needed",
+        "The best portfolio in my study lost",
+        "I couldn't tell you whether that was true",
         "What this is",
         "Portfolio construction is an estimation problem",
         "A benchmark, not a backtest",

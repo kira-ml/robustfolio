@@ -58,33 +58,35 @@
 #let c-d2 = country.decisions.filter(d => d.id == "M2").first()
 
 // 1 -------------------------------------------------------------------------
-#v(20pt)
+#v(22pt)
 #eyebrow[ROBUSTFOLIO · AN OPEN-SOURCE PORTFOLIO BENCHMARK]
-#v(12pt)
-#text(size: 27pt, weight: "bold")[I set the bar at #fmt(paired.bar, 2).]
-#v(2pt)
-#text(size: 27pt, weight: "bold", fill: red)[My own test needed #fmt(m2.psr-mde, 2).]
-#v(12pt)
-#text(size: 12pt, fill: muted)[I built a benchmark that compares seven ways to build a portfolio across #n-assets US ETFs over #n-months months, after trading costs, under a rule fixed before the run. The best one still failed the rule.]
 #v(14pt)
-#card[
-  #text(size: 11pt, weight: "bold")[What this is]
-  #v(3pt)
-  #text(size: 11.5pt)[An open-source evaluation benchmark for regularized portfolio models — models that shrink noisy historical estimates before choosing weights. I built it as a third-year Machine Learning student to work on the part of empirical research that is easy to skip: whether a model's edge is real, and whether the evaluation can see it. It is not a trading strategy or investment advice.]
-  #v(5pt)
-  #text(size: 11.5pt)[The short version: the portfolio was not clearly better, and the test was too weak to detect the improvement I said would matter.]
-]
-#v(16pt)
+#text(size: 23pt, weight: "bold")[The best portfolio in my study lost.]
+#v(4pt)
+#text(size: 23pt, weight: "bold", fill: red)[I couldn't tell you whether that was true.]
+#v(14pt)
+#text(size: 12pt, fill: muted)[I built an open-source benchmark: seven ways to build a portfolio, #n-assets US ETFs, #n-months months, after trading costs, one rule fixed before the run. The rule said no. So I checked whether it could have said yes.]
+#v(14pt)
 #table(
   columns: (1.25fr, 2.35fr, auto),
   align: (left, left, right),
-  inset: 4pt,
+  inset: (x: 4pt, y: 8pt),
   stroke: none,
-  [the bar], rect(width: (paired.bar / 0.8) * 100%, height: 12pt, fill: ink), [#fmt(paired.bar, 2)],
-  [the test needed], rect(width: (m2.psr-mde / 0.8) * 100%, height: 12pt, fill: red), [#fmt(m2.psr-mde, 2)],
+  [the bar], rect(width: (paired.bar / 0.8) * 100%, height: 20pt, fill: ink), [#fmt(paired.bar, 2)],
+  [what the test needed], rect(width: (m2.psr-mde / 0.8) * 100%, height: 20pt, fill: red), [#fmt(m2.psr-mde, 2)],
 )
-#v(4pt)
-#text(size: 9.5pt, fill: muted)[The test's 80% detection threshold, in net excess Sharpe. A real #fmt(paired.bar, 2) improvement would usually be missed.]
+#v(5pt)
+#text(size: 9.5pt, fill: muted)[The test's 80% detection threshold, in net excess Sharpe: return above cash per unit of risk, after trading costs. An improvement at the bar would usually be missed.]
+#v(16pt)
+#card[
+  #text(size: 11pt, weight: "bold")[What this is]
+  #v(3pt)
+  #text(size: 11.5pt)[A benchmark for portfolio methods: seven constructions, one decision rule, and a test suite that checks the evaluation itself. Not a trading strategy, and not investment advice.]
+  #v(7pt)
+  #text(size: 11pt, weight: "bold")[Why it matters]
+  #v(3pt)
+  #text(size: 11.5pt)[A model can be built correctly and still be judged by a test that cannot see its effect. That is the failure this project exists to catch — and the first one it caught was mine.]
+]
 #takeaway[The result is a correction of the test, not a win for the portfolio.]
 #footer
 
