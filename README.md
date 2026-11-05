@@ -4,6 +4,8 @@
 
 This repository is the benchmark that answers that question under a pre-registered, frozen evaluation protocol. It is built to produce an *honest* answer rather than a favourable one: the hypothesis, the metrics, the thresholds, and the decision rule were all fixed and dated before the results were computed, and a clean "no" is a successful outcome here.
 
+**What kind of project this is.** An applied ML/statistics evaluation project. The estimators are classical - a shrinkage covariance and a Black-Litterman prior - but the ML content is in the high-dimensional estimation, the walk-forward validation, the leakage tests, the power analysis, and the reproducibility checks. It is not a deep-learning project, a trading system, or a claim of alpha.
+
 [![protocol](https://img.shields.io/badge/protocol-v2.4%20frozen-blue)](docs/evaluation_protocol.md)
 [![spec](https://img.shields.io/badge/spec-v1.1%20frozen-blue)](docs/model_and_method_spec.md)
 [![CI](https://github.com/kira-ml/robustfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/kira-ml/robustfolio/actions/workflows/ci.yml)

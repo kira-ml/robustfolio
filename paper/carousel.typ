@@ -60,7 +60,7 @@
 #card[
   #text(size: 11pt, weight: "bold")[What this is]
   #v(3pt)
-  #text(size: 11.5pt)[An open-source research project on portfolio construction: how to spread money across assets when historical estimates are noisy. It is not a trading strategy or investment advice.]
+  #text(size: 11.5pt)[An open-source evaluation benchmark for regularized portfolio models — models that shrink noisy historical estimates before choosing weights. I built it as a third-year Machine Learning student to work on the part of ML that is easy to skip: whether a model's edge is real, and whether the evaluation can see it. It is not a trading strategy or investment advice.]
   #v(5pt)
   #text(size: 11.5pt)[The short version: the portfolio was not clearly better, and the test was too weak to detect the improvement I said would matter.]
 ]
@@ -85,7 +85,7 @@
 #v(10pt)
 #text(size: 23pt, weight: "bold")[Portfolio construction is an estimation problem.]
 #v(10pt)
-#text(size: 12.5pt)[The standard method estimates average returns and correlations from history, then picks the portfolio with the best trade-off between return and risk. The estimates are noisy. The optimizer can load on assets that looked good by chance.]
+#text(size: 12.5pt)[The standard method estimates average returns and correlations from history, then picks the portfolio with the best trade-off between return and risk. The estimates are noisy. The optimizer can load on assets that looked good by chance. With #n-assets assets and 60 months of history, there are more parameters than independent observations; regularization — shrinking noisy estimates — is the standard response.]
 #v(8pt)
 #text(size: 12.5pt)[The project asks a narrow question: do “robust” methods — a shrinkage covariance (which pulls noisy correlations toward a simpler estimate), a Black–Litterman mean (which blends the historical average with a prior) — beat a plain baseline out of sample, after costs, once you account for having tried more than one method?]
 #v(12pt)
@@ -287,6 +287,8 @@
 #text(size: 12.5pt)[*The correction is a better test on the same data,* not a new strategy.]
 #v(6pt)
 #text(size: 12.5pt)[*A real test needs a new sample,* registered before I look at it.]
+#v(6pt)
+#text(size: 12.5pt)[*As an ML student,* the lesson I would carry: a model can be well implemented and still be judged by a test that cannot see its effect.]
 #v(12pt)
 #card[
   #text(size: 11.5pt, weight: "bold")[What I would check in my own work]
