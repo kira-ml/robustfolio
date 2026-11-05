@@ -48,6 +48,10 @@
 )
 
 #set page(width: 540pt, height: 675pt, margin: 38pt, fill: paper)
+#set document(
+  title: "Robustfolio: testing seven ways to build a portfolio",
+  author: "Ken Ira Lacson Talingting",
+)
 #set text(font: "Libertinus Serif", size: 14pt, fill: ink, lang: "en")
 #set par(justify: false, leading: 0.65em, spacing: 0.9em)
 
@@ -154,7 +158,7 @@
 #v(2pt)
 #text(size: 12pt, fill: muted)[net excess Sharpe at #headline-bps bps one-way costs — the highest of the seven]
 #v(12pt)
-#text(size: 12.5pt)[The rule, fixed before the run: beat the best baseline by #fmt(paired.bar, 2), clear the significance test, and pass six robustness checks.]
+#text(size: 12.5pt)[The rule, fixed before the run: beat the best baseline by #fmt(paired.bar, 2), clear the significance test, and pass five robustness checks.]
 #v(8pt)
 #table(
   columns: (1fr, auto),
