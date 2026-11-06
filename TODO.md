@@ -1,6 +1,6 @@
 # TODO
 
-**Updated:** 2026-11-06
+**Updated:** 2026-11-07
 **Status:** Working checklist. Not a governance document, not a contract.
 **Authority:** decisions live in [`docs/decision_log.md`](docs/decision_log.md). The old `TODO.md` was retired into its Appendix B; this file is the execution view of the current plan, not a revival of that ledger.
 
@@ -9,12 +9,20 @@
 **State at this update**
 
 - Compliance remediation at `f105b9e`; carousel build-order fix at `d3cc158`.
-- Last verified CI before the audit: #35 (`6fc183b`) — success.
-- Audit remediation `01d2768`: CI #36 — **success**; 260 passed, 1 skipped locally.
-- Tests: 260 passed, 1 skipped (the vacuous survivorship test) after the remediation and audit fixes.
+- Audit remediation `01d2768`: CI #36 — **success**.
+- Current record commit `78170ef`: CI #39 — **success**.
+- Tests: 260 passed, 1 skipped (the vacuous survivorship test).
 - Live carousel: <https://www.linkedin.com/feed/update/urn:li:activity:7524101151596937216/> (posted 2026-11-05).
 - Previous post: <https://www.linkedin.com/feed/update/urn:li:activity:7520351295396933632/>.
+- Correction comment: **live and verified 2026-11-07**, including “Not investment advice.”
 - Artifacts: paper 10 pages, carousel 8 slides, research brief 2 pages, positioning doc.
+
+**Remaining work — in order**
+
+1. **Zenodo DOI** for `v1.1` (code/tables only; never the snapshot).
+2. **One independent external check**; record reviewer, scope, result, objections.
+3. **Record the carousel’s 7-day numbers** on **2026-11-12**.
+4. **Freeze the repository** after DOI/check; no further technical work.
 
 ---
 
@@ -25,6 +33,7 @@
   - `docs/open_source_and_license_policy.md` → v1.2; `docs/data_licenses.md` created.
   - README, paper, essays, published-run notes, packaging notice, verifier text, external-check request, and CI corrected.
   - Decision: `DEC-20261106-042`.
+- [x] **Correct the live LinkedIn comment.** Done 2026-11-07; verified the final text includes the data-licensing correction and “Not investment advice.”
 - [ ] **Put the research brief in the first comment** of the live post, or send it to five specific people.
   - Done when: five sends logged below, or the comment is edited.
   - Do not post it as a new feed item.
@@ -84,8 +93,9 @@
 ## Blocked on the owner
 
 - Zenodo DOI — account and archive. The archive must contain only redistributable material; do not upload a snapshot with Yahoo/FRED data.
-- LinkedIn comment, DMs, and the next post.
-- External check asks and the venue submission.
+- One external check ask; two total if the first lands.
+- Optional next LinkedIn post (checklist card), only after DOI/check.
+- Venue submission.
 
 ## Non-goals — do not do
 
@@ -116,4 +126,6 @@
 | 2026-11-06 | Post-remediation suite | 246 passed, 1 skipped; archive verification `EXACT`, `M1 FAILURE / M2 FAILURE` |
 | 2026-11-06 | CI build-order fix | `build_carousel()` now generates `paper/generated/numbers.typ`; CI #33 and #35 green |
 | 2026-11-07 | Repository audit fixes | Stale archive claims corrected; legacy scripts moved to `scripts/legacy/`; version aligned; country fold headers and manifest fixed; NOTICE/SECURITY/CONTRIBUTING/Dependabot added; 260 passed, 1 skipped; CI #36 green |
+| 2026-11-07 | Live LinkedIn comment corrected | Verified: data-licensing correction and “Not investment advice.” present |
+| 2026-11-07 | Current record commit | `78170ef`; CI #39 green |
 | 2026-11-12 | Carousel 7-day numbers | Pending |
