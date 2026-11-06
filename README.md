@@ -12,7 +12,7 @@
 
 **Evidence level.** The first sample is exploratory and non-confirmatory: the registered test was executed without the blindness its registration required (finding **F26**), so the hypotheses are *untested, not falsified*. The country sample is confirmatory for that sample. Empirical quantitative-finance research with a data-science evaluation stack; not a trading system, not a claim of alpha, not a machine-learning project.
 
-**Read:** [research brief](essays/robustfolio-research-brief.pdf) · [working paper](essays/robustfolio-working-paper.pdf) · [positioning](docs/positioning.md) · [protocol](docs/evaluation_protocol.md) · [reproduce](#reproduce-it)
+**Read:** [research brief](essays/robustfolio-research-brief.pdf) · [working paper](essays/robustfolio-working-paper.pdf) · [evaluation checklist](docs/evaluation-checklist.md) · [positioning](docs/positioning.md) · [protocol](docs/evaluation_protocol.md) · [reproduce](#reproduce-it)
 
 [![protocol](https://img.shields.io/badge/protocol-v2.4%20frozen-blue)](docs/evaluation_protocol.md)
 [![spec](https://img.shields.io/badge/spec-v1.1%20frozen-blue)](docs/model_and_method_spec.md)

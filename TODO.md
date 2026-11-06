@@ -48,10 +48,9 @@
 
 ## Weeks 5–8: the reusable instrument
 
-- [ ] **Evaluation checklist** — six questions any portfolio backtest should answer.
-  - One page, public, linked from the README.
-  - Done when: it exists and someone outside the project has used it.
-- [ ] **Reviewer's guide** — what to check, in what order, and what would falsify each claim.
+- [x] **Evaluation checklist** — eight questions any portfolio backtest should answer.
+  - One page, public: [`docs/evaluation-checklist.md`](docs/evaluation-checklist.md), linked from the README.
+- [x] **Reviewer's guide** — what to check, in what order, and what would falsify each claim: [`docs/reviewers-guide.md`](docs/reviewers-guide.md).
 - [ ] **Technical note 1** — the power audit: 0.478 observed / 0.72 true / 24% power at 0.20.
   - Done when: published as a note or a post.
 - [ ] **Next LinkedIn post** — the checklist card, not a summary of the same result.
@@ -62,13 +61,13 @@
 ## Weeks 9–12: external validation
 
 - [ ] **Two independent reproductions.**
-  - Ask two practitioners or researchers to run one published table; record the result in an issue or a PR.
+  - Use [`notes/reproduction_request_2026-11-06.md`](notes/reproduction_request_2026-11-06.md); ask two people to run one table.
   - Done when: two external runs are recorded, and a "Reproductions" section is in the README.
 - [ ] **One venue submission.**
-  - SSRN, arXiv q-fin, or a workshop.
+  - See [`notes/venue_and_talk_plan_2026-11-06.md`](notes/venue_and_talk_plan_2026-11-06.md): SSRN first, arXiv if endorsed.
   - Done when: submitted, with the DOI and the replication included.
 - [ ] **One talk.**
-  - University seminar or local quant meetup.
+  - Twelve-minute outline is in the same note.
   - Done when: delivered, slides posted.
 
 ## Backlog / optional
@@ -106,4 +105,6 @@
 | 2026-11-06 | `CITATION.cff` + release notes | v1.1 prep |
 | 2026-11-06 | Country snapshot packaged | 1.89 MB, SHA `d8bf3b43…72ef` |
 | 2026-11-06 | Tag `v1.1` | Pushed with the branch |
+| 2026-11-06 | Evaluation checklist + reviewer's guide | Published in `docs/` |
+| 2026-11-06 | Reproduction request + venue/talk plan | Notes ready |
 | 2026-11-12 | Carousel 7-day numbers | Pending |
