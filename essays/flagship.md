@@ -188,8 +188,10 @@ the entire finding.
 Now the part I would want a reader to attack.
 
 The conflict was real. The report generator is the artefact the whole "check these numbers" claim rests
-on: a table, produced from an immutable snapshot, that a stranger can regenerate. Validating it end to
-end requires executing the frozen configuration — because that is the configuration being reported. But
+on: a table, produced from an immutable snapshot, that the code can regenerate when the snapshot is
+present. The snapshot itself is not distributed, because the Yahoo and FRED terms do not permit
+redistribution. Validating the generator end to end requires executing the frozen configuration —
+because that is the configuration being reported. But
 the frozen configuration *is* the confirmatory configuration. Validating the generator and blinding the
 confirmatory test were mutually exclusive, and I did not see that until I had already chosen.
 
@@ -236,10 +238,12 @@ The four defences transfer to any panel you already work on, and none of them ne
    certificate is a piece of software too — mine was wrong three times.
 4. **Require significance, materiality and robustness together.** Any one alone is a target.
 
-And the check I would ask you to run: clone the repository, run `verify_release.py` against the release
-archive, and tell me if it prints anything other than `EXACT` or `WITHIN`. That claim puts the
-falsification burden on the artefact rather than on my summary of it, which is the only kind of claim
-worth making in public.
+And the check I would ask you to run, if you independently hold the snapshot archive: clone the
+repository, run `verify_release.py` against your archive, and tell me if it prints anything other than
+`EXACT` or `WITHIN`. The archive is not distributed — the upstream terms prohibit it — so that exact
+check cannot be run from this repository alone. The claim still puts the falsification burden on the
+artefact rather than on my summary of it, which is the only kind of claim worth making in public; it is
+just a weaker claim than the one I first wrote.
 
 ## What I would do differently
 
