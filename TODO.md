@@ -31,16 +31,12 @@
 ## Next — weeks 2–4: make it citable
 
 - [x] **Tag `v1.1`.** Done with this commit; pushed with the branch.
-- [ ] **Create the GitHub release from `v1.1`.**
-  - Owner action: GitHub web UI, paste [`docs/release-notes-v1.1.md`](docs/release-notes-v1.1.md).
-  - Done when: the release exists and is marked latest.
+- [x] **Create the GitHub release from `v1.1`.** Done 2026-11-06; published and marked latest.
 - [ ] **Archive to Zenodo and mint a DOI.**
   - Owner action: Zenodo, link the GitHub repo or upload the archive.
   - Done when: DOI appears in the README, the paper, and the brief.
 - [x] **Package the country snapshot.** Done: `dist/robustfolio-snapshot-yahoo-countryetf-1998-01-01_2026-09-30-2026-11-05-269a4565.tar.gz` plus `.sha256`; 1.89 MB; SHA `d8bf3b43…72ef`.
-- [ ] **Attach the country snapshot to the release.**
-  - Owner action: upload the archive and its `.sha256` to the `v1.1` release.
-  - Done when: the asset is downloadable and the digest in the notes matches.
+- [x] **Attach the country snapshot to the release.** Done 2026-11-06; GitHub reports the asset at 1,980,519 bytes with digest `sha256:d8bf3b43…72ef`.
 - [ ] **One-command reproduction** and CI badge.
   - Done when: a fresh clone reproduces one published table in under ten minutes.
 - [ ] **Add the DOI to the paper's first page** and rebuild the PDF.
