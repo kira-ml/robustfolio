@@ -67,6 +67,8 @@ The first end-to-end run is logged as **`EXP-X-20261017-003`** — exploratory, 
 
 **Retired 2026-10-15 (merged per DEC-20261015-017 and DEC-20261015-018):** `project_charter.md` (→ `evaluation_protocol.md` §8; mission → `problem_framing.md`; scope → `scope_and_non_goals.md`); `benchmark_and_baseline_spec.md` (→ §4); `data_contract_and_point_in_time_policy.md` (→ §5.4); `cost_model_and_frictions.md` (→ §5.5); `experiment_registry_and_preregistration.md` (rules → §12; ledger → `decision_log.md` Appendix A); `TODO.md` (→ `decision_log.md` Appendix B). Historical content preserved in git history.
 
+**Working checklist:** [`../TODO.md`](../TODO.md) is a non-governance execution list for the current communication and validation plan. It is not part of the Tier 0 set, cannot change a protocol, and does not revive the retired governance ledger.
+
 **Status legend:**
 - `Foundational` — the problem contract; changes require strong justification.
 - `Draft` — written but not yet reviewed or confirmed.
