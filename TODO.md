@@ -8,7 +8,8 @@
 
 **State at this update**
 
-- `main` at `3affad1` before the compliance remediation; the remediation commit follows.
+- Compliance remediation at `f105b9e`; carousel build-order fix at `d3cc158`.
+- CI run #33 (`d3cc158`): **success**.
 - Tests: 246 passed, 1 skipped (the vacuous survivorship test) after the remediation.
 - Live carousel: <https://www.linkedin.com/feed/update/urn:li:activity:7524101151596937216/> (posted 2026-11-05).
 - Previous post: <https://www.linkedin.com/feed/update/urn:li:activity:7520351295396933632/>.
@@ -112,4 +113,5 @@
 | 2026-11-06 | Draft + checksum hygiene | Draft removed; checksum attached as `.txt`, content verified |
 | 2026-11-06 | **Compliance remediation** | Both snapshot assets deleted from `v1.0.0`/`v1.1`; policy v1.2; `data_licenses.md`; notices and all public reproduction claims corrected. `DEC-20261106-042` |
 | 2026-11-06 | Post-remediation suite | 246 passed, 1 skipped; archive verification `EXACT`, `M1 FAILURE / M2 FAILURE` |
+| 2026-11-06 | CI build-order fix | `build_carousel()` now generates `paper/generated/numbers.typ`; CI #33 green |
 | 2026-11-12 | Carousel 7-day numbers | Pending |
