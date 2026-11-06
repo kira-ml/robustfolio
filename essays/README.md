@@ -87,15 +87,17 @@ three essays:
 
 ## The check, rather than the summary
 
-The number the essays report is reproducible from the frozen release archive. Rather than trust the
-prose, run the command that tests it:
+The number the essays report can be checked against the frozen snapshot, but the snapshot is **not
+distributed**: the Yahoo and FRED terms do not permit redistribution. A reader who independently holds
+the archive can run the command that tests it:
 
 ```bash
-python scripts/verify_release.py --archive <the release asset> --run docs/published-run
+python scripts/verify_release.py --archive <path to your snapshot archive> --run docs/published-run
 ```
 
 It compares every **decision-bearing** quantity exactly — method set, rebalances, folds, headline cost
 level, the ranking by net Sharpe, the selected baseline, and — from the published verdict table — each
 of the eight §6.1–§6.4 gates and the `verdict` itself — and the continuous quantities within a
 documented `1e-9`, printing the observed worst difference on every run. If it prints anything other than
-`EXACT` or `WITHIN`, the essays are wrong and the check is right.
+`EXACT` or `WITHIN`, the essays are wrong and the check is right. The licence record is
+[`../docs/data_licenses.md`](../docs/data_licenses.md).

@@ -9,20 +9,17 @@ name: CI
 #
 # The suite is green on a fresh clone by construction: tests that need the frozen
 # snapshot skip with an explanatory reason (see tests/conftest.py), because a CI
-# that is red until you download 2.4 MB teaches people to ignore CI.
+# that is red until you obtain data teaches people to ignore CI.
 #
-# When the release asset *is* available the same job stops skipping and does two
-# more things: it regenerates the numbers with the command the README shows, and
-# it runs verify_release.py against the committed published tables. Those are not
-# the same check. Regeneration can only show the code runs; the comparison is what
-# can show it produces *the same result*. It checks every decision-bearing
-# quantity exactly -- method set, rebalances, folds, headline cost level, ranking
-# by net Sharpe, which baseline the rules select, and the section 6.4 gates and
-# verdict from the published verdict table -- and the continuous quantities
-# against the documented 1e-9 that findings F33 and F34 forced the claim to admit.
-# Both steps are here because "one command regenerates the number" is a README
-# claim, and a claim that runs in CI is a different kind of claim from a claim
-# that is written down.
+# The snapshot is NOT distributed: the Yahoo and FRED terms do not permit
+# redistribution (DEC-20261106-042). CI therefore does not fetch an archive and
+# does not claim to run the end-to-end comparison. That comparison remains a local
+# check for anyone who independently holds an archive; it is documented in
+# docs/published-run/README.md and is not a CI guarantee.
+#
+# What CI does run beyond the suite: rebuild the one-pager and the paper from the
+# committed tables. Those need no snapshot and no network, and they are the parts
+# a reader can actually reproduce.
 
 on:
   push:
@@ -31,17 +28,16 @@ on:
   workflow_dispatch:
 
 env:
-  # Frozen inputs. If the snapshot is ever rebuilt, these two lines are the only
-  # ones that change, and the snapshot id changes with the content by design.
-  # The names are checked against each other, and against the snapshot on disk, by
+  # Frozen provenance. The archive itself is no longer published, but its identity
+  # remains the reference the published tables were computed from. The names are
+  # checked against each other, and against the snapshot on disk, by
   # tests/test_snapshot_name_literals.py: one wrong separator here is a 404 that
   # looks exactly like the right name (finding F32).
   RELEASE_TAG: v1.0.0
   SNAPSHOT_ASSET: robustfolio-snapshot-yahoo-usetf-2007-01-01_2026-09-30-2026-10-17-2ad06139.tar.gz
   SNAPSHOT_ID: yahoo-usetf-2007-01-01_2026-09-30-2026-10-17-2ad06139
-  # The digest quoted in the release notes and the README. Pinned here so that a
-  # silently re-uploaded asset fails the build, instead of being verified against
-  # the sidecar that was downloaded alongside it.
+  # The digest of the withdrawn distribution, recorded for provenance. It is not a
+  # download and CI does not fetch it.
   ARCHIVE_SHA256: 7a3fc20991b664099ada44a308dfde57d8080994ff498e2f5a0dd98f2ecab77d
 
 jobs:
@@ -62,47 +58,6 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev,paper]"
 
-      - name: Fetch the frozen snapshot (optional)
-        id: snapshot
-        # Optional by design: absent on a fresh clone, present once the release
-        # exists. The un-flagged tests below then stop skipping, so the same job
-        # covers both the hermetic suite and the end-to-end checks.
-        continue-on-error: true
-        run: |
-          mkdir -p data/snapshots
-          if curl -fsSL -o /tmp/snapshot.tar.gz \
-              "https://github.com/${{ github.repository }}/releases/download/${RELEASE_TAG}/${SNAPSHOT_ASSET}"; then
-            python scripts/pack_snapshot.py \
-              --verify /tmp/snapshot.tar.gz --extract-to data/snapshots
-            echo "ok=true" >> "$GITHUB_OUTPUT"
-          else
-            # A skipped end-to-end check has to be visible. `continue-on-error`
-            # keeps a pre-release run green, but it must not let a missing or
-            # misnamed asset look like a passing verification.
-            echo "::warning title=Release asset not fetched::The end-to-end checks (re-running every method and comparing against docs/published-run) were SKIPPED. Expected only before the release exists; otherwise the asset name or the tag is wrong."
-          fi
-
-      - name: Confirm the snapshot is the frozen one, not merely present
-        if: steps.snapshot.outputs.ok == 'true'
-        run: python scripts/pack_snapshot.py --verify-dir "data/snapshots/${SNAPSHOT_ID}"
-
-      - name: The archive reproduces the published result
-        if: steps.snapshot.outputs.ok == 'true'
-        # The strongest check in the repository, made standing rather than a
-        # one-off: all seven methods are re-run from the archive and compared to
-        # both tables in docs/published-run/. It prints EXACT or exits non-zero.
-        # Every decision-bearing quantity -- the method set, the counts, the cost
-        # level, the ranking, the selected baseline, and the section 6.4 gates and
-        # verdict -- is compared exactly; the measurements are compared against
-        # the bound documented in verify_release.py, so "regenerates something
-        # similar" cannot pass. The digest is pinned in env above, so this also
-        # fails if the asset is ever re-uploaded with different bytes.
-        run: |
-          python scripts/verify_release.py \
-            --archive /tmp/snapshot.tar.gz \
-            --run docs/published-run \
-            --expect-sha256 "${{ env.ARCHIVE_SHA256 }}"
-
       - name: Tests
         run: python -m pytest -q
 
@@ -119,21 +74,3 @@ jobs:
         # so this step is "it compiles" and the test is "it still says what the
         # run supports". Neither can be skipped without the other noticing.
         run: python scripts/build_paper.py --out /tmp/working-paper.pdf
-
-      - name: One command regenerates the number
-        if: steps.snapshot.outputs.ok == 'true'
-        # The résumé-bar item, executed rather than asserted. Certification runs
-        # too: a solver failure must break the build, not appear as a result.
-        run: python scripts/run_experiment.py --out /tmp/run
-
-      - name: Figures render from the published artefacts alone
-        if: steps.snapshot.outputs.ok == 'true'
-        run: python scripts/make_figures.py --run /tmp/run
-
-      - name: Upload the run directory
-        if: steps.snapshot.outputs.ok == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: exploratory-run
-          path: /tmp/run
-          retention-days: 14

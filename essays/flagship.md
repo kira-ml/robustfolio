@@ -127,7 +127,7 @@ separate occasions on which **the certificate itself was wrong**:
 Then the claim I would have bet on failed too.
 
 I wrote that the repository reproduces its published table bit-for-bit, and added a check that could test
-it against the frozen release archive. The first run of that check failed by `4.2e-17` on exactly one of
+it against the frozen snapshot archive. The first run of that check failed by `4.2e-17` on exactly one of
 eighteen columns. The cause was not my code's logic: that metric reached a BLAS kernel that OpenBLAS
 chooses *at run time* from the CPU's features, so the summation order had never actually been specified.
 I replaced it with a summation whose every rounding step is defined by the IEEE-754 standard, which is

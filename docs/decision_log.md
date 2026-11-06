@@ -3,8 +3,8 @@
 **Project:** `robustfolio`
 **Owner:** Ken Ira Lacson Talingting
 **Created:** 2026-10-14
-**Version:** 1.17
-**Last Updated:** 2026-10-18
+**Version:** 1.18
+**Last Updated:** 2026-11-06
 **Purpose:** Immutable record of every governance, experiment, and pivot decision in the project. Entries are append-only. Supersession is by a new entry, not by editing an old one.
 
 ---
@@ -73,6 +73,7 @@ Each entry uses the following fields:
 | DEC-20261018-039 | 2026-10-18 | GOVERNANCE | ACTIVE | Write E3 (`results_reporting_and_claims_policy.md`) as Draft v0.1, collecting the five open values as P1-P5 |
 | DEC-20261018-040 | 2026-10-18 | GOVERNANCE | ACTIVE | Freeze E3 at v1.0; confirm P1-P5 and the F24/F25 readings in the same act |
 | DEC-20261018-041 | 2026-10-18 | IMPLEMENTATION | ACTIVE | Publish `decisions.csv` and compare the verdict exactly; derive the documented margin instead of restating it |
+| DEC-20261106-042 | 2026-11-06 | GOVERNANCE | ACTIVE | Stop redistributing third-party data: remove snapshot assets, rewrite policy to v1.2, correct notices and reproduction claims |
 
 **Gap note (001–011):** Resolved by DEC-20261015-014. The seed entries referenced in DEC-20261014-000 were not written and are not recoverable. They are treated as never having existed in this log.
 
@@ -1841,6 +1842,77 @@ A decision rule moves onto a continuous quantity → the exact half no longer co
 
 **Pre-mortem:**
 Three ways this fails later. **(a)** A future `decisions.csv` gains a numeric field that *is* a decision — a probability threshold, say — and it is compared within a tolerance because nobody classified it. Detectable by asking of each new column "would I act differently if this moved by `1e-12`?" rather than "is it a number?"; the dtype test catches only the boolean case, and this is the residual the revisit trigger names. **(b)** `decisions.csv` and `outcomes.csv` come from different runs and each agrees with its own check — detectable because the verifier recomputes both inside one `build_report` call, so such a mismatch would have to be manufactured by hand. **(c)** The verdict becomes quotable without its exploratory label — detectable by reading `README.md` and `docs/published-run/README.md`, both of which state the label where the verdict is first met.
+
+---
+
+### DEC-20261106-042
+
+**Date:** 2026-11-06
+**Type:** GOVERNANCE
+**Status:** ACTIVE
+**Authority:** Owner (sole authority on this project)
+**Related docs:** [`open_source_and_license_policy.md`](open_source_and_license_policy.md) v1.2; [`data_licenses.md`](data_licenses.md); `README.md`; `paper/paper.typ`; [`published-run/README.md`](published-run/README.md); [`release-notes-v1.1.md`](release-notes-v1.1.md); `scripts/pack_snapshot.py`; `scripts/verify_release.py`; `.github/workflows/ci.yml`; `notes/reproduction_request_2026-11-06.md`
+**Related risks:** data-licensing and redistribution risk; no R-ID assigned before this entry
+**Supersedes:** the data-redistribution disposition in DEC-20261017-034 (v1.0/v1.1: publish the archive with a NOTICE)
+
+**Context.** The `v1.0.0` and `v1.1` releases published the frozen snapshots as downloadable assets, each with a generated `NOTICE.txt`. The disposition was confirmed on 2026-10-17 on the theory that a non-commercial verification copy, with attribution, was permissible. A terms review before further promotion found that theory unsupported:
+
+- Yahoo's terms restrict access to and collection of data by automated means "for any purpose without our express, prior permission", and grant no redistribution right. The `yfinance` README states that the library is intended for personal use only.
+- FRED's terms prohibit storing, caching, or archiving any portion of the FRED Services or FRED Content, and providing a stored portion to any third party.
+- A `NOTICE.txt` records provenance. It is not a licence and cannot cure a missing permission.
+
+**Decision.**
+
+1. **No third-party data is redistributed** by this repository or its releases. The default is *do not redistribute* until a written permission says otherwise.
+2. **Both release assets were deleted**, and both release bodies were corrected, on 2026-11-06: the `v1.1` country archive and `.sha256.txt`, and the `v1.0.0` first-sample archive and `.sha256`. The pages now list only GitHub's source archives.
+3. **The policy is revised to v1.2.** §2 is rewritten around the no-redistribution disposition, the FRED "public domain" sentence is corrected, and the review trigger records that it fired. DEC-20261017-034's disposition is superseded, not edited.
+4. **`docs/data_licenses.md` v1.0 is created.** It records each file, its source, the governing terms, whether it is redistributed, and the action taken. It treats the FRED-derived file as not redistributable even though the underlying series is US government data, because the service terms separately restrict archiving and third-party provision.
+5. **The notice text is corrected.** `NOTICE.txt` now says the archive is an internal artefact, is **not** for redistribution, and that the notice is not a licence. `pack_snapshot.py` no longer prints "publish both files"; it prints "do not publish". `verify_release.py` no longer describes the archive as redistributed.
+6. **Every public reproduction claim is corrected.** The README, the paper, `essays/README.md`, `essays/cut-quant.md`, `docs/published-run/README.md`, and the v1.1 release notes no longer offer a download. They state that the code, tables, figures, and identity digests remain public, and that exact end-to-end reproduction requires independently obtained data.
+7. **The external-check request is rescoped.** `notes/reproduction_request_2026-11-06.md` now asks for a hermetic code/claims review, or a comparison against a reviewer's own independently licensed snapshot. It explicitly says not to send an archive.
+8. **CI stops fetching the archive.** The workflow retains the frozen identity literals as provenance, runs the hermetic suite, and rebuilds the one-pager and the paper from the committed tables. It no longer claims an end-to-end verification it cannot perform.
+9. **Local archives are retained only for the owner's verification.** They remain gitignored and must not be uploaded again without a written redistribution permission.
+10. **No new experiment is run.** This is a compliance and documentation correction; no result, threshold, method, table, or verdict changes.
+
+**Alternatives considered.**
+- **Keep publishing with the NOTICE.** Rejected: a notice is not a licence; the theory had already been tested and failed.
+- **Publish only the derived monthly series.** Rejected: it is still derived from the same restricted content, and it would not reproduce the daily→monthly aggregation, the corporate-action application, or point-in-time eligibility. It would verify the arithmetic while leaving the analyst's work unverified and the redistribution problem intact.
+- **Publish only the digest and tell readers to rebuild.** Rejected as a *substitute*, retained as a *description*: rebuilding produces a different snapshot with different numbers, so it is not reproduction. The README says so.
+- **Delete the repository's tables too, to be maximally conservative.** Rejected: the tables are derived statistics authored by this project, contain no raw observations, and are the evidence a reader can inspect. Removing them would destroy the checkable artefact without reducing the data-licensing exposure.
+- **Do nothing until someone objects.** Rejected: the promotion plan increases scrutiny, and the downside of a takedown or a rights complaint is not bounded by the value of exact reproduction.
+- **Edit the historical decision entries to say the archive was never published.** Rejected: the log is append-only. Supersession is by a new entry, and the old claim remains visible with this entry as its correction.
+
+**Rationale.**
+[First Principles] A redistribution right is a permission, not an inference from purpose or attribution. The project does not hold that permission.
+[Inversion] The failure mode is not "the numbers are slightly less reproducible"; it is "the flagship project published data it had no right to publish, and said so in a notice that made the problem look solved." Removing the assets is the smallest change that eliminates it.
+[Bayesian] No numeric prior is asserted for enforcement. The decision rests on the terms as written, not on a guessed probability of being caught.
+[Expected Value] The benefit of publishing is exact reproduction by strangers; the cost is an unbounded rights exposure. The removal trades a bounded, documented loss for the elimination of that exposure.
+[Fat Tails / Ruin] A takedown or complaint is a tail event whose cost is not capped by the value of the archive. Survival of the project's credibility takes precedence over a stronger reproduction claim.
+[Goodhart] "Reproducibility" is the metric; redistributing restricted data is one way to score it. The metric must not be bought with a permission the project does not have.
+[Feedback / Reflexivity] Publishing the archive increased the chance that the project would be judged on a data dump rather than on its method. Removing it keeps the evaluation on the code and the argument.
+[Parsimony] The compliant path is also the simpler one: publish what the project authored, describe the input, and state the limitation once.
+
+**Reversibility:** Soft. Re-uploading requires a written redistribution permission or a licensed substitute, plus a new decision entry. The policy and documentation changes are ordinary edits.
+
+**Revisit trigger:**
+A written permission or a licensed data substitute that permits redistribution → revisit §2 and the asset disposition. Yahoo, FRED, or an issuer changes its terms → re-read them and update `data_licenses.md`. A third party objects to any published artefact → remove the artefact first, then record the outcome. A new data source enters the pipeline → classify it before it is stored or published.
+
+**Expected value assessment.**
+- Probability the published tables remain useful without the archive: **high** — they are the comparison target, and the code and verdict logic are public.
+- Probability a reader mistakes "not redistributed" for "the numbers are unverifiable": **moderate** — mitigated by keeping the identity digests, the verifier, and an explicit statement of what is and is not checkable.
+- Residual risk: a third-party mirror or fork may still hold an old copy. The project cannot recall those; it can stop distributing and state the position clearly.
+- Residual risk: a reader may treat the published statistics as a substitute for the raw data. The README and `data_licenses.md` state that they are derived, not raw.
+
+**Pre-mortem.**
+Three ways this fails later. **(a)** A stale page still tells a reader to download the archive, producing a 404 and the impression that the project is broken. Detectable by searching the repository for `releases/download` and by the updated snapshot-name test; the search is part of this entry's verification. **(b)** Someone re-uploads a local archive to a fork or a new release. Detectable only by monitoring; the repository and its releases no longer host one, and the notice now says not to redistribute. **(c)** A reader concludes that removing the data is an admission that the numbers are wrong. Detectable by reading the README's explicit statement that the degradation is a licensing trade, not a numerical correction; the tables and the verifier remain.
+
+**Evidence.**
+- The `v1.0.0` and `v1.1` expanded-assets endpoints returned only GitHub's source archives after the deletions (checked 2026-11-06).
+- The terms excerpts and URLs are recorded in [`data_licenses.md`](data_licenses.md); this entry does not claim a lawyer's opinion.
+- Repository-wide searches for `releases/download`, `release asset`, and redistribution claims were run. The remaining hits are historical decision entries (append-only) and one internal draft whose archive-publishing checklist is explicitly marked superseded; no current public page offers a download.
+- The test suite and the docs-index checks are run after the edits; their results are reported in the completion message rather than assumed here.
+
+**What this entry does not decide.** It does not decide whether the published *statistics* are derivative works requiring a separate licence; it takes the conservative position that they contain no raw observations and are published as project authorship. It does not assert that every possible use of the data is prohibited; it asserts that this project has no redistribution permission and will not act as if it does.
 
 ---
 

@@ -1,8 +1,8 @@
-"""Verify a published run against its release archive (the "check me" command).
+"""Verify a published run against a snapshot archive (the "check me" command).
 
     python scripts/verify_release.py --archive dist/<archive>.tar.gz --run results/<run_id>/
 
-Extracts the frozen snapshot from the release archive into a temporary directory,
+Extracts the snapshot from a locally supplied archive into a temporary directory,
 re-runs all seven methods, rebuilds both published tables, and compares them against
 the run's ``outcomes.csv`` and ``decisions.csv``. Exits non-zero if a *decision*
 differs -- including a §6.4 verdict -- or if a metric differs by more than
@@ -176,21 +176,22 @@ def _load_published(path: Path) -> pd.DataFrame:
 
 
 def _check_notice(snapshot_dir: Path) -> None:
-    """An archive without its notice is not the archive the release published.
+    """An archive without its notice is not one this project packed.
 
     Finding F30 / DEC-20261017-034: the notice states that the third-party market
-    data is *not* covered by the repository's MIT licence. It is deliberately kept
-    out of ``manifest.json``'s hash map -- it is a statement about the data, not an
-    input to it -- which also makes it cheap to lose. So its presence is asserted
-    here rather than assumed, and a re-pack that dropped it fails loudly instead of
-    publishing a data dump with no statement attached.
+    data is *not* covered by the repository's MIT licence and is not for
+    redistribution. It is deliberately kept out of ``manifest.json``'s hash map --
+    it is a statement about the data, not an input to it -- which also makes it
+    cheap to lose. So its presence is asserted here rather than assumed, and a
+    re-pack that dropped it fails loudly instead of leaving a data dump with no
+    statement attached.
     """
     notice = snapshot_dir / NOTICE_NAME
     if not notice.exists():
         raise VerificationError(
-            f"{NOTICE_NAME} is missing from the snapshot. This archive redistributes "
+            f"{NOTICE_NAME} is missing from the snapshot. This archive contains "
             "third-party data and must carry the statement about it (finding F30); "
-            "an archive without it is not the one the release published."
+            "an archive without it is not one this project packed."
         )
     if notice.read_text(encoding="utf-8") != NOTICE_TEXT:
         raise VerificationError(
@@ -439,7 +440,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     if worst == 0.0 and d_worst == 0.0:
-        print("EXACT: the release archive reproduces every published metric bit-for-bit,")
+        print("EXACT: the snapshot archive reproduces every published metric bit-for-bit,")
         print(f"and every decision-bearing quantity is identical -- including the verdict")
         print(f"on both candidates ({verdicts}).")
         print("(The frozen seed, the frozen tolerance and the immutable snapshot are what")

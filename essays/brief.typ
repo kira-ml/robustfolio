@@ -183,8 +183,9 @@
 
 #v(8pt)
 #text(size: 9.5pt, fill: muted)[
-  Reproduce the published tables with `python scripts/verify_release.py --archive <asset> --run docs/published-run`.
-  Decisions are compared exactly; measurements within 1e-9, with the observed difference printed.
+  Check the published tables with `python scripts/verify_release.py --archive <your snapshot archive> --run docs/published-run`
+  if you independently hold the snapshot; the archive is not redistributed. Decisions are compared exactly;
+  measurements within 1e-9, with the observed difference printed.
 ]
 
 #v(14pt)

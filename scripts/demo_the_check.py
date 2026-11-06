@@ -2,14 +2,14 @@
 
     python scripts/demo_the_check.py
 
-CI re-runs the whole experiment from the release archive and compares the result to
-the committed tables, so the check *passing* is observed on every push. It has also
-been seen *rejecting* -- twice, on platform noise (F33, F34) -- but the half of the
-comparison added in DEC-20261018-041 has never refused anything: the verdict table
-is compared exactly, and no run has ever disagreed with it. A comparison that has
-never refused anything is a comparison that might not be able to refuse, which is
-the argument that puts a positive control beside the margin test in
-``tests/test_onepager.py``.
+The comparison re-runs the whole experiment from a snapshot archive and compares the
+result to the committed tables. It is a local check now: the archive is not
+distributed, so CI no longer runs it (DEC-20261106-042). It has been seen *rejecting*
+-- twice, on platform noise (F33, F34) -- but the half of the comparison added in
+DEC-20261018-041 has never refused anything: the verdict table is compared exactly,
+and no run has ever disagreed with it. A comparison that has never refused anything
+is a comparison that might not be able to refuse, which is the argument that puts a
+positive control beside the margin test in ``tests/test_onepager.py``.
 
 This feeds the two comparison functions three tables that disagree with the
 published ones and prints what each call returned:

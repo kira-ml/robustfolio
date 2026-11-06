@@ -1,27 +1,33 @@
 # Published run — `outcomes.csv`, `decisions.csv`, and the exploratory corrections
 
-**Version:** 1.3
+**Version:** 1.4
 **Status:** Frozen
 **Created:** 2026-10-18
-**Last Updated:** 2026-10-18
+**Last Updated:** 2026-11-06
 
 These are the **published tables** from the first end-to-end run of the reporting layer,
 `EXP-X-20261017-003`, computed from the frozen snapshot
 `yahoo-usetf-2007-01-01_2026-09-30-2026-10-17-2ad06139`: the seven methods' `outcomes.csv`, and the
 `decisions.csv` table that states what the §6.1–§6.4 rules *concluded* from it.
 
-They are committed, in full, for one reason: **they make the reproduction claim a standing guarantee
-instead of a one-off.** `scripts/verify_release.py` compares freshly computed tables against reference
-tables. Without a committed reference, that check can only ever be run by a person who already has a
-run directory — so CI could regenerate the numbers but never say whether they were *the same* numbers.
-Now it can, and the repository's own CI runs it against the release archive:
+They are committed, in full, so that the verifier can be a *comparison* rather than a one-off.
+`scripts/verify_release.py` compares freshly computed tables against these reference tables. Without
+a committed reference, that check can only ever be run by a person who already has a run directory —
+it could regenerate the numbers but never say whether they were *the same* numbers.
+
+**The snapshot itself is not redistributed.** The upstream Yahoo and FRED terms do not permit it;
+the archives were removed from the `v1.0.0` and `v1.1` releases on 2026-11-06. A reader who
+independently has a snapshot archive can run the comparison:
 
 ```bash
 python scripts/verify_release.py \
-    --archive <the release asset> \
-    --run docs/published-run \
-    --expect-sha256 <the digest quoted in the release notes>
+    --archive <path to your snapshot archive> \
+    --run docs/published-run
 ```
+
+Without an archive, the comparison cannot be run end to end from this repository alone. The
+committed tables and the comparison logic remain inspectable, and that limitation is recorded in
+[`../data_licenses.md`](../data_licenses.md).
 
 Expect either **`EXACT`, max abs diff `0.000e+00`** (the machine agreed to the last bit) or
 **`WITHIN 1e-09`** with the observed difference printed (it did not, and the difference is smaller
@@ -101,8 +107,8 @@ three of them had drifted to the wrong order of magnitude.
 ## Why this is not circular
 
 The tables are a *record of an output*, not an input. Nothing in the pipeline reads them; the code
-re-derives every number from the price panel in the archive. A mismatch is therefore information
-about the code or the archive, never about these files — which is what makes them usable as a check.
+re-derives every number from the price panel in the snapshot. A mismatch is therefore information
+about the code or the snapshot, never about these files — which is what makes them usable as a check.
 
 ## The paired correction (2026-11-04)
 

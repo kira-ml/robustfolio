@@ -182,6 +182,12 @@ Strip the finance entirely. Keep §1, §3, §4, §5, §6, §9. Translate:
 
 ## 6. Open items before anything is published
 
+> **Superseded 2026-11-06 (DEC-20261106-042).** The items below about publishing the
+> snapshot as a release asset no longer apply. The archives were removed from both
+> releases because the Yahoo and FRED terms do not permit redistribution; see
+> [`../docs/data_licenses.md`](../docs/data_licenses.md). The remainder of the draft
+> is retained as history.
+
 - [x] **F26 closed** — re-designated **executed (non-confirmatory)**, no replacement test registered (DEC-20261017-034).
 - [x] **E7** — `docs/open_source_and_license_policy.md` v1.0 **Frozen**; the archive carries its own `NOTICE.txt` (DEC-20261017-035).
 - [x] **E3** — `docs/results_reporting_and_claims_policy.md` **frozen at v1.0** (DEC-20261018-040; draft at DEC-20261018-039). Every rule is marked `[§14]` (a restatement of the frozen protocol, which wins any conflict) or `[E3]` (the policy's own rule); §8 is the freeze record for the five values P1–P5 and for the two specification readings F24/F25, one of which (F25) produces the published `FAILURE` verdict.

@@ -1,5 +1,7 @@
 # v1.1 — the country sample, the correction, and the brief
 
+> **Data archive removed (2026-11-06).** The snapshot archive and its checksum are no longer distributed: the upstream Yahoo Finance and FRED terms do not permit redistribution. The repository continues to publish the code, tables, figures, and digests needed to inspect the result. See [`data_licenses.md`](data_licenses.md) and [`open_source_and_license_policy.md`](open_source_and_license_policy.md) (v1.2).
+
 **Released:** 2026-11-06
 **Tag:** `v1.1`
 **Status:** the first sample remains exploratory and non-confirmatory; the
@@ -34,48 +36,42 @@ The hypotheses of the first sample are **untested, not falsified**: the
 registered test was executed without the blindness its registration required
 (finding F26).
 
-## Assets
+## What is published
 
-| Asset | File |
+| Document | File |
 |---|---|
 | Working paper | `essays/robustfolio-working-paper.pdf` |
 | Carousel | `essays/robustfolio-carousel.pdf` |
 | Research brief | `essays/robustfolio-research-brief.pdf` |
-| Country snapshot | `robustfolio-snapshot-yahoo-countryetf-1998-01-01_2026-09-30-2026-11-05-269a4565.tar.gz` |
 
-Country snapshot digest:
+The country snapshot is **not distributed**. It remains an internal research
+artefact for the reasons in [`data_licenses.md`](data_licenses.md): the upstream
+Yahoo Finance terms prohibit automated collection and redistribution without
+express permission, and FRED's terms prohibit archiving FRED content or providing
+it to third parties. Its identity is recorded so a reader can tell which input
+produced the tables:
 
 ```
-SHA-256  d8bf3b43603f192c77b0a4e0f26223c64e70dce2aed17fb2ba2fe67f47a572ef
-size     1.89 MB
-bundle   269a45651ec04755b7954e8e99db7dc15f6bee92d4fe5a5e0707a67ce95de26c
+sha256  d8bf3b43603f192c77b0a4e0f26223c64e70dce2aed17fb2ba2fe67f47a572ef
+bundle  269a45651ec04755b7954e8e99db7dc15f6bee92d4fe5a5e0707a67ce95de26c
+size    1.89 MB (archive, no longer distributed)
 ```
 
 The archive digest identifies the *distribution* (data plus `NOTICE.txt`); the
-bundle hash identifies the *data*. They are deliberately different (finding
-F31). The first sample's archive remains on the `v1.0.0` release and is
-unchanged.
+bundle hash identifies the *data*. They are deliberately different (finding F31).
 
-## Reproduce
+## Reproducibility
 
-First sample, from the `v1.0.0` archive:
+The code, the frozen configuration, and the committed tables remain available.
+The first sample's reference tables are in `docs/published-run/`; the country
+sample's numbers are reported in the paper and the brief.
 
-```bash
-ASSET=robustfolio-snapshot-yahoo-usetf-2007-01-01_2026-09-30-2026-10-17-2ad06139.tar.gz
-curl -LO "https://github.com/kira-ml/robustfolio/releases/download/v1.0.0/$ASSET"
-python scripts/verify_release.py --archive "$ASSET" --run docs/published-run
-```
-
-Country sample:
-
-```bash
-SNAP=yahoo-countryetf-1998-01-01_2026-09-30-2026-11-05-269a4565
-python scripts/pack_snapshot.py --verify "robustfolio-snapshot-$SNAP.tar.gz" --extract-to data/snapshots
-python scripts/run_country_sample.py --snapshot "$SNAP" --out results/country_sample
-```
-
-Decisions are compared exactly; measurements within 1e-9, with the observed
-difference printed.
+`scripts/verify_release.py` compares a fresh run against the reference tables,
+but it needs a snapshot archive to do so. Because the archives are not
+redistributed, a third party cannot run that exact end-to-end check from this
+repository alone. The comparison logic and the reference tables remain
+inspectable, and the limitation is stated rather than hidden. The first
+sample's archive was removed from `v1.0.0` at the same time.
 
 ## Limits
 

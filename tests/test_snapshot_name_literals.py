@@ -15,10 +15,9 @@ the fix: the literals are compared against each other and -- when the frozen
 snapshot is on disk -- against the filesystem, which is the only authority for
 whether a name exists.
 
-On a fresh clone the filesystem check skips and this is a consistency check. CI is
-not a fresh clone: it fetches the release asset, so there the same tests compare
-the literals to a real archive. The cheap check runs everywhere; the strong check
-runs where it can.
+On a fresh clone the filesystem check skips and this is a consistency check. The
+archive is not distributed, so CI does not fetch it; the strong check runs on the
+owner's machine, where the snapshot was built. The cheap check runs everywhere.
 """
 
 from __future__ import annotations
@@ -102,15 +101,23 @@ def test_every_quoted_snapshot_name_is_the_same_name() -> None:
         )
 
 
-def test_the_readme_downloads_the_asset_that_exists() -> None:
-    """The README's reproduction command is the one thing a reader runs first."""
-    asset = _ci_env()["SNAPSHOT_ASSET"]
+def test_the_readme_names_the_snapshot_without_offering_a_download() -> None:
+    """The README must identify the input and must not send a reader to a 404.
+
+    Before 2026-11-06 this test checked that the README's ``curl`` matched the
+    workflow's asset name. The archive is no longer distributed (DEC-20261106-042),
+    so the check inverted: the identity stays, the download must not.
+    """
+    env = _ci_env()
     text = README.read_text(encoding="utf-8")
-    match = re.search(r"^ASSET=(\S+)$", text, re.MULTILINE)
-    assert match, "the README no longer sets ASSET= before its curl; this test is blind"
-    assert match.group(1) == asset, (
-        "the README's ASSET does not match the workflow's SNAPSHOT_ASSET; "
-        "a reader following the README would get a 404"
+    assert env["SNAPSHOT_ID"] in text, (
+        "the README no longer names the snapshot that produced the published tables"
+    )
+    assert "releases/download" not in text, (
+        "the README still links to a release download; the archive was withdrawn"
+    )
+    assert re.search(r"not\s+redistribut", text, re.IGNORECASE), (
+        "the README does not state that the third-party data is not redistributed"
     )
 
 
@@ -118,9 +125,9 @@ def test_the_named_snapshot_is_on_disk() -> None:
     """The literals are checked against a real directory, not against each other.
 
     Skipped on a fresh clone, where there is nothing to compare to -- but present
-    in CI, which fetches the archive, and locally, where the snapshot was built.
-    Extra snapshots are allowed: the release asset is the usetf sample, and the
-    country-ETF sample is a separate experiment.
+    locally, where the snapshot was built. CI does not fetch the archive because it
+    is not distributed. Extra snapshots are allowed: the usetf sample and the
+    country-ETF sample are separate experiments.
     """
     directories = [p.name for p in SNAPSHOTS_DIR.iterdir() if p.is_dir()] if SNAPSHOTS_DIR.is_dir() else []
     if not directories:

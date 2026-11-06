@@ -72,9 +72,10 @@ NOTICE_TEXT = """\
 NOTICE -- third-party data in this snapshot
 ===========================================
 
-This snapshot is a frozen copy of third-party market data, published by the
-robustfolio project so that its published results can be verified exactly
-rather than approximately. If you have it, it came from a release asset.
+This snapshot is a frozen copy of third-party market data, used by the
+robustfolio project to compute its published results. It is an internal
+research artefact and is NOT redistributed. Do not publish, upload, or
+otherwise redistribute this archive or its contents.
 
 Source
 ------
@@ -94,23 +95,25 @@ Licence
 -------
 The repository's MIT licence covers this project's code and its own text and
 artefacts. It does NOT cover the Yahoo Finance price and action data above,
-which remains subject to Yahoo's terms of service. That data is redistributed
-here for the sole purpose of verifying the published results, non-commercially
-and with attribution. For any other purpose, obtain market data from a source
-that licenses it to you.
+which remains subject to Yahoo's terms of service. That data is not published
+by this project and must not be redistributed. If you received this archive,
+do not pass it on: obtain market data from a source that licenses it to you.
 
-FRED series DGS1MO is US government data and is effectively public domain.
+FRED series DGS1MO is US government data. The FRED service terms separately
+prohibit storing, caching, archiving, or providing FRED content to third
+parties, so the FRED-derived file is not redistributed either.
 
 Status of this file
 -------------------
-NOTICE.txt is written by scripts/pack_snapshot.py when the release archive is
+NOTICE.txt is written by scripts/pack_snapshot.py when a local archive is
 built. It is deliberately NOT listed in manifest.json's sha256 map, which covers
 the data files only: this file is a statement about them, not one of them, and
 it is kept out of the hash chain so that a licensing notice can never be
 mistaken for an input.
 
-If this notice is missing from an archive claiming to be an official one, do
-not trust that archive.
+This notice is a provenance statement, not a licence. It does not grant
+permission to redistribute the data. If this notice is missing from an archive
+claiming to be an official one, do not trust that archive.
 """
 
 
@@ -356,8 +359,9 @@ def main(argv: list[str] | None = None) -> int:
     print(f"archive sha: {digest}")
     print(f"size       : {size_mb:.2f} MB")
     print()
-    print("Publish both files as release assets and quote the archive digest in the")
-    print("release notes. A reader then reproduces the published numbers exactly:")
+    print("Do NOT publish this archive or its checksum. The upstream Yahoo and FRED")
+    print("terms do not permit redistribution; see docs/data_licenses.md. The archive")
+    print("is for local verification only:")
     print(f"  python scripts/pack_snapshot.py --verify {archive.name} --extract-to data/snapshots")
     print(f"  python scripts/run_experiment.py --snapshot {snapshot_id} --out results/{snapshot_id}")
     return 0

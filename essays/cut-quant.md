@@ -7,8 +7,9 @@
 **Exploratory and non-confirmatory.** The run below may not be cited for or against any hypothesis: the
 registered confirmatory test was executed without the blindness its registration required, so no
 confirmatory test exists and the hypotheses are **untested, not falsified**. Net *excess* Sharpe only; no
-absolute return claim; all costs and intervals stated. Everything is reproducible from the release
-archive, and the repository ships the script that checks it.
+absolute return claim; all costs and intervals stated. The code, the published tables, and the check
+are public. The input snapshot is **not** redistributed -- the upstream Yahoo and FRED terms prohibit
+it -- so exact end-to-end reproduction requires independently obtained data.
 
 ## The experiment
 
@@ -105,5 +106,6 @@ tolerance: **decisions** (method set, rebalances, folds, headline cost level, ra
 baseline, and the eight §6.4 gates with the verdict itself) are compared exactly and fail the build on
 any difference, while the continuous quantities are compared within a documented `1e-9` and the
 observed worst difference — `4.698e-12` on the CI runner — is printed on every run rather than the
-bound being quoted. Clone the repository, run `verify_release.py` against the release archive, and if
-it prints anything other than `EXACT` or `WITHIN`, tell me.
+bound being quoted. Clone the repository and run `verify_release.py` against a snapshot archive if you
+independently have one; the archive itself is not distributed. If it prints anything other than
+`EXACT` or `WITHIN`, tell me.

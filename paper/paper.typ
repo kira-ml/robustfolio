@@ -629,10 +629,13 @@ does not yet exist, registered before it does.
 
 = Reproduction: what a check can prove
 
-The numbers in this paper are checkable because the repository ships the frozen archive and a
-verifier that recomputes both tables from it. That instrument makes a stronger claim than "the
-code runs": it compares. The claim it made first was too strong, and the check itself falsified
-it twice.
+The numbers in this paper are checkable in two senses, and the difference matters. The repository
+ships the code, the frozen configuration, and both published tables, so every quantity can be
+inspected and re-derived from the tables. The input panel itself -- a Yahoo/FRED snapshot -- is
+*not* redistributed: the upstream terms prohibit it. A reader who independently has that data can
+run the verifier, which recomputes both tables and compares them. That instrument makes a stronger
+claim than "the code runs": it compares. The claim it made first was too strong, and the check
+itself falsified it twice.
 
 == Two failures
 
@@ -739,18 +742,20 @@ the design was built to detect.
 
 Every number in @tab-results, @tab-sweep and @tab-gates, and in @fig-intervals, is read from
 `docs/published-run/` by `scripts/build_paper.py`. The paper's source contains no typed
-measurement, and a test checks that by searching it for the values in the tables. To check the
-tables against the release archive:
+measurement, and a test checks that by searching it for the values in the tables. A reader who
+independently holds the snapshot archive can check the tables end to end:
 
 ```bash
 python scripts/verify_release.py \
-    --archive <the release asset> \
-    --run docs/published-run \
-    --expect-sha256 <the digest quoted in the release notes>
+    --archive <path to your snapshot archive> \
+    --run docs/published-run
 ```
 
-The verifier exits zero on `EXACT` or `WITHIN #sourced.tolerance`, and non-zero on any
-difference in a decision, including the verdict. To regenerate this document:
+The archive is not distributed: the Yahoo and FRED terms do not permit redistribution, so the
+comparison cannot be run from this repository alone. The snapshot's identity and the reason are
+recorded in `docs/data_licenses.md`. The verifier exits zero on `EXACT` or `WITHIN
+#sourced.tolerance`, and non-zero on any difference in a decision, including the verdict. To
+regenerate this document:
 
 ```bash
 python scripts/build_paper.py

@@ -1,48 +1,77 @@
-# Reproduction request
+# Independent check request
 
 **Date:** 2026-11-06
-**Goal:** two independent runs of one published table before 2026-12-04.
+**Goal:** two independent checks of the code, the published tables, or both before 2026-12-04.
 
 The point is a check, not an endorsement. A mismatch is the interesting outcome and
 is reported the same way as a match.
+
+**What changed on 2026-11-06.** The snapshot archive is no longer distributed: the
+Yahoo and FRED terms do not permit redistribution (DEC-20261106-042). An exact
+end-to-end reproduction therefore requires the reviewer to obtain the data
+independently. The request below is scoped to what a reviewer can actually run
+without receiving restricted data.
 
 ## The message
 
 Send as-is, personalise the first line.
 
 > Hi [name] — I built a pre-registered benchmark for portfolio construction, and I am
-> looking for one independent check rather than an endorsement. The first sample ships
-> as a 1.67 MB archive; one command re-runs seven methods and compares the result to
-> the published table. It takes about ten minutes. If it disagrees, that is the useful
-> outcome, and I will report it either way. Would you run it?
-> <link to the v1.0.0 release and its SHA-256>
+> looking for one independent check rather than an endorsement. The code and the
+> published tables are public; the market-data snapshot is not redistributed for
+> licensing reasons, so the check is either a code/claims review or, if you already
+> have independently licensed data, a run against your own snapshot. The hermetic
+> checks take a few minutes. If something disagrees, that is the useful outcome, and
+> I will report it either way. Would you take a look?
+> <link to the repository and the reviewer's guide>
 
-## What they run
+## What they run without any market data
 
 ```bash
-ASSET=robustfolio-snapshot-yahoo-usetf-2007-01-01_2026-09-30-2026-10-17-2ad06139.tar.gz
-curl -LO "https://github.com/kira-ml/robustfolio/releases/download/v1.0.0/$ASSET"
-python -m pip install -e .
-python scripts/verify_release.py --archive "$ASSET" --run docs/published-run
+git clone https://github.com/kira-ml/robustfolio.git && cd robustfolio
+python -m pip install -e ".[dev]"
+python -m pytest -q
+python scripts/demo_the_check.py
+python scripts/certify_engine.py
 ```
+
+These exercise the leakage suite, the release-packaging integrity tests, the
+snapshot-name checks, the verifier's own exact/bounded split, the generated paper
+and cards, and the engine certificate. They do not reproduce the published numbers,
+because the input is not present.
+
+## If they independently hold a snapshot
+
+They can run the comparison against their own archive:
+
+```bash
+python scripts/verify_release.py --archive <their snapshot archive> --run docs/published-run
+```
+
+Do **not** send them an archive. The project does not redistribute it, and a
+reviewer's own data-access terms are theirs to satisfy.
 
 ## What to send back
 
 - Operating system, Python version, and whether the install was clean.
-- The final line: `EXACT`, `WITHIN`, or a mismatch, with the maximum absolute
-  difference.
-- If a mismatch: which quantity differed, not the whole log.
+- Which check they ran: the hermetic suite, a code/claims review, or a snapshot
+  comparison.
+- For the suite: pass/fail counts and any failure text.
+- For a snapshot comparison: the final line (`EXACT`, `WITHIN`, or a mismatch) and,
+  if a mismatch, which quantity differed — not the whole log.
+- For a review: the claim that did not survive, and the evidence.
 
 ## Log
 
-| Date | Person | Result | Notes |
-|---|---|---|---|
-| | | | |
-| | | | |
+| Date | Person | Check | Result | Notes |
+|---|---|---|---|---|
+| | | | | |
+| | | | | |
 
 ## Rules
 
 - Ask for a check, not a quote.
 - Do not explain the expected answer first; offer the protocol link after the run.
+- Do not send the snapshot archive.
 - Report a mismatch in the README; do not rerun until it matches.
-- Two runs, then stop. More is a hobby, not validation.
+- Two checks, then stop. More is a hobby, not validation.
