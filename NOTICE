@@ -1,0 +1,15 @@
+robustfolio
+===========
+
+Copyright (c) 2026 Ken Ira Lacson Talingting.
+
+The MIT licence in LICENSE covers the source code, documentation, and the
+project-authored tables and figures in this repository.
+
+It does NOT cover the third-party market data used to compute the results.
+The Yahoo Finance prices and corporate actions and the FRED DGS1MO series are
+not included in this repository or in its GitHub releases, and they are not
+redistributed. See docs/data_licenses.md for the source, terms, and disposition.
+
+No part of this repository is investment advice, a live trading system, or a
+claim of tradable alpha.

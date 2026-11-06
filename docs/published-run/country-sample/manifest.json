@@ -1,10 +1,50 @@
 {
+  "generated_utc": "2026-11-05",
   "snapshot_id": "yahoo-countryetf-1998-01-01_2026-09-30-2026-11-05-269a4565",
+  "git_commit": "3120938",
+  "git_commit_note": "Publication commit for the country tables; the original run did not record a separate code commit.",
   "start": "2005-07-01",
   "end": "2026-06-30",
   "n_rebalances": 252,
   "n_folds": 21,
+  "protocol_version": "2.4",
+  "spec_version": "1.1",
+  "seed": 20261017,
+  "bootstrap": {
+    "mean_block_months": 6,
+    "replications": 2000,
+    "ci_level_report": 0.9,
+    "ci_level_decision": 0.95
+  },
+  "cost_levels_bps": [
+    0,
+    5,
+    10,
+    20,
+    50
+  ],
   "headline_cost_bps": 10,
+  "dsr_family_size": 1,
+  "method_ids": [
+    "B1",
+    "B2",
+    "B3",
+    "B4",
+    "B5",
+    "M1",
+    "M2"
+  ],
+  "baseline_ids": [
+    "B1",
+    "B2",
+    "B3",
+    "B4",
+    "B5"
+  ],
+  "candidate_ids": [
+    "M1",
+    "M2"
+  ],
   "best_baseline": "B1",
   "status": "pre-registered new sample; paired significance gate"
 }

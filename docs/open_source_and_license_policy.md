@@ -21,7 +21,7 @@ MIT is the right choice here rather than a copyleft licence because the artefact
 
 ## 2. Data — the part that is not the code
 
-The pipeline reads third-party data. **No third-party data is redistributed by this repository or by its releases.** MIT covers the code and the project's own text and artefacts; it does not cover the data, and this project cannot grant rights it does not hold.
+The pipeline reads third-party data. **No third-party data files are redistributed by this repository or by its releases.** MIT covers the code and the project's own text and artefacts; it does not cover the data, and this project cannot grant rights it does not hold. Derived tables (`outcomes.csv`, `decisions.csv`, `cap_sweep.csv`, `paired_inference.json`, `country-sample/` tables, and `results/phase1_results.csv`) are published as project-authored statistics; they contain no raw observations and inherit the data's provenance.
 
 | Component | Source | Redistribution status |
 |---|---|---|

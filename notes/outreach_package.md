@@ -1,5 +1,9 @@
 # Outreach and publication package (working notes — not governed until posted)
 
+> **Updated 2026-11-06.** The market-data snapshot is not distributed (see
+> [`../docs/data_licenses.md`](../docs/data_licenses.md)). The drafts below are
+> retained for wording; do not send a claim that the archive is available.
+
 Once posted or sent, the text below is a **public artefact** under
 [E3 §1 and §4](../docs/results_reporting_and_claims_policy.md): the essays' rules apply to the message
 text itself, not only to the document it links to. That is why every draft here carries the
@@ -18,8 +22,9 @@ engagement by a competent sceptic is the measure.
 > answer is a null, and that's not the interesting part. The interesting part is that my own
 > reproduction claim failed twice, caught both times by a check I'd written to test it, and what came
 > out of that is a cleaner way to state what a numerical result actually guarantees. Everything is
-> reproducible from a frozen archive, and there's a script that checks it rather than a summary that
-> asserts it. I'd value a critique of one specific section — [SECTION]. No ask beyond that.
+> public in code and committed tables, and the snapshot is not distributed, so exact end-to-end
+> reproduction needs your own licensed copy; there is a script that checks the comparison rather than
+> a summary that asserts it. I'd value a critique of one specific section — [SECTION]. No ask beyond that.
 
 Rule: name **one specific section** you want attacked. A vague "let me know what you think" gets
 "looks great".
@@ -81,9 +86,9 @@ Rule: name **one specific section** you want attacked. A vague "let me know what
 >    order to have a result.
 >
 > Everything is exploratory and non-confirmatory, the metric is net *excess* Sharpe, and no absolute
-> return claim is made anywhere. The archive is frozen, and there is a script that checks the numbers
-> rather than a summary that asserts them — if it prints anything other than EXACT or WITHIN, the
-> essays are wrong and the check is right.
+> return claim is made anywhere. The snapshot is frozen locally but is not distributed; when you
+> supply it, there is a script that checks the numbers rather than a summary that asserts them — if
+> it prints anything other than EXACT or WITHIN, the essays are wrong and the check is right.
 >
 > Link in the comments. I'd rather be told where this is wrong than told it looks good.
 

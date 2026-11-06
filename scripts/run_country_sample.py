@@ -18,7 +18,9 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
@@ -30,14 +32,20 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from robustfolio import backtest, data, report, stats  # noqa: E402
 from robustfolio.config import (  # noqa: E402
+    BOOTSTRAP_BLOCK_MEAN,
+    BOOTSTRAP_REPS,
+    CI_LEVEL_DECISION,
+    CI_LEVEL_REPORT,
     COST_HEADLINE_BPS,
     COST_LEVELS_BPS,
+    DSR_FAMILY_SIZE,
     MATERIALITY_DRAWDOWN_SLACK,
     MATERIALITY_SHARPE_GAP,
     MATERIALITY_TURNOVER_MULTIPLE,
     ROBUSTNESS_COST_LEVELS,
     ROBUSTNESS_FOLD_FRACTION,
     ROBUSTNESS_FOLD_SHARE_MAX,
+    SEED,
 )
 import paired_inference as paired  # noqa: E402
 
@@ -46,6 +54,16 @@ END = pd.Timestamp("2026-06-30")
 SNAPSHOT_HINT = "countryetf"
 CANDIDATES = ("M1", "M2")
 BASELINES = ("B1", "B2", "B3", "B4", "B5")
+
+
+def _git_commit() -> str | None:
+    """The commit the run was produced from, when the checkout has git."""
+    try:
+        return subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True, stderr=subprocess.DEVNULL
+        ).strip()
+    except (OSError, subprocess.CalledProcessError):
+        return None
 
 
 def _excess(result, rf: pd.Series, bps: int) -> pd.Series:
@@ -187,18 +205,37 @@ def main(argv: list[str] | None = None) -> int:
     decisions_frame.to_csv(args.out / "decisions.csv")
     for method in CANDIDATES:
         report.fold_table(results[method], best_result, rf=rf).to_csv(
-            args.out / f"folds_{method}.csv"
+            args.out / f"folds_{method}.csv", index=False
         )
-    (args.out / "manifest.json").write_text(json.dumps({
+    manifest = {
+        "generated_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "snapshot_id": snapshot_id,
+        "git_commit": _git_commit(),
         "start": str(START.date()),
         "end": str(END.date()),
         "n_rebalances": int(len(results["B1"].weights)),
         "n_folds": int(results["B1"].folds.nunique()),
+        "protocol_version": report.PROTOCOL_VERSION,
+        "spec_version": report.SPEC_VERSION,
+        "seed": SEED,
+        "bootstrap": {
+            "mean_block_months": BOOTSTRAP_BLOCK_MEAN,
+            "replications": BOOTSTRAP_REPS,
+            "ci_level_report": CI_LEVEL_REPORT,
+            "ci_level_decision": CI_LEVEL_DECISION,
+        },
+        "cost_levels_bps": list(COST_LEVELS_BPS),
         "headline_cost_bps": COST_HEADLINE_BPS,
+        "dsr_family_size": DSR_FAMILY_SIZE,
+        "method_ids": list(backtest.METHOD_IDS),
+        "baseline_ids": list(BASELINES),
+        "candidate_ids": list(CANDIDATES),
         "best_baseline": best,
         "status": "pre-registered new sample; paired significance gate",
-    }, indent=2) + "\n", encoding="utf-8")
+    }
+    (args.out / "manifest.json").write_text(
+        json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
+    )
 
     print(f"\nwrote {args.out}")
     print(outcomes[["net_sharpe", "turnover_annualized", "max_drawdown"]].to_string())

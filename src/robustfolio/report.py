@@ -691,7 +691,9 @@ class Report:
 
         for method, frame in self.folds.items():
             path = directory / f"folds_{method}.csv"
-            frame.to_csv(path)
+            # ``fold_table`` carries the fold number as a column *and* as the
+            # index; writing the index too produced a duplicate ``fold`` header.
+            frame.to_csv(path, index=False)
             written[f"folds_{method}"] = path
 
         report_path = directory / "report.md"

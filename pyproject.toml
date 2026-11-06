@@ -4,11 +4,28 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "robustfolio"
-version = "0.2.0"
+version = "1.1.0"
 description = "Walk-forward, cost-aware portfolio rebalancing benchmark"
 requires-python = ">=3.10"
 readme = "README.md"
 license = { file = "LICENSE" }
+authors = [{ name = "Ken Ira Lacson Talingting" }]
+keywords = [
+    "quantitative finance",
+    "portfolio construction",
+    "backtesting",
+    "reproducibility",
+    "evaluation",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Office/Business :: Financial :: Investment",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
 
 # Runtime dependencies. `pip install -e .` must be sufficient to run the harness
 # and the report: a reproduction path that needs a second, undocumented install
@@ -33,6 +50,10 @@ dev = ["pytest>=8.0"]
 # own fonts in the wheel, so the PDF renders identically on CI and on a laptop
 # without any font installation.
 paper = ["typst>=0.11", "pypdf>=5.0"]
+
+[project.urls]
+Repository = "https://github.com/kira-ml/robustfolio"
+WorkingPaper = "https://github.com/kira-ml/robustfolio/blob/main/essays/robustfolio-working-paper.pdf"
 
 [tool.setuptools.packages.find]
 where = ["src"]

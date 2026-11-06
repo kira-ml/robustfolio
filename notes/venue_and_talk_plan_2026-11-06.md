@@ -21,7 +21,8 @@ describe in one sentence.
 
 - Title, 150-word abstract, and the DOI.
 - The replication, not only the first sample.
-- The code and the frozen archive.
+- The code, committed tables, and verification logic. **Do not submit the
+  snapshot**; it is not distributed.
 - The disclosure: exploratory first sample; confirmatory for the country sample;
   not investment advice.
 - A one-page cover note that states the contribution and the limitation.
@@ -45,7 +46,7 @@ The talk is the paper's argument, not a tour of the repository.
 
 | Weeks | Action |
 |---|---|
-| 9 | Choose three people and send the reproduction request |
+| 9 | Choose three people and send the independent-check request (no archive attached) |
 | 10 | Submit the SSRN working paper (or start the arXiv endorsement) |
 | 11 | Ask one professor for a seminar; prepare the twelve-minute talk |
 | 12 | Deliver the talk; record the questions, not the applause |

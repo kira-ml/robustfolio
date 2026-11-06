@@ -17,7 +17,7 @@ the project has chosen the narrower permission, not the wider one.
 
 ## 1. What is distributed, and what is not
 
-**No third-party market data is redistributed by this repository or by its GitHub
+**No third-party data files are redistributed by this repository or by its GitHub
 releases.** The repository publishes code, documentation, derived tables, figures,
 and identity digests. The frozen input snapshots remain local research artefacts.
 
@@ -31,6 +31,7 @@ committed to git, not attached to a release, and not served from the repository.
 | `universe_pit.csv` | Fund issuers' fact sheets (SPDR, iShares), re-expressed by this project | Issuer website terms; the content is instrument metadata | **No** (the snapshot copy) | The public candidate list in `notes/pit_candidates_2026-10-17.csv` contains tickers and eligibility dates, not prices. |
 | `manifest.json`, `quality_report.md` | This project | MIT | Yes, where published | Project-authored metadata. |
 | `outcomes.csv`, `decisions.csv`, `country-sample/` tables | This project, computed from the snapshot | MIT for the project's authorship; inherits the data's provenance | **Yes** | Derived statistics and verdicts. They contain no raw price or yield observations. |
+| `cap_sweep.csv`, `paired_inference.json`, `folds_M*.csv`, `results/phase1_results.csv` | This project, computed from the snapshot | MIT for the project's authorship; inherits the data's provenance | **Yes** | Derived statistics. They contain no raw price or yield observations. |
 | `NOTICE.txt` | This project | MIT | Only inside a local archive | A provenance statement. It is not a licence and does not grant redistribution rights. |
 
 ---

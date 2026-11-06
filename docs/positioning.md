@@ -39,7 +39,8 @@ Not written for retail investors, and not investment advice.
 | 3 | A **pre-registered out-of-sample replication** on 18 country ETFs: the best baseline changed from sample MVO to equal weight, and the treatment edge did not replicate. | Confirmatory for that sample |
 
 Supporting apparatus: a leakage suite, a KKT certificate on every solve, and a reproduction
-check that compares decisions exactly and measurements within a documented bound.
+check that compares decisions exactly and measurements within a documented bound when a
+snapshot archive is supplied. The snapshot itself is not distributed.
 
 ## What it does not claim
 
@@ -74,4 +75,5 @@ replicate on fresh territory.
 - Protocol: `docs/evaluation_protocol.md`
 - Test correction: `notes/paired_inference_2026-11-04.md`
 - Replication: `notes/confirmatory_country_etfs_2026-11-05.md`
-- Reproduction: `scripts/verify_release.py` and `docs/published-run/README.md`
+- Reproduction, with a locally supplied snapshot: `scripts/verify_release.py` and
+  `docs/published-run/README.md`. The snapshot is not distributed.

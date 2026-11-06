@@ -131,8 +131,9 @@ def main(argv: list[str] | None = None) -> int:
         print("The check did NOT behave as documented, so the claim it supports is wrong.")
     print()
     print("What this does not show: that the pipeline computes these numbers. It shows")
-    print("that the comparison refuses a table that disagrees. CI re-runs the pipeline;")
-    print("this exercises the comparison it hands the result to.")
+    print("that the comparison refuses a table that disagrees. A local run with a")
+    print("snapshot archive re-runs the pipeline; CI cannot, because the archive is")
+    print("not distributed. This exercises the comparison the result is handed to.")
 
     return 0 if all(results) else 1
 

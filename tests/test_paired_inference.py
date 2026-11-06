@@ -10,7 +10,7 @@ Three properties matter here:
    would reintroduce the exact confusion the note exists to remove.
 
 The run-level test uses a small synthetic panel, not the frozen snapshot: the
-snapshot is a release asset, and a unit test must not depend on it.
+snapshot is not distributed, and a unit test must not depend on it.
 """
 
 from __future__ import annotations

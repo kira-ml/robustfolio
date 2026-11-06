@@ -9,7 +9,10 @@ abstract: >-
   country-ETF sample. The contribution is the evaluation: walk-forward
   validation, leakage tests, power analysis, numerical certification, and a
   reproduction check that compares decisions exactly and measurements within a
-  documented bound.
+  documented bound. The code and documentation are MIT-licensed. The third-party
+  market-data snapshots used to compute the results are not included and are not
+  redistributed; exact end-to-end reproduction requires independently obtained
+  data.
 authors:
   - family-names: "Talingting"
     given-names: "Ken Ira Lacson"

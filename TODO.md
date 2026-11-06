@@ -9,8 +9,8 @@
 **State at this update**
 
 - Compliance remediation at `f105b9e`; carousel build-order fix at `d3cc158`.
-- CI run #33 (`d3cc158`): **success**.
-- Tests: 246 passed, 1 skipped (the vacuous survivorship test) after the remediation.
+- Last verified CI before the audit: #35 (`6fc183b`) — success. The audit commit is checked by the next CI run.
+- Tests: 260 passed, 1 skipped (the vacuous survivorship test) after the remediation and audit fixes.
 - Live carousel: <https://www.linkedin.com/feed/update/urn:li:activity:7524101151596937216/> (posted 2026-11-05).
 - Previous post: <https://www.linkedin.com/feed/update/urn:li:activity:7520351295396933632/>.
 - Artifacts: paper 10 pages, carousel 8 slides, research brief 2 pages, positioning doc.
@@ -39,7 +39,7 @@
 - [x] **Tag `v1.1`.** Done with this commit; pushed with the branch.
 - [x] **Create the GitHub release from `v1.1`.** Done 2026-11-06; published and marked latest.
 - [ ] **Archive to Zenodo and mint a DOI.**
-  - Owner action: Zenodo, link the GitHub repo or upload the archive.
+  - Owner action: Zenodo, link the GitHub repo or upload the **code-only** release archive. **Never upload a snapshot containing Yahoo/FRED data.**
   - Done when: DOI appears in the README, the paper, and the brief.
 - [x] **Package the country snapshot locally.** Done: `dist/robustfolio-snapshot-yahoo-countryetf-1998-01-01_2026-09-30-2026-11-05-269a4565.tar.gz` plus `.sha256`; 1.89 MB. **Not published** — retained for local verification only.
 - [x] **Withdraw the country snapshot from the release.** Done 2026-11-06: the asset and its checksum were deleted, and the release body now states why. Do not re-upload without written permission.
@@ -113,5 +113,6 @@
 | 2026-11-06 | Draft + checksum hygiene | Draft removed; checksum attached as `.txt`, content verified |
 | 2026-11-06 | **Compliance remediation** | Both snapshot assets deleted from `v1.0.0`/`v1.1`; policy v1.2; `data_licenses.md`; notices and all public reproduction claims corrected. `DEC-20261106-042` |
 | 2026-11-06 | Post-remediation suite | 246 passed, 1 skipped; archive verification `EXACT`, `M1 FAILURE / M2 FAILURE` |
-| 2026-11-06 | CI build-order fix | `build_carousel()` now generates `paper/generated/numbers.typ`; CI #33 green |
+| 2026-11-06 | CI build-order fix | `build_carousel()` now generates `paper/generated/numbers.typ`; CI #33 and #35 green |
+| 2026-11-07 | Repository audit fixes | Stale archive claims corrected; legacy scripts moved to `scripts/legacy/`; version aligned; country fold headers and manifest fixed; NOTICE/SECURITY/CONTRIBUTING/Dependabot added; 260 passed, 1 skipped |
 | 2026-11-12 | Carousel 7-day numbers | Pending |

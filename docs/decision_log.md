@@ -3,8 +3,8 @@
 **Project:** `robustfolio`
 **Owner:** Ken Ira Lacson Talingting
 **Created:** 2026-10-14
-**Version:** 1.18
-**Last Updated:** 2026-11-06
+**Version:** 1.19
+**Last Updated:** 2026-11-07
 **Purpose:** Immutable record of every governance, experiment, and pivot decision in the project. Entries are append-only. Supersession is by a new entry, not by editing an old one.
 
 ---
@@ -74,6 +74,7 @@ Each entry uses the following fields:
 | DEC-20261018-040 | 2026-10-18 | GOVERNANCE | ACTIVE | Freeze E3 at v1.0; confirm P1-P5 and the F24/F25 readings in the same act |
 | DEC-20261018-041 | 2026-10-18 | IMPLEMENTATION | ACTIVE | Publish `decisions.csv` and compare the verdict exactly; derive the documented margin instead of restating it |
 | DEC-20261106-042 | 2026-11-06 | GOVERNANCE | ACTIVE | Stop redistributing third-party data: remove snapshot assets, rewrite policy to v1.2, correct notices and reproduction claims |
+| DEC-20261107-043 | 2026-11-07 | GOVERNANCE | ACTIVE | Repository audit remediation: correct stale archive claims, archive legacy scripts, align versions, and complete country-sample metadata |
 
 **Gap note (001–011):** Resolved by DEC-20261015-014. The seed entries referenced in DEC-20261014-000 were not written and are not recoverable. They are treated as never having existed in this log.
 
@@ -1913,6 +1914,49 @@ Three ways this fails later. **(a)** A stale page still tells a reader to downlo
 - The test suite and the docs-index checks are run after the edits; their results are reported in the completion message rather than assumed here.
 
 **What this entry does not decide.** It does not decide whether the published *statistics* are derivative works requiring a separate licence; it takes the conservative position that they contain no raw observations and are published as project authorship. It does not assert that every possible use of the data is prohibited; it asserts that this project has no redistribution permission and will not act as if it does.
+
+---
+
+### DEC-20261107-043
+
+**Date:** 2026-11-07
+**Type:** GOVERNANCE
+**Status:** ACTIVE
+**Authority:** Owner
+**Related docs:** `README.md`; `TODO.md`; `CITATION.cff`; `pyproject.toml`; `docs/data_licenses.md`; `docs/open_source_and_license_policy.md`; `docs/reviewers-guide.md`; `docs/published-run/country-sample/`; `notes/outreach_package.md`; `notes/venue_and_talk_plan_2026-11-06.md`; `scripts/run_country_sample.py`; `scripts/demo_the_check.py`; `scripts/legacy/`; `.github/workflows/ci.yml`
+**Related risks:** public-claim drift; stale reproducibility instructions; packaging-metadata drift
+
+**Context.** A full public-repository audit found that the data-redistribution remediation of DEC-20261106-042 was correct, but several public artefacts still described the withdrawn archive as available, three legacy scripts no longer ran against the current API, the package version disagreed with the citation, and the country-sample fold/manifest metadata had drifted. Those are consistency and correctness defects, not changes to a result.
+
+**Decision.**
+
+1. **Correct every public availability claim.** `docs/reviewers-guide.md`, `docs/published-run/country-sample/README.md`, `notes/outreach_package.md`, `notes/venue_and_talk_plan_2026-11-06.md`, `TODO.md`, `scripts/demo_the_check.py`, and `tests/test_paired_inference.py` now say that the snapshot is not distributed and that exact end-to-end reproduction requires an independently obtained archive.
+2. **Remove the broken legacy entry points from `scripts/`.** `diagnose_slsqp.py`, `phase1_experiment.py`, and `dsr_inputs_phase1.py` called `backtest.walk_forward`, which no longer exists. They move to `scripts/legacy/` with a README that marks them historical and not runnable against the current API. `results/README.md` marks `phase1_results.csv` as historical.
+3. **Align the package metadata.** `pyproject.toml` and `robustfolio.__version__` move from `0.2.0` to `1.1.0`, matching `CITATION.cff` and the `v1.1` tag. A new test enforces the agreement.
+4. **Fix the country-sample tables.** `fold_table` writes without a duplicated index, and the committed fold CSVs now have one `fold` column. The country manifest records the protocol/spec versions, seed, bootstrap settings, cost levels, method/baseline/candidate ids, and a provenance note; `run_country_sample.py` writes those fields for future runs.
+5. **Tighten the data wording.** The policy and licence record say **no third-party data files** are redistributed, and explicitly list the derived public tables. A root `NOTICE` and `SECURITY.md` make the code/data split and the reporting path visible. `CONTRIBUTING.md` points contributors at the same rules.
+6. **Harden the public repository.** CI has `permissions: contents: read`, the actions are pinned to commit SHAs, Dependabot watches pip and GitHub Actions, and `requirements.txt` delegates to `pyproject.toml` instead of duplicating a drifting list.
+7. **Add coverage for the gaps found.** `tests/test_repository_consistency.py` checks package/citation versions and unique CSV headers; `tests/test_brief.py` renders the research brief and checks its headline values.
+
+**Alternatives considered.**
+- **Repair the legacy scripts instead of archiving them.** Rejected: they encode a superseded Phase 1 API and an SLSQP fallback that no longer exists. Repairing them would imply they are a current reproduction path.
+- **Delete the legacy scripts.** Rejected: the decision log and Phase 1 record refer to them; moving them with a clear status preserves provenance without leaving broken entry points.
+- **Leave the package at 0.2.0 and document the distinction.** Rejected: a public release tagged `v1.1` with a package that reports `0.2.0` is a consistency defect, not a meaningful compatibility promise.
+- **Leave `TODO.md`'s Zenodo instruction alone.** Rejected: it said “upload the archive,” which is the exact action the data policy forbids. It now says code-only and never a snapshot.
+- **Treat the derived tables as unquestionably redistributable.** Rejected as an assertion: the project takes the conservative position and records it; a lawyer’s view could differ. The wording says what is published and what is not, not that a legal conclusion has been certified.
+
+**Rationale.**
+[Inversion] The failure mode is a public page that tells a reader the archive exists, or a `TODO` that tells the owner to upload it. Both are cheap to fix and expensive to discover later.
+[Parsimony] The smallest correct fix is to remove stale claims, not to rewrite the research. No result, threshold, or verdict changes.
+[Consistency] A version is a fact written in three places; a test is cheaper than remembering it. The same applies to a CSV header and a manifest field.
+[Evidence] The broken scripts were confirmed by execution, not by reading: all three raised `AttributeError: module 'robustfolio.backtest' has no attribute 'walk_forward'`.
+[Fat tails] The legal tail is already reduced by the data removal; the residual public-claim and metadata defects are bounded and fixable. They should not be left as a tail.
+
+**Reversibility:** Soft. The text changes are ordinary edits. The legacy scripts can be moved back if the API is restored. The version change is reversible if a future release strategy requires a different package version.
+
+**Revisit trigger:** A new package release changes the version → update all three version sources and the test. A public artefact is added → add it to `docs/data_licenses.md` and decide whether it is tested. A legacy script is repaired → move it back only with a current-API test.
+
+**Evidence.** `pytest -q -rs` after the changes: **260 passed, 1 skipped** (the recorded vacuous survivorship test). `pip check` clean; `compileall` clean; `demo_the_check.py` behaves as documented; CI #35 on the prior head was green. The repository working tree was clean before this entry was recorded; the changes are committed together.
 
 ---
 

@@ -11,7 +11,7 @@ This folder holds the published tables for the second sample:
 
 **Snapshot:** `yahoo-countryetf-1998-01-01_2026-09-30-2026-11-05-269a4565`
 
-**Snapshot status:** built locally from Yahoo/FRED; it is not yet attached to a GitHub release, so exact reproduction of these tables requires the archive. The committed CSVs are the record; the universe list and builder are in `notes/` and `scripts/`.
+**Snapshot status:** built locally from Yahoo/FRED and **not distributed**. Exact reproduction of these tables requires an independently obtained archive. The committed CSVs are the record; the universe list and builder are in `notes/` and `scripts/`.
 
 **Pre-registration:** [`notes/confirmatory_country_etfs_2026-11-05.md`](../../../notes/confirmatory_country_etfs_2026-11-05.md)
 **Result note:** [`notes/country_sample_result_2026-11-05.md`](../../../notes/country_sample_result_2026-11-05.md)
