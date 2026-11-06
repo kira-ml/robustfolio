@@ -24,23 +24,23 @@
 - [ ] **Record the carousel's 7-day numbers** on 2026-11-12: impressions, comments, profile views, link clicks.
   - Done when: the numbers are in the log below.
   - Decision rule: fewer than ~500 impressions and no substantive comment means the constraint is distribution, not format.
-- [ ] **Write `CITATION.cff`** at the repository root.
-  - Done when: valid file, author and title match the paper, README links it.
-- [ ] **Draft the `v1.1` release notes**: the country sample, the correction, the brief.
-  - Done when: notes are ready to paste into the GitHub release UI.
+- [x] **Write `CITATION.cff`** at the repository root. Done 2026-11-06.
+  - Version `1.1.0`; matches the `v1.1` tag.
+- [x] **Draft the `v1.1` release notes**: the country sample, the correction, the brief. Done: [`docs/release-notes-v1.1.md`](docs/release-notes-v1.1.md).
 
 ## Next — weeks 2–4: make it citable
 
-- [ ] **Tag `v1.1` and create the GitHub release.**
-  - Owner action: GitHub web UI (`gh` CLI is not installed).
-  - Done when: release exists with the notes.
+- [x] **Tag `v1.1`.** Done with this commit; pushed with the branch.
+- [ ] **Create the GitHub release from `v1.1`.**
+  - Owner action: GitHub web UI, paste [`docs/release-notes-v1.1.md`](docs/release-notes-v1.1.md).
+  - Done when: the release exists and is marked latest.
 - [ ] **Archive to Zenodo and mint a DOI.**
   - Owner action: Zenodo, link the GitHub repo or upload the archive.
   - Done when: DOI appears in the README, the paper, and the brief.
-- [ ] **Release the country snapshot** (or a derived package if the licence prevents redistribution).
-  - Use `scripts/pack_snapshot.py`; attach the `.sha256`; keep the NOTICE.
-  - Done when: the asset is on the release and the reproduction note is updated.
-  - Why: the most interesting result is currently the least reproducible.
+- [x] **Package the country snapshot.** Done: `dist/robustfolio-snapshot-yahoo-countryetf-1998-01-01_2026-09-30-2026-11-05-269a4565.tar.gz` plus `.sha256`; 1.89 MB; SHA `d8bf3b43…72ef`.
+- [ ] **Attach the country snapshot to the release.**
+  - Owner action: upload the archive and its `.sha256` to the `v1.1` release.
+  - Done when: the asset is downloadable and the digest in the notes matches.
 - [ ] **One-command reproduction** and CI badge.
   - Done when: a fresh clone reproduces one published table in under ten minutes.
 - [ ] **Add the DOI to the paper's first page** and rebuild the PDF.
@@ -103,4 +103,7 @@
 | 2026-11-05 | First comment | Code, paper, notes, previous post |
 | 2026-11-06 | Positioning + README front + brief | Committed `3260a0c` |
 | 2026-11-06 | Full suite | 246 passed, 1 skipped |
+| 2026-11-06 | `CITATION.cff` + release notes | v1.1 prep |
+| 2026-11-06 | Country snapshot packaged | 1.89 MB, SHA `d8bf3b43…72ef` |
+| 2026-11-06 | Tag `v1.1` | Pushed with the branch |
 | 2026-11-12 | Carousel 7-day numbers | Pending |
