@@ -425,6 +425,19 @@ def draw_figure(data: dict, path: Path) -> None:
     plt.close(fig)
 
 
+def _write_numbers() -> Path:
+    """Write the paper's interpolated numbers for whichever document needs them."""
+    outcomes = page._read_table(PUBLISHED / "outcomes.csv")
+    decisions = page._read_table(PUBLISHED / "decisions.csv")
+    path = GENERATED / "numbers.typ"
+    path.write_text(
+        numbers_module(outcomes, decisions, _count_assets()),
+        encoding="utf-8",
+        newline="\n",
+    )
+    return path
+
+
 def _write_country() -> Path:
     outcomes = page._read_table(COUNTRY_DIR / "outcomes.csv")
     decisions = page._read_table(COUNTRY_DIR / "decisions.csv")
@@ -458,6 +471,7 @@ def build_carousel(out: Path = DEFAULT_CAROUSEL_OUT) -> tuple[Path, Path, Path]:
     paired.write_text(paired_module(payload), encoding="utf-8", newline="\n")
     cap = GENERATED / "cap_sweep.typ"
     cap.write_text(cap_sweep_module(cap_records), encoding="utf-8", newline="\n")
+    _write_numbers()
     _write_country()
     compile_carousel(out)
     return paired, cap, out
@@ -470,17 +484,10 @@ def page_count(path: Path) -> int:
 
 
 def build(out: Path = DEFAULT_OUT) -> tuple[Path, Path, Path]:
-    outcomes = page._read_table(PUBLISHED / "outcomes.csv")
-    decisions = page._read_table(PUBLISHED / "decisions.csv")
     data = page.load(PUBLISHED)
 
     GENERATED.mkdir(parents=True, exist_ok=True)
-    numbers = GENERATED / "numbers.typ"
-    numbers.write_text(
-        numbers_module(outcomes, decisions, _count_assets()),
-        encoding="utf-8",
-        newline="\n",
-    )
+    numbers = _write_numbers()
 
     figure = GENERATED / "intervals.png"
     draw_figure(data, figure)
