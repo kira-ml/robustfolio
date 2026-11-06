@@ -1,10 +1,18 @@
 # robustfolio
 
-**Does a robust, turnover-aware portfolio construction method beat a plain one out-of-sample, net of transaction costs — once you adjust for having tried more than one?**
+**A pre-registered evaluation benchmark for portfolio construction — with a published power audit and an out-of-sample replication.**
 
-This repository is the benchmark that answers that question under a pre-registered, frozen evaluation protocol. It is built to produce an *honest* answer rather than a favourable one: the hypothesis, the metrics, the thresholds, and the decision rule were all fixed and dated before the results were computed, and a clean "no" is a successful outcome here.
+**Thesis.** In portfolio research, the binding constraint is usually the **evaluation**, not the method. The comparator, the test's power, and the sample decide the verdict more than the strategy does.
 
-**What kind of project this is.** Empirical quantitative-finance research with a data-science evaluation stack. The estimators are classical - a shrinkage covariance and a Black-Litterman prior - and the contribution is the evaluation: walk-forward validation, leakage tests, power analysis, numerical certification, and reproducibility. It is not a machine-learning project, a deep-learning project, a trading system, or a claim of alpha.
+**Three contributions.**
+
+1. A **single-factor registered comparison**: seven constructions on 18 US ETFs over 168 months, where each treatment differs from the baseline in exactly one component.
+2. A **power audit of the registered gate**: it required an observed gap of 0.478 to certify a 0.20 bar, and had about 24% power at 0.20.
+3. A **pre-registered replication** on 18 country ETFs: the best baseline changed from sample MVO to equal weight, and the treatment edge did not replicate.
+
+**Evidence level.** The first sample is exploratory and non-confirmatory: the registered test was executed without the blindness its registration required (finding **F26**), so the hypotheses are *untested, not falsified*. The country sample is confirmatory for that sample. Empirical quantitative-finance research with a data-science evaluation stack; not a trading system, not a claim of alpha, not a machine-learning project.
+
+**Read:** [research brief](essays/robustfolio-research-brief.pdf) · [working paper](essays/robustfolio-working-paper.pdf) · [positioning](docs/positioning.md) · [protocol](docs/evaluation_protocol.md) · [reproduce](#reproduce-it)
 
 [![protocol](https://img.shields.io/badge/protocol-v2.4%20frozen-blue)](docs/evaluation_protocol.md)
 [![spec](https://img.shields.io/badge/spec-v1.1%20frozen-blue)](docs/model_and_method_spec.md)

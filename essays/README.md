@@ -10,6 +10,13 @@ every claim in them can be checked against the repository that made it.
 | 3 | [`cut-ml-ds.md`](cut-ml-ds.md) — *Four defences against fooling yourself* | ML / data science engineering | ~1,600 words |
 | 4 | [`robustfolio-working-paper.pdf`](robustfolio-working-paper.pdf) — *The benchmark is the binding constraint* | Research / systematic investing | 10 pages |
 | 5 | [`robustfolio-carousel.pdf`](robustfolio-carousel.pdf) — *My own test rejected my best method. It couldn't see a win that size.* | LinkedIn / general technical | 8 slides |
+| 6 | [`robustfolio-research-brief.pdf`](robustfolio-research-brief.pdf) — *What a backtest can prove* | Recruiters / research leads / collaborators | 2 pages |
+
+**The research brief.** [`robustfolio-research-brief.pdf`](robustfolio-research-brief.pdf) — *What a backtest can
+prove*: two pages for a recruiter, a research lead, or a collaborator. It states the thesis, the three
+contributions with their evidence status, the method in one paragraph, the sentence the result supports,
+and the links to verify it. It is written to be read in five minutes and checked in ten. The source is
+[`brief.typ`](brief.typ); every number is one of the published ones.
 
 **The one-page version.** [`one-pager.pdf`](one-pager.pdf) — *I tried to break my own result before I
 published it*: the four defences, the one that failed, and the null underneath, on one sheet. It carries
