@@ -36,7 +36,7 @@
   - Owner action: Zenodo, link the GitHub repo or upload the archive.
   - Done when: DOI appears in the README, the paper, and the brief.
 - [x] **Package the country snapshot.** Done: `dist/robustfolio-snapshot-yahoo-countryetf-1998-01-01_2026-09-30-2026-11-05-269a4565.tar.gz` plus `.sha256`; 1.89 MB; SHA `d8bf3b43…72ef`.
-- [x] **Attach the country snapshot to the release.** Done 2026-11-06; GitHub reports the asset at 1,980,519 bytes with digest `sha256:d8bf3b43…72ef`.
+- [x] **Attach the country snapshot to the release.** Done 2026-11-06; GitHub reports the asset at 1,980,519 bytes with digest `sha256:d8bf3b43…72ef`. Companion checksum attached as `…tar.gz.sha256.txt` (153 bytes) after the bare `.sha256` extension was rejected.
 - [ ] **One-command reproduction** and CI badge.
   - Done when: a fresh clone reproduces one published table in under ten minutes.
 - [ ] **Add the DOI to the paper's first page** and rebuild the PDF.
@@ -103,4 +103,6 @@
 | 2026-11-06 | Tag `v1.1` | Pushed with the branch |
 | 2026-11-06 | Evaluation checklist + reviewer's guide | Published in `docs/` |
 | 2026-11-06 | Reproduction request + venue/talk plan | Notes ready |
+| 2026-11-06 | v1.1 release + snapshot | Published, asset digest verified |
+| 2026-11-06 | Draft + checksum hygiene | Draft removed; checksum attached as `.txt`, content verified |
 | 2026-11-12 | Carousel 7-day numbers | Pending |
