@@ -10,7 +10,7 @@
 
 - Compliance remediation at `f105b9e`; carousel build-order fix at `d3cc158`.
 - Audit remediation `01d2768`: CI #36 — **success**.
-- Current record commit `83d2d7c`: CI #43 — **success**.
+- Current record commit `fa14ebe`: CI #45 — **success** (CI #44 also green).
 - Tests: 287 passed, 1 skipped (the vacuous survivorship test).
 - Synthetic end-to-end demo added: `scripts/run_synthetic_demo.py` runs all seven methods on a deterministic panel with a split and dividends, with no vendor data.
 - Verifier mutation tests added: every exact field, method order, ranking, baseline, notice, gate, flag, and verdict is now pinned by a failing mutation.
@@ -133,5 +133,5 @@
 | 2026-11-07 | Current record commit | `78170ef`; CI #39 green |
 | 2026-11-07 | Synthetic end-to-end demo | `scripts/run_synthetic_demo.py`: 7 methods, 168 rebalances, 14 folds, certificate, 8 artifacts; no vendor data; CI #41 green |
 | 2026-11-07 | Verifier mutation tests | Every exact field, method order, ranking, baseline, notice, gate, flag, and verdict has a mutation that must fail; 287 passed, 1 skipped |
-| 2026-11-07 | Cross-project link and synthesis | Epistemic DRO linked from the README; synthesis drafted; CI #42 and #43 green |
+| 2026-11-07 | Cross-project link and synthesis | Epistemic DRO linked from the README; synthesis drafted and linked from both projects; CI #42–#45 green |
 | 2026-11-12 | Carousel 7-day numbers | Pending |
