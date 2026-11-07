@@ -100,6 +100,8 @@ python -m pip install -e ".[dev,paper]"
 ```bash
 python scripts/certify_engine.py    # 7 methods x 168 rebalances, KKT certificate
 python scripts/demo_the_check.py    # watch the check reject a tampered verdict
+python scripts/run_synthetic_demo.py --out results/synthetic-demo
+                                     # full pipeline on a deterministic synthetic panel
 python -m pytest -q                 # the full suite
 
 # The public one-sheet, redrawn from the published tables.
@@ -112,6 +114,8 @@ python scripts/make_cards.py --out essays/one-pager
 # Needs the optional extra: pip install -e ".[paper]"
 python scripts/build_paper.py
 ```
+
+`run_synthetic_demo.py` is an **end-to-end demonstration, not a reproduction**: it builds a deterministic five-asset panel with a split and dividends, runs all seven methods through the real harness and report builder, and writes a run directory. It is what a fresh clone can exercise without the restricted data.
 
 **Exact reproduction is not offered.** The tables were computed from a frozen snapshot of Yahoo Finance prices and FRED `DGS1MO`. The upstream terms do not permit redistribution: Yahoo restricts automated collection and grants no redistribution right, and FRED prohibits archiving FRED content or providing it to third parties. The snapshot archives and checksums were **removed** from the `v1.0.0` and `v1.1` releases on 2026-11-06. [`docs/data_licenses.md`](docs/data_licenses.md) records each file, its terms, and the decision; [`docs/open_source_and_license_policy.md`](docs/open_source_and_license_policy.md) v1.2 is the policy.
 
@@ -172,7 +176,7 @@ A **packaged archive** is those five files plus a generated `NOTICE.txt` recordi
 | Optimizer | CVXPY + CLARABEL, **no fallback path**, every rebalance certified by a primal KKT residual against a frozen tolerance |
 | Engine certificate | 7 methods × 168 rebalances = **1,176 solves, zero rejections**; worst KKT residual `1.49e-11` vs `1e-7` acceptance |
 | Leakage suite | protocol §5.4.8 — 14 pass, 1 recorded skip (the survivorship test is vacuous in-sample; see below) |
-| Tests | 260 passed, 1 skipped - including the leakage suite, release-packaging integrity (the notice included), snapshot-name integrity, metric determinism, the verifier's own exact/bounded split for both published tables, the paired-inference and cap-sweep calculations, the generated one-pager and its two social cards (their numbers, their required disclosure, their margins, that the page still fits on one page, and that a card changed in memory changes on the image), the eight-slide carousel (slide count, rendered numbers, no typed measurement), the working paper (every table value present in the rendered PDF, no measurement typed into its source, the prohibited claims absent), the research brief, repository consistency (package/citation versions and unique CSV headers), and the documentation index |
+| Tests | 287 passed, 1 skipped - including the synthetic end-to-end demo, the verifier's mutation suite (every exact field, method order, ranking, baseline, notice, gate, flag, and verdict), the leakage suite, release-packaging integrity (the notice included), snapshot-name integrity, metric determinism, the verifier's own exact/bounded split for both published tables, the paired-inference and cap-sweep calculations, the generated one-pager and its two social cards (their numbers, their required disclosure, their margins, that the page still fits on one page, and that a card changed in memory changes on the image), the eight-slide carousel (slide count, rendered numbers, no typed measurement), the working paper (every table value present in the rendered PDF, no measurement typed into its source, the prohibited claims absent), the research brief, repository consistency (package/citation versions and unique CSV headers), and the documentation index |
 | Packaging chain | Frozen snapshot packs to a deterministic 1.67 MB archive with an external SHA-256 and a `NOTICE.txt` recording the data's provenance and that it is not for redistribution. The archive is local-only; it is not published. `verify_release.py` re-runs the harness from an archive and compares the result to the published tables — every decision exactly, including the verdict, and the measurements within the documented bound |
 | Continuous integration | Hermetic suite green on a fresh clone by design: no snapshot, no network, no archive fetch. CI also rebuilds the one-pager and the paper from the committed tables. The end-to-end archive comparison is not run in CI because no archive is published; it remains available locally to anyone who has one |
 

@@ -372,6 +372,101 @@ def test_the_public_demo_still_demonstrates_something() -> None:
     assert demo_the_check.main([]) == 0
 
 
+# --------------------------------------------------------------------------- #
+# Mutation tests: every exact field is load-bearing
+# --------------------------------------------------------------------------- #
+#
+# The comparison logic is a claim about which quantities are decisions. A field
+# that is listed as exact but whose mutation still passes is not being checked;
+# it is decoration. These tests mutate one field at a time and require a failure,
+# so deleting a field from a tuple, or loosening a comparison to a tolerance,
+# cannot go unnoticed.
+
+@pytest.mark.parametrize(
+    "column,replacement",
+    [
+        ("rebalances", 167.0),
+        ("folds", 13.0),
+        ("headline_cost_bps", 0.0),
+    ],
+)
+def test_every_exact_outcome_field_rejects_a_mutation(
+    column: str, replacement: float
+) -> None:
+    published = _table()
+    recomputed = published.copy()
+    recomputed[column] = replacement
+
+    worst, offenders, problems = vr.compare(recomputed, published)
+
+    assert worst == 0.0, "the metrics did not move; only the exact field did"
+    assert offenders == []
+    assert any(column in problem for problem in problems), (
+        f"{column} is declared exact but its mutation passed"
+    )
+
+
+def test_a_permuted_method_order_fails() -> None:
+    """Same methods, same numbers, different order: a different table."""
+    published = _table()
+    recomputed = published.iloc[::-1]
+
+    worst, offenders, problems = vr.compare(recomputed, published)
+
+    assert worst == float("inf")
+    assert offenders == []
+    assert any("method set or order" in problem for problem in problems)
+
+
+def _mutate(value: object) -> object:
+    """Return a value that differs from ``value`` in the same dtype family."""
+    if isinstance(value, (bool, np.bool_)):
+        return not bool(value)
+    if isinstance(value, (int, np.integer)):
+        return int(value) + 1
+    if isinstance(value, (float, np.floating)):
+        return float(value) + 1.0
+    return f"{value}X"
+
+
+@pytest.mark.parametrize("column", vr.DECISION_EXACT_COLUMNS)
+def test_every_declared_exact_decision_field_rejects_a_mutation(column: str) -> None:
+    """The hand-written exact tuple is the verifier's list of decisions.
+
+    Parametrising over the tuple itself means a field added to the artifact and
+    the tuple, or removed from the tuple, is exercised without editing this test.
+    """
+    published = _decisions()
+    recomputed = published.copy()
+    original = recomputed.loc["M2", column]
+    recomputed.loc["M2", column] = _mutate(original)
+
+    worst, offenders, problems = vr.compare_decisions(recomputed, published)
+
+    assert worst == 0.0, f"{column} is exact, so no measurement moved"
+    assert offenders == []
+    assert problems, f"{column} is declared exact but its mutation passed"
+
+
+def test_the_notice_is_required(tmp_path: Path) -> None:
+    """An archive without the licence statement is not one this project packed."""
+    with pytest.raises(vr.VerificationError, match="missing"):
+        vr._check_notice(tmp_path)
+
+
+def test_a_modified_notice_fails(tmp_path: Path) -> None:
+    (tmp_path / vr.NOTICE_NAME).write_text(vr.NOTICE_TEXT + "\n", encoding="utf-8")
+
+    with pytest.raises(vr.VerificationError, match="differs"):
+        vr._check_notice(tmp_path)
+
+
+def test_an_unchanged_notice_passes(tmp_path: Path) -> None:
+    (tmp_path / vr.NOTICE_NAME).write_text(vr.NOTICE_TEXT, encoding="utf-8")
+
+    vr._check_notice(tmp_path)  # raises if the notice is rejected
+
+
 def test_the_demo_leaves_the_published_tables_alone() -> None:
     """The demo tampers in memory. If it ever wrote, it would destroy its own subject.
 

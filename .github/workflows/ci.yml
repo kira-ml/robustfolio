@@ -64,6 +64,12 @@ jobs:
       - name: Tests
         run: python -m pytest -q
 
+      - name: Synthetic end-to-end pipeline
+        # No vendor data, no network: the real harness and report path on a
+        # deterministic synthetic panel. This is a demonstration, not a
+        # reproduction of the published sample.
+        run: python scripts/run_synthetic_demo.py --out /tmp/synthetic-demo
+
       - name: The one-pager renders from the committed tables alone
         # Unconditional, unlike the steps below: the public page needs no snapshot
         # and no download, because its numbers are read from docs/published-run/.
