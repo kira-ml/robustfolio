@@ -12,6 +12,13 @@ end-to-end reproduction therefore requires the reviewer to obtain the data
 independently. The request below is scoped to what a reviewer can actually run
 without receiving restricted data.
 
+**Update 2026-11-07.** Two hermetic checks were added, and the requested scope is
+unchanged. `scripts/run_synthetic_demo.py` exercises the real data layout, harness,
+all seven methods, and the report builder on a deterministic synthetic panel with a
+split and dividends; it is explicitly not a reproduction of the published sample.
+The verifier's mutation suite now requires a failure for every exact field, method
+order, count, cost level, ranking, baseline, notice, gate, flag, and verdict.
+
 ## The message
 
 Send as-is, personalise the first line.
@@ -31,14 +38,16 @@ Send as-is, personalise the first line.
 git clone https://github.com/kira-ml/robustfolio.git && cd robustfolio
 python -m pip install -e ".[dev]"
 python -m pytest -q
+python scripts/run_synthetic_demo.py --out /tmp/synthetic-demo
 python scripts/demo_the_check.py
 python scripts/certify_engine.py
 ```
 
-These exercise the leakage suite, the release-packaging integrity tests, the
-snapshot-name checks, the verifier's own exact/bounded split, the generated paper
-and cards, and the engine certificate. They do not reproduce the published numbers,
-because the input is not present.
+These exercise the synthetic end-to-end path, the leakage suite, the
+release-packaging integrity tests, the snapshot-name checks, the verifier's own
+exact/bounded split and mutation suite, the generated paper and cards, and the
+engine certificate. They do not reproduce the published numbers, because the input
+is not present.
 
 ## If they independently hold a snapshot
 

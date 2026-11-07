@@ -11,6 +11,7 @@ every claim in them can be checked against the repository that made it.
 | 4 | [`robustfolio-working-paper.pdf`](robustfolio-working-paper.pdf) — *The benchmark is the binding constraint* | Research / systematic investing | 10 pages |
 | 5 | [`robustfolio-carousel.pdf`](robustfolio-carousel.pdf) — *My own test rejected my best method. It couldn't see a win that size.* | LinkedIn / general technical | 8 slides |
 | 6 | [`robustfolio-research-brief.pdf`](robustfolio-research-brief.pdf) — *What a backtest can prove* | Recruiters / research leads / collaborators | 2 pages |
+| 7 | [`two-nulls-one-evaluation-problem.md`](two-nulls-one-evaluation-problem.md) — *Two nulls, one evaluation problem* | General technical / research | ~1,450 words |
 
 **The research brief.** [`robustfolio-research-brief.pdf`](robustfolio-research-brief.pdf) — *What a backtest can
 prove*: two pages for a recruiter, a research lead, or a collaborator. It states the thesis, the three
