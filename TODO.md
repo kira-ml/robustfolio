@@ -10,10 +10,11 @@
 
 - Compliance remediation at `f105b9e`; carousel build-order fix at `d3cc158`.
 - Audit remediation `01d2768`: CI #36 — **success**.
-- Current record commit `78170ef`: CI #39 — **success**.
+- Current record commit `83d2d7c`: CI #43 — **success**.
 - Tests: 287 passed, 1 skipped (the vacuous survivorship test).
 - Synthetic end-to-end demo added: `scripts/run_synthetic_demo.py` runs all seven methods on a deterministic panel with a split and dividends, with no vendor data.
 - Verifier mutation tests added: every exact field, method order, ranking, baseline, notice, gate, flag, and verdict is now pinned by a failing mutation.
+- Cross-project synthesis drafted: [`essays/two-nulls-one-evaluation-problem.md`](essays/two-nulls-one-evaluation-problem.md) (~1,450 words), using published results only; Epistemic DRO links it.
 - Live carousel: <https://www.linkedin.com/feed/update/urn:li:activity:7524101151596937216/> (posted 2026-11-05).
 - Previous post: <https://www.linkedin.com/feed/update/urn:li:activity:7520351295396933632/>.
 - Correction comment: **live and verified 2026-11-07**, including “Not investment advice.”
@@ -130,6 +131,7 @@
 | 2026-11-07 | Repository audit fixes | Stale archive claims corrected; legacy scripts moved to `scripts/legacy/`; version aligned; country fold headers and manifest fixed; NOTICE/SECURITY/CONTRIBUTING/Dependabot added; 260 passed, 1 skipped; CI #36 green |
 | 2026-11-07 | Live LinkedIn comment corrected | Verified: data-licensing correction and “Not investment advice.” present |
 | 2026-11-07 | Current record commit | `78170ef`; CI #39 green |
-| 2026-11-07 | Synthetic end-to-end demo | `scripts/run_synthetic_demo.py`: 7 methods, 168 rebalances, 14 folds, certificate, 8 artifacts; no vendor data |
+| 2026-11-07 | Synthetic end-to-end demo | `scripts/run_synthetic_demo.py`: 7 methods, 168 rebalances, 14 folds, certificate, 8 artifacts; no vendor data; CI #41 green |
 | 2026-11-07 | Verifier mutation tests | Every exact field, method order, ranking, baseline, notice, gate, flag, and verdict has a mutation that must fail; 287 passed, 1 skipped |
+| 2026-11-07 | Cross-project link and synthesis | Epistemic DRO linked from the README; synthesis drafted; CI #42 and #43 green |
 | 2026-11-12 | Carousel 7-day numbers | Pending |
