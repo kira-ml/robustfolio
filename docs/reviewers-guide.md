@@ -1,7 +1,8 @@
 # Reviewer's guide
 
-**Version:** 1.0
+**Version:** 1.1
 **Status:** Active — communication artifact, not a contract.
+**Last Updated:** 2026-11-08
 **Purpose:** A thirty-minute path through the repository for someone who wants to
 check the claims rather than read everything.
 
@@ -50,6 +51,8 @@ inspect the committed tables in `docs/published-run/`.
 - The snapshot is **not distributed**, so exact end-to-end reproduction requires
   your own licensed copy; the committed tables are the public record.
 - The country sample is current-listed; its survivorship remains.
+- The country sample is an external replication, not a confirmatory test: the protocol is
+  dated 2026-11-05, but its freeze is not independently verified.
 
 A reviewer who reads only the result and not these five lines has read a different
 paper.

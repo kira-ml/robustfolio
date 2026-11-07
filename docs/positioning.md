@@ -1,8 +1,8 @@
 # Positioning
 
-**Version:** 1.0
+**Version:** 1.1
 **Status:** Active
-**Last Updated:** 2026-11-06
+**Last Updated:** 2026-11-08
 
 This file is the one-page answer to "what is this project, and why should anyone care?"
 It is a communication artifact, not a contract: it binds nothing and changes no protocol.
@@ -10,7 +10,7 @@ It is a communication artifact, not a contract: it binds nothing and changes no 
 ## One sentence
 
 A pre-registered evaluation benchmark for portfolio construction, with a published power
-audit and an out-of-sample replication.
+audit and a pre-specified external replication.
 
 ## Thesis
 
@@ -36,7 +36,7 @@ Not written for retail investors, and not investment advice.
 |---|---|---|
 | 1 | A **single-factor registered comparison**: seven constructions on 18 US ETFs over 168 months, where each treatment differs from the baseline in exactly one component. | Verified, exploratory |
 | 2 | A **power audit of the registered gate**: it required an observed gap of 0.478 to certify a 0.20 bar, and had about 24% power at 0.20. | Verified |
-| 3 | A **pre-registered out-of-sample replication** on 18 country ETFs: the best baseline changed from sample MVO to equal weight, and the treatment edge did not replicate. | Confirmatory for that sample |
+| 3 | A **pre-specified out-of-sample replication** on 18 country ETFs: the best baseline changed from sample MVO to equal weight, and the treatment edge did not replicate. | External replication; protocol dated 2026-11-05, freeze not independently verified |
 
 Supporting apparatus: a leakage suite, a KKT certificate on every solve, and a reproduction
 check that compares decisions exactly and measurements within a documented bound when a
@@ -47,6 +47,8 @@ snapshot archive is supplied. The snapshot itself is not distributed.
 - Not a live trading system, not a forecast, not a claim of alpha.
 - Not a confirmatory test of the first sample: the registered test was executed without
   blindness (finding F26), so the hypotheses are untested, not falsified.
+- Not a confirmatory country test: the protocol is dated 2026-11-05, but the repository does
+  not independently establish that it was frozen before execution.
 - Not universal: one asset family, one period, flat costs, no market impact.
 - Not "no effect": the supported sentence is "not materially better than the best baseline".
 
@@ -74,6 +76,7 @@ replicate on fresh territory.
 - Brief: `essays/robustfolio-research-brief.pdf`
 - Protocol: `docs/evaluation_protocol.md`
 - Test correction: `notes/paired_inference_2026-11-04.md`
-- Replication: `notes/confirmatory_country_etfs_2026-11-05.md`
+- Replication protocol: `notes/confirmatory_country_etfs_2026-11-05.md`
+- Claim-status audit: `notes/audit_2026-11-08.md`
 - Reproduction, with a locally supplied snapshot: `scripts/verify_release.py` and
   `docs/published-run/README.md`. The snapshot is not distributed.

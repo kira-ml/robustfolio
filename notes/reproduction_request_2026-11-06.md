@@ -1,7 +1,7 @@
 # Independent check request
 
-**Date:** 2026-11-06
-**Goal:** two independent checks of the code, the published tables, or both before 2026-12-04.
+**Date:** 2026-11-06 (updated 2026-11-08)
+**Goal:** one independent check of the code, the published tables, or both before 2026-12-04.
 
 The point is a check, not an endorsement. A mismatch is the interesting outcome and
 is reported the same way as a match.
@@ -19,18 +19,29 @@ split and dividends; it is explicitly not a reproduction of the published sample
 The verifier's mutation suite now requires a failure for every exact field, method
 order, count, cost level, ranking, baseline, notice, gate, flag, and verdict.
 
+**Update 2026-11-08 — claim correction.** The country sample is now labeled a
+pre-specified external replication, not a confirmatory test. The protocol file was
+last written after the results, and both were committed together; the repository
+cannot establish that the freeze preceded execution. The correction is recorded in
+[`audit_2026-11-08.md`](audit_2026-11-08.md) and `DEC-20261108-044`. The reviewer is
+asked to attack this label specifically: if the correction is too generous, say so;
+if it is still too strong, say that too.
+
 ## The message
 
 Send as-is, personalise the first line.
 
 > Hi [name] — I built a pre-registered benchmark for portfolio construction, and I am
-> looking for one independent check rather than an endorsement. The code and the
-> published tables are public; the market-data snapshot is not redistributed for
-> licensing reasons, so the check is either a code/claims review or, if you already
-> have independently licensed data, a run against your own snapshot. The hermetic
-> checks take a few minutes. If something disagrees, that is the useful outcome, and
-> I will report it either way. Would you take a look?
-> <link to the repository and the reviewer's guide>
+> looking for one independent check rather than an endorsement. I recently corrected
+> my own country-sample claim: the protocol was not independently verifiable as
+> frozen before execution, so it is now labeled an external replication, not a
+> confirmatory test. The code and the published tables are public; the market-data
+> snapshot is not redistributed for licensing reasons, so the check is either a
+> code/claims review or, if you already have independently licensed data, a run
+> against your own snapshot. The hermetic checks take a few minutes. If something
+> disagrees — especially the corrected label — that is the useful outcome, and I will
+> report it either way. Would you take a look?
+> <link to the repository, `notes/audit_2026-11-08.md`, and the reviewer's guide>
 
 ## What they run without any market data
 

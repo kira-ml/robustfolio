@@ -1,9 +1,9 @@
 # Published run — `outcomes.csv`, `decisions.csv`, and the exploratory corrections
 
-**Version:** 1.4
+**Version:** 1.5
 **Status:** Frozen
 **Created:** 2026-10-18
-**Last Updated:** 2026-11-06
+**Last Updated:** 2026-11-08
 
 These are the **published tables** from the first end-to-end run of the reporting layer,
 `EXP-X-20261017-003`, computed from the frozen snapshot
@@ -151,12 +151,15 @@ The full argument, including the pre-declared decision rule and the firewall, is
 
 ## The country-ETF sample (2026-11-05)
 
-`country-sample/` holds the published tables for the pre-registered second sample: 18
+`country-sample/` holds the published tables for the pre-specified external sample: 18
 current-listed country ETFs, 2005-07 to 2026-06, 252 months, 21 folds, the corrected paired
-significance gate. The best baseline is **1/N**, both treatments underperform it, and the
-treatment advantage does not replicate. The benchmark lesson does. See
-[`country-sample/README.md`](country-sample/README.md) and
-[`notes/country_sample_result_2026-11-05.md`](../../notes/country_sample_result_2026-11-05.md).
+significance gate. The protocol is dated 2026-11-05, but its final content was written after
+the results; the repository does not independently establish that it was frozen before
+execution. The sample is **not labeled confirmatory**. The best baseline is **1/N**, both
+treatments underperform it, and the treatment advantage does not replicate. The benchmark
+lesson does. See [`country-sample/README.md`](country-sample/README.md),
+[`notes/country_sample_result_2026-11-05.md`](../../notes/country_sample_result_2026-11-05.md),
+and [`notes/audit_2026-11-08.md`](../../notes/audit_2026-11-08.md).
 
 ## What it is not
 

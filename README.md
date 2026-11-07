@@ -1,6 +1,6 @@
 # robustfolio
 
-**A pre-registered evaluation benchmark for portfolio construction — with a published power audit and an out-of-sample replication.**
+**A pre-registered evaluation benchmark for portfolio construction — with a published power audit and a pre-specified external out-of-sample replication.**
 
 **Thesis.** In portfolio research, the binding constraint is usually the **evaluation**, not the method. The comparator, the test's power, and the sample decide the verdict more than the strategy does.
 
@@ -8,9 +8,9 @@
 
 1. A **single-factor registered comparison**: seven constructions on 18 US ETFs over 168 months, where each treatment differs from the baseline in exactly one component.
 2. A **power audit of the registered gate**: it required an observed gap of 0.478 to certify a 0.20 bar, and had about 24% power at 0.20.
-3. A **pre-registered replication** on 18 country ETFs: the best baseline changed from sample MVO to equal weight, and the treatment edge did not replicate.
+3. A **pre-specified external replication** on 18 country ETFs: the best baseline changed from sample MVO to equal weight, and the treatment edge did not replicate.
 
-**Evidence level.** The first sample is exploratory and non-confirmatory: the registered test was executed without the blindness its registration required (finding **F26**), so the hypotheses are *untested, not falsified*. The country sample is confirmatory for that sample. Empirical quantitative-finance research with a data-science evaluation stack; not a trading system, not a claim of alpha, not a machine-learning project.
+**Evidence level.** The first sample is exploratory and non-confirmatory: the registered test was executed without the blindness its registration required (finding **F26**), so the hypotheses are *untested, not falsified*. The country sample is a pre-specified external replication; the repository does not independently establish that its protocol was frozen before execution, so it is **not labeled confirmatory**. Empirical quantitative-finance research with a data-science evaluation stack; not a trading system, not a claim of alpha, not a machine-learning project.
 
 **Read:** [research brief](essays/robustfolio-research-brief.pdf) · [working paper](essays/robustfolio-working-paper.pdf) · [evaluation checklist](docs/evaluation-checklist.md) · [positioning](docs/positioning.md) · [protocol](docs/evaluation_protocol.md) · [reproduce](#reproduce-it)
 
@@ -63,10 +63,12 @@ for why they are not regenerated in CI.
 
 ## New sample — country ETFs, 2005–2026
 
-A second, **pre-registered** sample tests the reading on a different cross-section and period:
+A second, **pre-specified** sample tests the reading on a different cross-section and period:
 18 current-listed iShares MSCI country ETFs, 2005-07 to 2026-06, 252 months in 21 folds,
-same seven methods, same 0.20 bar, and the corrected paired significance gate. The protocol
-was frozen before execution; the result is reported regardless of direction.
+same seven methods, same 0.20 bar, and the corrected paired significance gate. The protocol is
+dated 2026-11-05, but its final content was written after the results; the repository does not
+independently establish that it was frozen before execution. The result is reported regardless
+of direction and is **not labeled confirmatory**.
 
 | Method | Net excess Sharpe |
 |---|---:|
@@ -84,8 +86,10 @@ cost levels, both traded about 3× the baseline's turnover, and both fail. The t
 advantage did not replicate; the benchmark lesson did: the comparator is a property of the
 sample.
 
+**Claim status.** The country results were written at 19:51:35 on 2026-11-05; the protocol file was last written at 20:08:45, and both were committed together at 20:09:27. The repository therefore cannot establish that the protocol was frozen before execution. See [`notes/audit_2026-11-08.md`](notes/audit_2026-11-08.md).
+
 Full note: [`notes/country_sample_result_2026-11-05.md`](notes/country_sample_result_2026-11-05.md).
-Pre-registration: [`notes/confirmatory_country_etfs_2026-11-05.md`](notes/confirmatory_country_etfs_2026-11-05.md).
+Protocol record: [`notes/confirmatory_country_etfs_2026-11-05.md`](notes/confirmatory_country_etfs_2026-11-05.md).
 Published tables: [`docs/published-run/country-sample/`](docs/published-run/country-sample/).
 
 ## Reproduce it
@@ -176,7 +180,7 @@ A **packaged archive** is those five files plus a generated `NOTICE.txt` recordi
 | Optimizer | CVXPY + CLARABEL, **no fallback path**, every rebalance certified by a primal KKT residual against a frozen tolerance |
 | Engine certificate | 7 methods × 168 rebalances = **1,176 solves, zero rejections**; worst KKT residual `1.49e-11` vs `1e-7` acceptance |
 | Leakage suite | protocol §5.4.8 — 14 pass, 1 recorded skip (the survivorship test is vacuous in-sample; see below) |
-| Tests | 287 passed, 1 skipped - including the synthetic end-to-end demo, the verifier's mutation suite (every exact field, method order, ranking, baseline, notice, gate, flag, and verdict), the leakage suite, release-packaging integrity (the notice included), snapshot-name integrity, metric determinism, the verifier's own exact/bounded split for both published tables, the paired-inference and cap-sweep calculations, the generated one-pager and its two social cards (their numbers, their required disclosure, their margins, that the page still fits on one page, and that a card changed in memory changes on the image), the eight-slide carousel (slide count, rendered numbers, no typed measurement), the working paper (every table value present in the rendered PDF, no measurement typed into its source, the prohibited claims absent), the research brief, repository consistency (package/citation versions and unique CSV headers), and the documentation index |
+| Tests | 297 passed, 1 skipped - including the country-claim correction test, the synthetic end-to-end demo, the verifier's mutation suite (every exact field, method order, ranking, baseline, notice, gate, flag, and verdict), the leakage suite, release-packaging integrity (the notice included), snapshot-name integrity, metric determinism, the verifier's own exact/bounded split for both published tables, the paired-inference and cap-sweep calculations, the generated one-pager and its two social cards (their numbers, their required disclosure, their margins, that the page still fits on one page, and that a card changed in memory changes on the image), the eight-slide carousel (slide count, rendered numbers, no typed measurement), the working paper (every table value present in the rendered PDF, no measurement typed into its source, the prohibited claims absent), the research brief, repository consistency (package/citation versions and unique CSV headers), and the documentation index |
 | Packaging chain | Frozen snapshot packs to a deterministic 1.67 MB archive with an external SHA-256 and a `NOTICE.txt` recording the data's provenance and that it is not for redistribution. The archive is local-only; it is not published. `verify_release.py` re-runs the harness from an archive and compares the result to the published tables — every decision exactly, including the verdict, and the measurements within the documented bound |
 | Continuous integration | Hermetic suite green on a fresh clone by design: no snapshot, no network, no archive fetch. CI also rebuilds the one-pager and the paper from the committed tables. The end-to-end archive comparison is not run in CI because no archive is published; it remains available locally to anyone who has one |
 
@@ -187,6 +191,7 @@ A **packaged archive** is those five files plus a generated `NOTICE.txt` recordi
 These are the honest ones, not a disclaimer. The full list is in the report and in [`docs/decision_log.md`](docs/decision_log.md).
 
 - **The headline run is exploratory, and the confirmatory slot is now empty.** Validating the report generator required executing the frozen configuration first, so the registered confirmatory test's answer was observed before the test ran. It has been re-designated **executed (non-confirmatory)** rather than repaired, because blindness cannot be restored once lost (finding **F26**, DEC-20261017-034). The consequence is worth stating plainly: **no confirmatory test now exists**, so no hypothesis is confirmed *or* falsified here — the frozen decision rule returns failure for both candidate methods either way, but it was never applied blind, and this README will not call it a test. What a valid one would require: a **new sample** (a different asset class, or a period that does not yet exist), registered before the data does.
+- **The country sample is an external replication, not a confirmatory test.** Its protocol is dated 2026-11-05, but the file was last written after the results, and the protocol and results were committed together. The repository cannot establish that the freeze preceded execution, so the sample is not labeled confirmatory; see [`notes/audit_2026-11-08.md`](notes/audit_2026-11-08.md).
 - **"Point-in-time" here means point-in-time *eligibility*, not point-in-time *data*.** The universe is correctly reconstructed from date-stamped eligibility windows, so no instrument appears before it existed. But the prices are what a 2026 source holds for 2012 today, and price history is revised. A perfect reconstruction of Yahoo's current history is still not the history a trader saw.
 - **168 out-of-sample months and 18 ETF candidates** (17–18 eligible at any rebalance). On the **paired** test this sample can separate roughly a 0.13–0.20 net Sharpe difference between these highly correlated strategies, and not much less. The registered **level** PSR gate is much less powerful (80%-power MDE ≈ 0.72); see the correction above and [`notes/paired_inference_2026-11-04.md`](notes/paired_inference_2026-11-04.md).
 - **The cost model is a flat 10 bps with no market impact, capacity, taxes, or regime dependence.** Costs cannot reach the optimizer: each rebalance is solved once and every cost level is derived from that single turnover series, so a cost level cannot influence the weights it prices.

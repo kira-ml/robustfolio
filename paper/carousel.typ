@@ -32,10 +32,11 @@
   #place(bottom + left, text(size: 8pt, fill: muted)[github.com/kira-ml/robustfolio · exploratory, non-confirmatory · not investment advice])
   #place(bottom + right, text(size: 8pt, fill: muted)[#counter(page).display("1") / 8])
 ]
-// The country sample was pre-registered, so it is confirmatory for that sample; the
-// project as a whole remains exploratory because the correction came from the first one.
+// The country sample is a pre-specified external replication, not a confirmatory test:
+// the protocol's freeze is not independently verified. The project as a whole remains
+// exploratory because the correction came from the first sample.
 #let footer-registered = context [
-  #place(bottom + left, text(size: 8pt, fill: muted)[github.com/kira-ml/robustfolio · pre-registered sample · confirmatory for that sample · not investment advice])
+  #place(bottom + left, text(size: 8pt, fill: muted)[github.com/kira-ml/robustfolio · external replication · not confirmatory · not investment advice])
   #place(bottom + right, text(size: 8pt, fill: muted)[#counter(page).display("1") / 8])
 ]
 #let card(body) = block(width: 100%, fill: white, stroke: 0.6pt + rule, inset: 12pt, radius: 5pt, body)

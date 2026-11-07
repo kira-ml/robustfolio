@@ -1,17 +1,19 @@
 # TODO
 
-**Updated:** 2026-11-07
+**Updated:** 2026-11-08
 **Status:** Working checklist. Not a governance document, not a contract.
 **Authority:** decisions live in [`docs/decision_log.md`](docs/decision_log.md). The old `TODO.md` was retired into its Appendix B; this file is the execution view of the current plan, not a revival of that ledger.
 
-**Current constraint:** independent review and citability under a **no-redistribution** data policy. The evidence is already at the ceiling; the gaps are a DOI and one independent check. The snapshot cannot be a public release asset: the Yahoo and FRED terms do not permit it (DEC-20261106-042).
+**Current constraint:** claim integrity and external review under a **no-redistribution** data policy. The country sample is a pre-specified external replication, not a confirmatory test; the DOI draft is private. The snapshot cannot be a public release asset: the Yahoo and FRED terms do not permit it (DEC-20261106-042).
 
 **State at this update**
 
 - Compliance remediation at `f105b9e`; carousel build-order fix at `d3cc158`.
 - Audit remediation `01d2768`: CI #36 — **success**.
-- Current record commit `fa14ebe`: CI #45 — **success** (CI #44 also green).
-- Tests: 287 passed, 1 skipped (the vacuous survivorship test).
+- Local correction branch `claim-correction-2026-11-08`; **not pushed, not tagged, not released**.
+- Claim correction: country sample relabeled a pre-specified external replication, not confirmatory (DEC-20261108-044; `notes/audit_2026-11-08.md`).
+- Version `1.1.1` prepared; `v1.1` tag not moved.
+- Tests: 297 passed, 1 skipped (the vacuous survivorship test).
 - Synthetic end-to-end demo added: `scripts/run_synthetic_demo.py` runs all seven methods on a deterministic panel with a split and dividends, with no vendor data.
 - Verifier mutation tests added: every exact field, method order, ranking, baseline, notice, gate, flag, and verdict is now pinned by a failing mutation.
 - Cross-project synthesis drafted: [`essays/two-nulls-one-evaluation-problem.md`](essays/two-nulls-one-evaluation-problem.md) (~1,450 words), using published results only; Epistemic DRO links it.
@@ -22,10 +24,11 @@
 
 **Remaining work — in order**
 
-1. **Zenodo DOI** for `v1.1` (code/tables only; never the snapshot).
+1. **Rebuild and review the `v1.1.1` archive**; replace the private Zenodo draft file and metadata.
 2. **One independent external check**; record reviewer, scope, result, objections.
-3. **Record the carousel’s 7-day numbers** on **2026-11-12**.
-4. **Freeze the repository** after DOI/check; no further technical work.
+3. **Publish the DOI and `v1.1.1` release only after Gate 2** and explicit approval.
+4. **Record the carousel’s 7-day numbers** on **2026-11-12**.
+5. **Freeze the repository** after DOI/check; no further technical work.
 
 ---
 
@@ -44,7 +47,8 @@
   - Done when: the numbers are in the log below.
   - Decision rule: fewer than ~500 impressions and no substantive comment means the constraint is distribution, not format.
 - [x] **Write `CITATION.cff`** at the repository root. Done 2026-11-06.
-  - Version `1.1.0`; matches the `v1.1` tag.
+  - Version `1.1.0` matched the `v1.1` tag.
+  - Version `1.1.1` (2026-11-08) is the claim-correction patch; see [`docs/release-notes-v1.1.1.md`](docs/release-notes-v1.1.1.md).
 - [x] **Draft the `v1.1` release notes**: the country sample, the correction, the brief. Done: [`docs/release-notes-v1.1.md`](docs/release-notes-v1.1.md).
 
 ## Next — weeks 2–4: make it citable
@@ -52,7 +56,7 @@
 - [x] **Tag `v1.1`.** Done with this commit; pushed with the branch.
 - [x] **Create the GitHub release from `v1.1`.** Done 2026-11-06; published and marked latest.
 - [ ] **Archive to Zenodo and mint a DOI.**
-  - Owner action: Zenodo, link the GitHub repo or upload the **code-only** release archive. **Never upload a snapshot containing Yahoo/FRED data.**
+  - Owner action: Zenodo. The private draft `24038813` exists but is **not to be published** until the v1.1.1 correction and external review gates are complete. **Never upload a snapshot containing Yahoo/FRED data.**
   - Done when: DOI appears in the README, the paper, and the brief.
 - [x] **Package the country snapshot locally.** Done: `dist/robustfolio-snapshot-yahoo-countryetf-1998-01-01_2026-09-30-2026-11-05-269a4565.tar.gz` plus `.sha256`; 1.89 MB. **Not published** — retained for local verification only.
 - [x] **Withdraw the country snapshot from the release.** Done 2026-11-06: the asset and its checksum were deleted, and the release body now states why. Do not re-upload without written permission.

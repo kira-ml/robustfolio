@@ -23,7 +23,7 @@ describe in one sentence.
 - The replication, not only the first sample.
 - The code, committed tables, and verification logic. **Do not submit the
   snapshot**; it is not distributed.
-- The disclosure: exploratory first sample; confirmatory for the country sample;
+- The disclosure: exploratory first sample; external replication (protocol dated 2026-11-05, freeze not independently verified) for the country sample;
   not investment advice.
 - A one-page cover note that states the contribution and the limitation.
 

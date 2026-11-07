@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "robustfolio"
-version = "1.1.0"
+version = "1.1.1"
 description = "Walk-forward, cost-aware portfolio rebalancing benchmark"
 requires-python = ">=3.10"
 readme = "README.md"

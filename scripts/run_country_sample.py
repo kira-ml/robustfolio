@@ -1,9 +1,10 @@
-"""Run the pre-registered country-ETF sample (2005-07 to 2026-06).
+"""Run the pre-specified country-ETF external sample (2005-07 to 2026-06).
 
     python scripts/run_country_sample.py --out results/country_sample
 
-This is the new-sample test registered in
-``notes/confirmatory_country_etfs_2026-11-05.md``. It uses the same methods,
+This is the new-sample test specified in
+``notes/confirmatory_country_etfs_2026-11-05.md``. The protocol's freeze is not
+independently verified; see ``notes/audit_2026-11-08.md``. It uses the same methods,
 optimizer, costs and constraints as the first sample, but the corrected paired
 significance gate:
 

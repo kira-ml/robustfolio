@@ -36,7 +36,7 @@ plain language, then shows the 0.8538, the +0.064 gap, the 0.20 bar, the paired 
 data support. It is written for a non-specialist audience without dropping the technical specifics: 18
 ETFs, 168 months, 1,176 solves, a leakage suite, a numerical check and a reproduction check. The cap sweep
 is reported in one line on the correction slide: it did not rescue shrinkage, and it did bind the
-Black–Litterman treatment. The final act reports the pre-registered country-ETF sample: 18 country ETFs,
+Black–Litterman treatment. The final act reports the pre-specified country-ETF sample (protocol dated 2026-11-05; freeze not independently verified): 18 country ETFs,
 2005–2026, 252 months; the best baseline is 1/N, both treatments underperform it, and the treatment
 advantage does not replicate. It is drawn in Typst from `paper/generated/paired.typ` and
 `paper/generated/country.typ`; `python scripts/build_paper.py` rebuilds it and

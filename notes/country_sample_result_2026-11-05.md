@@ -1,18 +1,20 @@
-# New-sample result — country ETFs, 2005–2026
+# Country sample 2 — result (external replication)
 
-**Version:** 1.0
-**Status:** **Pre-registered new sample, executed.** Confirmatory for this sample; the broader project remains exploratory because the corrected test was derived from the first sample.
+**Version:** 1.1
+**Status:** **Pre-specified external replication, executed.** The protocol is dated 2026-11-05, but the repository does not independently establish that its final content was frozen before execution. The sample is not labeled confirmatory; the broader project remains exploratory because the corrected test was derived from the first sample.
 **Created:** 2026-11-05
-**Pre-registration:** [`confirmatory_country_etfs_2026-11-05.md`](confirmatory_country_etfs_2026-11-05.md)
+**Protocol:** [`confirmatory_country_etfs_2026-11-05.md`](confirmatory_country_etfs_2026-11-05.md)
 **Snapshot:** `yahoo-countryetf-1998-01-01_2026-09-30-2026-11-05-269a4565`
 **Tables:** [`../docs/published-run/country-sample/`](../docs/published-run/country-sample/)
 **Reproduce:** `python scripts/run_country_sample.py --out results/country_sample`
+
+**Claim-status note (2026-11-08).** The country results were written at 19:51:35 on 2026-11-05. The protocol file was last written at 20:08:45, and both were committed together at 20:09:27. The repository therefore cannot establish that the protocol was frozen before execution. The result is reported as an external replication, not a confirmatory test. See [`audit_2026-11-08.md`](audit_2026-11-08.md).
 
 ---
 
 ## 1. What was run
 
-The pre-registered new sample: 18 current-listed iShares MSCI country ETFs, 2005-07 to
+The pre-specified external sample: 18 current-listed iShares MSCI country ETFs, 2005-07 to
 2026-06, 252 months, 21 non-overlapping folds, 60-month rolling window, monthly rebalance,
 10 bps one-way costs, 30% position cap, same seven methods and optimizer as the first sample.
 
@@ -20,7 +22,7 @@ The significance gate is the corrected one: the **5th percentile of the paired b
 Sharpe difference above zero** (95% one-sided). The level PSR and the DSR are reported as
 diagnostics, not as gates. The materiality bar is still **0.20** net excess Sharpe.
 
-No performance was inspected before the protocol was frozen. Only data coverage was checked.
+The protocol document was created before the snapshot, but its final content was written after the results. The repository does not establish that the protocol was frozen before execution; no confirmatory freeze is claimed.
 
 ---
 
@@ -92,9 +94,9 @@ new sample made the external validity honest.
   is not a perfect point-in-time reconstruction of what a trader saw.
 - **Flat 10 bps cost.** No market impact, capacity, taxes, or regime-dependent costs. The
   treatments' ~3× turnover relative to 1/N makes this limitation material.
-- **Confirmatory for this sample, not for the original hypothesis in general.** The corrected
-  test was derived from the first sample; this sample is unseen, but the broader project is
-  still exploratory in the strict sense.
+- **External replication, not a confirmatory test.** The protocol's freeze is not independently
+  verified, and the corrected test was derived from the first sample. This sample is unseen, but
+  the broader project is still exploratory in the strict sense.
 
 ---
 

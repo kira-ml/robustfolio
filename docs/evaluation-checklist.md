@@ -1,7 +1,8 @@
 # Evaluation checklist for portfolio backtests
 
-**Version:** 1.0
+**Version:** 1.1
 **Status:** Active — communication artifact, not a contract.
+**Last Updated:** 2026-11-08
 **Purpose:** Eight questions to ask before trusting a backtest. Each is paired with
 the failure it catches and with how this project answers it.
 
@@ -56,7 +57,7 @@ within 1e-9, and the observed difference printed on every run.
 
 **Why.** In-sample selection is the default explanation for a good result.
 **Catches.** Overfitting to one universe, period, or cost model.
-**Here.** A pre-registered country-ETF sample. The treatment edge did not
+**Here.** A pre-specified country-ETF sample; the protocol is dated 2026-11-05, but the freeze is not independently verified. The treatment edge did not
 replicate, and that is reported as the result.
 
 ## 8. What is the strongest sentence the evidence supports, and what does it not?

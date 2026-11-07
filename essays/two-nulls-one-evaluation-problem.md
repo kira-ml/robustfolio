@@ -17,7 +17,7 @@ Both produced nulls. They are not the same kind of null, and that is the point. 
 | Question | Do robust portfolio methods beat plain baselines under a frozen protocol? | Does ML epistemic uncertainty improve a DRO mean-CVaR portfolio, net of costs, out of sample? |
 | Design | 7 methods, 18 US ETFs, 168 out-of-sample months, 14 folds, 1,176 certified solves | 72 ETFs; three pre-registered attempts; v2/v3 stopped before the 2025–2026 holdout |
 | Verdict | Both treatments fail the frozen decision rule | H1 tail improvement fails; H2 non-inferiority passes; H3 ablation fails |
-| Status | Exploratory US sample; confirmatory country replication | Methods study; holdout untouched |
+| Status | Exploratory US sample; external country replication (protocol dated 2026-11-05; freeze not independently verified) | Methods study; holdout untouched |
 
 The designs share a discipline rather than a codebase: point-in-time eligibility, walk-forward evaluation, net-of-cost returns, a pre-declared comparator, and a written rule for what counts as success. They also share the same uncomfortable outcome. The method was not the binding constraint.
 
@@ -93,7 +93,7 @@ That is a 2027 decision, not a November one. The November deliverable is the reu
 
 ## What this does not say
 
-Neither project claims alpha, market-beating performance, investability, or live readiness. Robustfolio's US sample is exploratory and its hypotheses are untested; its country sample is confirmatory only for that sample. Epistemic DRO is a methods study on a current-listed ETF universe, not a survivorship-free production backtest; H2 is a non-inferiority pass, not evidence of superiority. Its gate and effect-size study is a **post-hoc methods audit**, not a new experiment. Neither project used the 2025–2026 holdout. Nothing here is investment advice.
+Neither project claims alpha, market-beating performance, investability, or live readiness. Robustfolio's US sample is exploratory and its hypotheses are untested; its country sample is a pre-specified external replication, but the repository does not independently establish that the protocol was frozen before execution, so it is not labeled confirmatory. Epistemic DRO is a methods study on a current-listed ETF universe, not a survivorship-free production backtest; H2 is a non-inferiority pass, not evidence of superiority. Its gate and effect-size study is a **post-hoc methods audit**, not a new experiment. Neither project used the 2025–2026 holdout. Nothing here is investment advice.
 
 The two nulls are useful because the evaluation was designed to make them informative. That is the part worth reusing.
 

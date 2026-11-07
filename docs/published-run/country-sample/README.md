@@ -1,6 +1,8 @@
 # Country-ETF sample — 2005–2026
 
-**Status:** Pre-registered new sample, executed 2026-11-05. Confirmatory for this sample; the broader project remains exploratory because the corrected test was derived from the first sample.
+**Status:** Pre-specified external replication, executed 2026-11-05. The protocol is dated 2026-11-05, but the repository does not independently establish that its final content was frozen before execution. The sample is **not labeled confirmatory**; the broader project remains exploratory because the corrected test was derived from the first sample.
+
+**Claim-status note (2026-11-08).** The country results were written at 19:51:35 on 2026-11-05. The protocol file was last written at 20:08:45, and both were committed together at 20:09:27. See [`notes/audit_2026-11-08.md`](../../../notes/audit_2026-11-08.md).
 
 This folder holds the published tables for the second sample:
 
@@ -13,7 +15,7 @@ This folder holds the published tables for the second sample:
 
 **Snapshot status:** built locally from Yahoo/FRED and **not distributed**. Exact reproduction of these tables requires an independently obtained archive. The committed CSVs are the record; the universe list and builder are in `notes/` and `scripts/`.
 
-**Pre-registration:** [`notes/confirmatory_country_etfs_2026-11-05.md`](../../../notes/confirmatory_country_etfs_2026-11-05.md)
+**Protocol record:** [`notes/confirmatory_country_etfs_2026-11-05.md`](../../../notes/confirmatory_country_etfs_2026-11-05.md)
 **Result note:** [`notes/country_sample_result_2026-11-05.md`](../../../notes/country_sample_result_2026-11-05.md)
 
 **Result in one line:** the best baseline was 1/N, both treatments underperformed it, and the

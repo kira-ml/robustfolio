@@ -1,11 +1,13 @@
-# Confirmatory sample 2 — country ETFs, 2005–2026
+# Country sample 2 — protocol (freeze not independently verified)
 
-**Version:** 1.0
-**Status:** **Pre-registered and frozen before execution.** A new sample test, not an amendment to protocol v2.4.
+**Version:** 1.1
+**Status:** **Pre-specified protocol; the repository does not independently establish that its final content was frozen before execution.** The sample is reported as an external replication, not a confirmatory test. See [`audit_2026-11-08.md`](audit_2026-11-08.md).
 **Created:** 2026-11-05
 **Owner:** Ken Ira Lacson Talingting
 **Reproduce:** `python scripts/run_country_sample.py`
-**Snapshot (built after the protocol was frozen):** `yahoo-countryetf-1998-01-01_2026-09-30-2026-11-05-269a4565`
+**Snapshot:** `yahoo-countryetf-1998-01-01_2026-09-30-2026-11-05-269a4565`
+
+**Claim-status note (2026-11-08).** The protocol file was created at 19:49:16 on 2026-11-05, before the snapshot at 19:49:50. However, it was last written at 20:08:45, after the country results at 19:51:35; the protocol and results were committed together at 20:09:27. The repository therefore cannot establish that the final protocol content was frozen before execution. The sample is retained as a pre-specified external replication. The original protocol text below is preserved.
 
 ---
 
@@ -13,8 +15,9 @@
 
 The first sample (18 US multi-asset ETFs, 2012-06 to 2026-05) produced a null and a
 correction. The correction said the registered significance test was a level test, while the
-design was a paired comparison. This note registers a **new sample** on which that corrected
-test is applied once, before the result is seen.
+design was a paired comparison. This note records a **new sample** on which that corrected
+test is applied once. The protocol document is dated 2026-11-05; its freeze before execution
+is not independently verified.
 
 The sample is different in three ways:
 
@@ -26,7 +29,8 @@ It is a test of **external validity**, not another pass over the same 168 months
 
 **What has been seen.** Only data coverage: first/last dates, row counts, dividend and split
 counts. No return, Sharpe, ranking, or backtest has been computed on this sample. The protocol
-is frozen before any performance is observed.
+document predates the snapshot, but its final content was written after the results; the
+freeze is not independently verified.
 
 ---
 
@@ -147,7 +151,7 @@ diagnostic. No claim is made from a selected subset.
 
 ## 7. What this can and cannot show
 
-It can test whether the corrected paired rule and the two treatments replicate on a different
+It can examine whether the corrected paired rule and the two treatments replicate on a different
 cross-section and period. It cannot make the original sample confirmatory, remove the
 current-listed survivorship limitation, or establish that a result generalises beyond country
 equity ETFs. A null here is a valid result; a positive result is a replication with the same
@@ -159,4 +163,5 @@ caveats, not a trading recommendation.
 
 | Version | Date | Change |
 |---|---|---|
-| 1.0 | 2026-11-05 | Pre-registration frozen before execution. New country-ETF sample, 2005-07 to 2026-06; paired significance gate; same 0.20 bar and robustness gates. |
+| 1.0 | 2026-11-05 | Pre-specified country-ETF sample, 2005-07 to 2026-06; paired significance gate; same 0.20 bar and robustness gates. |
+| 1.1 | 2026-11-08 | Claim-status correction: the protocol's final content was written after the results; the freeze is not independently verified. The sample is reported as an external replication, not a confirmatory test. |

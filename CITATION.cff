@@ -5,8 +5,9 @@ title: "robustfolio: a pre-registered portfolio evaluation benchmark"
 abstract: >-
   A pre-registered evaluation benchmark for portfolio construction, with a
   published power audit and an out-of-sample replication. Seven constructions
-  on 18 US ETFs over 168 out-of-sample months, plus a pre-registered
-  country-ETF sample. The contribution is the evaluation: walk-forward
+  on 18 US ETFs over 168 out-of-sample months, plus a pre-specified
+  country-ETF external replication (protocol dated 2026-11-05; freeze not
+  independently verified). The contribution is the evaluation: walk-forward
   validation, leakage tests, power analysis, numerical certification, and a
   reproduction check that compares decisions exactly and measurements within a
   documented bound. The code and documentation are MIT-licensed. The third-party
@@ -16,8 +17,8 @@ abstract: >-
 authors:
   - family-names: "Talingting"
     given-names: "Ken Ira Lacson"
-version: "1.1.0"
-date-released: "2026-11-06"
+version: "1.1.1"
+date-released: "2026-11-08"
 license: MIT
 repository-code: "https://github.com/kira-ml/robustfolio"
 url: "https://github.com/kira-ml/robustfolio"

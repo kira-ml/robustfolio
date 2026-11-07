@@ -3,8 +3,8 @@
 **Project:** `robustfolio`
 **Owner:** Ken Ira Lacson Talingting
 **Created:** 2026-10-14
-**Version:** 1.19
-**Last Updated:** 2026-11-07
+**Version:** 1.20
+**Last Updated:** 2026-11-08
 **Purpose:** Immutable record of every governance, experiment, and pivot decision in the project. Entries are append-only. Supersession is by a new entry, not by editing an old one.
 
 ---
@@ -75,6 +75,7 @@ Each entry uses the following fields:
 | DEC-20261018-041 | 2026-10-18 | IMPLEMENTATION | ACTIVE | Publish `decisions.csv` and compare the verdict exactly; derive the documented margin instead of restating it |
 | DEC-20261106-042 | 2026-11-06 | GOVERNANCE | ACTIVE | Stop redistributing third-party data: remove snapshot assets, rewrite policy to v1.2, correct notices and reproduction claims |
 | DEC-20261107-043 | 2026-11-07 | GOVERNANCE | ACTIVE | Repository audit remediation: correct stale archive claims, archive legacy scripts, align versions, and complete country-sample metadata |
+| DEC-20261108-044 | 2026-11-08 | GOVERNANCE | ACTIVE | Correct the country sample claim to external replication; do not label it confirmatory; prepare v1.1.1 and rebuild the DOI after review |
 
 **Gap note (001–011):** Resolved by DEC-20261015-014. The seed entries referenced in DEC-20261014-000 were not written and are not recoverable. They are treated as never having existed in this log.
 
@@ -1960,7 +1961,55 @@ Three ways this fails later. **(a)** A stale page still tells a reader to downlo
 
 ---
 
-## Appendix A — Experiment Registry (Ledger)
+## DEC-20261108-044 — Country sample claim correction: external replication, not confirmatory
+
+**Date:** 2026-11-08
+**Type:** GOVERNANCE
+**Status:** ACTIVE
+**Authority:** Owner (sole authority on this project)
+**Related docs:** `README.md`, `notes/confirmatory_country_etfs_2026-11-05.md`, `notes/country_sample_result_2026-11-05.md`, `notes/audit_2026-11-08.md`, `docs/published-run/country-sample/README.md`, `docs/positioning.md`, `docs/release-notes-v1.1.md`, `docs/release-notes-v1.1.1.md`, `paper/paper.typ`, `paper/carousel.typ`, `essays/brief.typ`, `essays/two-nulls-one-evaluation-problem.md`, `CITATION.cff`
+**Related risks:** R-M02 (exploratory results presented as confirmatory)
+
+**Context.** A pre-publication audit checked the country sample's claim that its protocol was frozen before execution. The evidence does not support the claim:
+
+- the country results were written at **2026-11-05 19:51:35**;
+- the protocol file was created at 19:49:16, but last written at **20:08:45** — after the results;
+- the protocol and results were committed together at **20:09:27** (`3120938`);
+- the “confirmatory” label was added at **20:15:08** (`17cd61a`);
+- no earlier commit, dangling blob, reflog entry, editor-history copy, cloud copy, or other local copy was found (26,623 files searched).
+
+The protocol file was created before the snapshot (19:49:50), so an early draft existed. But the final content was written after the results, and the repository cannot distinguish a pre-run protocol from a post-run reconstruction.
+
+**Decision.**
+
+1. The country sample is **not labeled confirmatory**. It is a **pre-specified external replication**; its protocol is dated 2026-11-05 but the freeze is not independently verified.
+2. The correction is applied consistently to every public artifact: README, paper, brief, carousel, positioning, release notes, country README, result note, protocol note, synthesis, and outreach notes.
+3. `v1.1.1` is a compliance/claim-correction patch. The `v1.1` tag is **not moved**; the `v1.1` release body carries a pointer to `v1.1.1`.
+4. The private Zenodo draft is **not published** from the v1.1.0 archive. It must be rebuilt from `v1.1.1` after external review and final approval.
+5. `notes/audit_2026-11-08.md` records the evidence and the correction. A test pins the country label so the old claim cannot return silently.
+6. No return, metric, verdict, method, cost, or solver changes. The US end-to-end check remains exact; the country sample reproduces exactly with its own runner.
+
+**Alternatives considered.**
+
+- **Keep the confirmatory label.** Rejected: the timestamp evidence contradicts the claim, and a reviewer can reproduce the contradiction.
+- **Remove the country sample.** Rejected: the result is numerically sound and the comparator lesson is a contribution; the label, not the result, is wrong.
+- **Re-run on a new sample.** Rejected for 2026: that is a new experiment and needs a new pre-registration committed before execution.
+- **Force-move the `v1.1` tag.** Rejected: rewriting a published tag is destructive; a patch release is the reversible correction.
+- **Publish the DOI now with a disclaimer.** Rejected: a disclaimer does not repair an unsupported claim in the archived artifact.
+
+**Rationale.** [Inversion] The failure mode is a public “confirmatory” claim that a reviewer disproves from the project's own timestamps. [Bayesian Epistemology] The prior for a pre-run protocol is not evidence; the file history is. [Goodhart] The label is a proxy for rigor; when the proxy drifts from the evidence, the label must follow the evidence. [Reversibility] A label correction and a patch release are reversible; a public DOI with an unsupported claim is not.
+
+**Reversibility.** Soft for the label: if a pre-run copy is later found, a new decision entry may restore the label with the copy, its timestamp, and a hash. Harder for the DOI: publish only after the correction and external review.
+
+**Revisit trigger.** A pre-run copy or independent timestamp establishes that the protocol content was fixed before 19:51:35; or an external reviewer identifies a factual error in this entry.
+
+**Pre-mortem.** (a) The old label reappears in a rebuilt PDF or a new note — the test and the claim-propagation map catch it. (b) The stale v1.1.0 Zenodo draft is published by mistake — the draft stays private and the v1.1.1 archive replaces it before publication. (c) A reader concludes the country result is invalid — the audit note states that the numbers and reproduction are unchanged; only the label changed.
+
+**Evidence.** US end-to-end `EXACT` (archive SHA `64ec8077…`, 7 methods, 18 columns, M1/M2 FAILURE, max diff `0.000e+00`); country rerun 252 rebalances/21 folds, outcomes max diff `0.0`, decisions identical; `pytest` 297 passed, 1 skipped; engine certificate 1,176 solves, zero rejections. Full record: `notes/audit_2026-11-08.md`.
+
+---
+
+## Appendix A - Experiment Registry (Ledger)
 
 This appendix is the append-only ledger of pre-registered experiments. Registry *rules* (what counts as an experiment, ID format, denominator rules, invalidation rules) live in `evaluation_protocol.md` §12 and, until Phase C completes, in `experiment_registry_and_preregistration.md`. This appendix holds the *entries*.
 

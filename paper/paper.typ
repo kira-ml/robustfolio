@@ -157,7 +157,7 @@
   interval overlaps the baseline's, and it belongs to the treatment that changes the mean
   rather than the covariance. A post-hoc cap sweep does not rescue the shrinkage treatment;
   the mean treatment's advantage grows as the cap loosens, but remains below the bar. A
-  pre-registered country-ETF sample does not rescue the treatments: equal weight is the best
+  pre-specified country-ETF sample does not rescue the treatments: equal weight is the best
   baseline, both treatments underperform it, and the treatment advantage does not replicate.
   The benchmark lesson does. The same two strategies clear a deflated-Sharpe test against zero
   at p = #fmt(min-dsr, 4) and
@@ -201,7 +201,7 @@ Five things are contributed, and only the first is a result:
 
 + a single-factor registered comparison, in which each treatment differs from the baseline in
   one component, so a difference is attributable to that component rather than to a bundle;
-+ a pre-registered second sample on country ETFs, where the treatment advantage does not
++ a pre-specified second sample on country ETFs, where the treatment advantage does not
   replicate and the best baseline changes from sample MVO to 1/N;
 + evidence that under a single registered comparison the deflation machinery is inert, and
   the *declared benchmark* is what decides the test — which makes fixing the comparator a
@@ -454,12 +454,15 @@ question nobody asked. This is the sentence the project exists to make difficult
 
 == The new sample: country ETFs, 2005--2026
 
-The first sample is one universe and one period. To test whether the reading survives a
-different cross-section, I pre-registered a second sample before running it: #country.n-assets
-current-listed iShares MSCI country ETFs, 2005-07 to 2026-06, #country.n-months months in
-#country.n-folds folds, the same seven methods, the same #fmt(gap-bar, 2) bar, and the corrected
-paired significance gate. The protocol is `notes/confirmatory_country_etfs_2026-11-05.md`; the
-result is reported regardless of its direction.
+The first sample is one universe and one period. To examine whether the reading survives a
+different cross-section, I specified a second sample in a protocol dated 2026-11-05:
+#country.n-assets current-listed iShares MSCI country ETFs, 2005-07 to 2026-06,
+#country.n-months months in #country.n-folds folds, the same seven methods, the same
+#fmt(gap-bar, 2) bar, and the corrected paired significance gate. The protocol file was created
+before the snapshot, but its final content was written after the results and both were committed
+together. The repository therefore cannot establish that the protocol was frozen before
+execution, so the sample is reported as a pre-specified external replication, not a confirmatory
+test. The result is reported regardless of its direction. See `notes/audit_2026-11-08.md`.
 
 @tab-country reports the net Sharpe. The best baseline is #country.best at
 #fmt(c-b1.net, 4); `B3` is #fmt(c-b3.net, 4). `M2` is #fmt(c-m2.net, 4), below the best
@@ -482,8 +485,8 @@ baseline, and `M1` is #fmt(c-m1.net, 4).
   ),
   caption: [The country-ETF sample: #country.n-months months, #country.n-folds folds,
     #country.n-assets current-listed country ETFs. Net excess Sharpe at the #headline-bps bps
-    headline cost. Pre-registered before execution; the same methods, costs and constraints as
-    the first sample.],
+    headline cost. Protocol dated 2026-11-05; freeze not independently verified. The same
+    methods, costs and constraints as the first sample.],
 ) <tab-country>
 
 The paired comparison is negative for both treatments. `M1` is #fmt(c-d1.delta, 3)
@@ -522,8 +525,8 @@ The treatment advantage did not replicate. The benchmark lesson did. In the firs
 was the best baseline; here `B1` is. A treatment can beat sample MVO and still lose to equal
 weight. The comparator, not the correction, is doing the work — and the comparator is a
 property of the sample. The result is conditional on a current-listed country-ETF list, one
-period, one asset class, one cost model and a 30% cap; it is a pre-registered replication, not
-a universal test.
+period, one asset class, one cost model and a 30% cap; it is a pre-specified external
+replication, not a universal test.
 
 == The cost sweep, and the turnover inversion
 
@@ -701,8 +704,9 @@ path through one period, not a forecast of the next one.
 
 *The second sample.* The country-ETF sample is current-listed, one asset class and one period;
 the same survivorship limitation applies, and the data are still Yahoo's revised history. It is
-a pre-registered replication, not a universal test, and it is reported because it failed as
-well as because it ran.
+a pre-specified external replication, not a universal test; the repository does not
+independently establish that its protocol was frozen before execution. It is reported because
+it failed as well as because it ran.
 
 *The comparator.* The rule compares against the best baseline, identified mechanically after
 the run. The definition is fixed and the identity is not, which is weaker than naming the
@@ -727,9 +731,9 @@ H2.2. This is the binding limitation: the other four qualify a null, and this on
 is not a test.
 
 What would change the verdict: a confirmatory replication on a sample that was not used to
-derive the correction, with the same rule and the same bar; a wider universe; and a cost
-model with impact. The country-ETF sample is one such replication; it did not change the
-treatment conclusion. The cap sweep has been run and is reported above: it does not rescue
+derive the correction, registered before the data exist, with the same rule and the same bar;
+a wider universe; and a cost model with impact. The country-ETF sample is an external
+replication; it did not change the treatment conclusion. The cap sweep has been run and is reported above: it does not rescue
 shrinkage, and the mean treatment's cap-conditional gain remains below the bar. An effect at or above the
 bar, with an interval that excludes the baseline, would also do it — and would be the outcome
 the design was built to detect.

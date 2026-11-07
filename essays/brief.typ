@@ -29,7 +29,7 @@
 #v(6pt)
 #text(size: 12.5pt, fill: luma(70))[
   A pre-registered benchmark for portfolio construction, with a power audit
-  and an out-of-sample replication.
+  and a pre-specified external replication.
 ]
 #v(10pt)
 #rule
@@ -88,7 +88,7 @@
     survives the repair of the test.
   ],
   [#text(size: 22pt, weight: "bold", fill: accent)[3]], [
-    *The edge did not replicate.* A pre-registered country-ETF sample (18 funds,
+    *The edge did not replicate.* A pre-specified country-ETF sample (18 funds,
     252 months, 21 folds) changed the best baseline from sample MVO to equal
     weight. Equal weight returned 0.3527, `M2` 0.3193, `M1` 0.2710. The
     benchmark lesson replicated; the treatment edge did not.
@@ -134,7 +134,7 @@
   table.hline(stroke: 0.3pt),
   [Single-factor comparison], [Exploratory], [First sample; the registered test ran without its required blindness],
   [Power audit], [Verified], [Arithmetic on the published return series],
-  [Replication], [Confirmatory], [Registered before it ran; the new sample did not inform the design],
+  [Replication], [External], [Protocol dated 2026-11-05; freeze not independently verified],
   [Universal, live, or alpha claim], [Not made], [One asset family, one period, flat costs, no impact],
   table.hline(stroke: 0.5pt),
 )
@@ -147,6 +147,8 @@
   [Not a live trading system, a forecast, or a claim of alpha.],
   [Not a confirmatory test of the first sample: the hypotheses are untested,
     not falsified.],
+  [Not a confirmatory country test: the protocol's freeze is not independently
+    verified.],
   [Not "no effect": the data are consistent with a small improvement and exclude
     a material one.],
   [Not universal: one asset family, one period, current-listed country funds in

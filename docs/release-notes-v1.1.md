@@ -2,14 +2,16 @@
 
 > **Data archive removed (2026-11-06).** The snapshot archive and its checksum are no longer distributed: the upstream Yahoo Finance and FRED terms do not permit redistribution. The repository continues to publish the code, tables, figures, and digests needed to inspect the result. See [`data_licenses.md`](data_licenses.md) and [`open_source_and_license_policy.md`](open_source_and_license_policy.md) (v1.2).
 
+> **Claim correction (2026-11-08).** The country sample was originally labeled confirmatory. The protocol file was last written after the results, and both were committed together; the repository cannot establish that the freeze preceded execution. The sample is now reported as a pre-specified external replication, not a confirmatory test. See [`audit_2026-11-08.md`](../notes/audit_2026-11-08.md) and [`release-notes-v1.1.1.md`](release-notes-v1.1.1.md).
+
 **Released:** 2026-11-06
 **Tag:** `v1.1`
 **Status:** the first sample remains exploratory and non-confirmatory; the
-country sample is confirmatory for that sample.
+country sample is a pre-specified external replication, not a confirmatory test.
 
 ## What this release adds
 
-- **A pre-registered country-ETF sample.** 18 current-listed iShares MSCI
+- **A pre-specified country-ETF sample.** 18 current-listed iShares MSCI
   country ETFs, 2005-07 to 2026-06, 252 months in 21 folds, the same seven
   methods and the same 0.20 bar. The best baseline changed from `B3` to equal
   weight (`B1`): 0.3527 against `M2` 0.3193 and `M1` 0.2710. The treatment
@@ -29,7 +31,7 @@ country sample is confirmatory for that sample.
 |---|---|
 | Single-factor comparison (first sample) | Exploratory, non-confirmatory |
 | Power audit | Verified arithmetic on the published series |
-| Country-ETF replication | Confirmatory for that sample |
+| Country-ETF replication | External replication; protocol dated 2026-11-05, freeze not independently verified (corrected 2026-11-08) |
 | Universal, live, or alpha claim | Not made |
 
 The hypotheses of the first sample are **untested, not falsified**: the
