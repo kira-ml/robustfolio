@@ -202,6 +202,8 @@ These are the honest ones, not a disclaimer. The full list is in the report and 
 
 [`epistemic-dro`](https://github.com/kira-ml/epistemic-dro) asks a different question under the same evaluation discipline: whether ML epistemic uncertainty improves a DRO mean-CVaR portfolio. It reports H1/H3 failures, an H2 non-inferiority pass, and a documented stop before the untouched 2025-2026 holdout. The repositories share evaluation language and standards, not code or data.
 
+The synthesis is [`Two nulls, one evaluation problem`](essays/two-nulls-one-evaluation-problem.md): what the two results teach about comparator choice, power, gate error rates, and holdout discipline.
+
 ---
 
 ## Documentation
