@@ -99,6 +99,8 @@ The two nulls are useful because the evaluation was designed to make them inform
 
 ---
 
+**Sources.** Robustfolio: [`outcomes.csv`](https://github.com/kira-ml/robustfolio/blob/main/docs/published-run/outcomes.csv), [`decisions.csv`](https://github.com/kira-ml/robustfolio/blob/main/docs/published-run/decisions.csv), [`paired_inference.json`](https://github.com/kira-ml/robustfolio/blob/main/docs/published-run/paired_inference.json), and the [country sample](https://github.com/kira-ml/robustfolio/tree/main/docs/published-run/country-sample). Epistemic DRO: [`dro_experiment_analysis.json`](https://github.com/kira-ml/epistemic-dro/blob/main/paper/published-results/dro_experiment_analysis.json), [`v2_uncertainty_audit.json`](https://github.com/kira-ml/epistemic-dro/blob/main/paper/published-results/v2_uncertainty_audit.json), [`v3_sigma_audit.json`](https://github.com/kira-ml/epistemic-dro/blob/main/paper/published-results/v3_sigma_audit.json), [`block_gate_study.json`](https://github.com/kira-ml/epistemic-dro/blob/main/paper/published-results/block_gate_study.json), and [`effect_size_audit.json`](https://github.com/kira-ml/epistemic-dro/blob/main/paper/published-results/effect_size_audit.json).
+
 **Code and papers**
 
 - Robustfolio: [github.com/kira-ml/robustfolio](https://github.com/kira-ml/robustfolio) · [working paper](https://github.com/kira-ml/robustfolio/blob/main/essays/robustfolio-working-paper.pdf)
