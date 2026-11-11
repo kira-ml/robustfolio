@@ -1,8 +1,8 @@
 # v1.1.1 — claim correction and DOI archive
 
-**Released:** 2026-11-08
-**Tag:** `v1.1.1`
-**Status:** Compliance and claim-correction patch. No research result changed.
+**Prepared:** 2026-11-08 (not yet tagged or released)
+**Tag (planned):** `v1.1.1`
+**Status:** Prepared compliance and claim-correction patch. No research result changed.
 
 ## Why this release exists
 
