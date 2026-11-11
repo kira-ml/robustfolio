@@ -26,6 +26,16 @@ Full evidence: [`notes/audit_2026-11-08.md`](../notes/audit_2026-11-08.md).
 
 No return, metric, verdict, method, cost, or solver changed. The US end-to-end check remains **EXACT**; the country sample reproduces exactly with its own runner.
 
+## Paper corrections (2026-11-11)
+
+A pre-review consistency pass corrected three prose claims to match the published tables. No number, table, method, or verdict changed.
+
+- **Turnover.** `M1` carries about 9% less annualised turnover than `B3` (1.92 versus 2.12). The earlier wording, "both treatments carry as much turnover as the baseline or more," was wrong for `M1`.
+- **Cap sweep.** `M1 − B3` is +0.010 at the 40% cap, and its interval includes zero. The earlier "stays at or below zero" was too strong. The conclusion is unchanged: the cap does not rescue shrinkage.
+- **Gate reading.** `M2` also fails the concentration gate (51.3% > 40%). It satisfies the deflated-Sharpe, turnover, drawdown, cost, and fold gates. The conclusion is unchanged: **FAILURE**.
+
+The working paper and carousel are rebuilt from the corrected source.
+
 ## What is published
 
 - Code, tests, documentation, project-authored tables, figures, and PDFs.

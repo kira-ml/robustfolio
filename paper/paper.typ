@@ -152,7 +152,7 @@
   Black--Litterman posterior. The decision rule was fixed before the run and is a
   conjunction — a net excess Sharpe advantage of at least #fmt(gap-bar, 2) over the best
   baseline, a probabilistic Sharpe ratio of at least #fmt(psr-bar, 2) against that same
-  baseline, and six robustness gates — not a ranking. Both treatments fail. The larger
+  baseline, and six further gates — not a ranking. Both treatments fail. The larger
   advantage, #fmt(max-gap, 3) against a bar of #fmt(gap-bar, 2), is a point estimate whose
   interval overlaps the baseline's, and it belongs to the treatment that changes the mean
   rather than the covariance. A post-hoc cap sweep does not rescue the shrinkage treatment;
@@ -237,8 +237,8 @@ headline #headline-bps basis points, and the run reports every metric at
 #cost-levels.map(c => str(c)).join(", ") basis points so that the headline is a choice among
 reported levels rather than a number selected after the fact.
 
-The sample begins with the first eligible month, in mid-2012, and ends in September 2026:
-#n-months monthly rebalances in #n-folds non-overlapping twelve-month folds, and #n-solves
+The sample begins with the first eligible month, in mid-2012, and the snapshot ends in September
+2026: #n-months monthly rebalances in #n-folds non-overlapping twelve-month folds, and #n-solves
 optimiser solves across the #n-methods constructions.
 
 == Seven constructions
@@ -279,9 +279,9 @@ almost-identical return series is far more sensitive than the comparison of eith
 The registered rule is a conjunction of eight gates, applied to the best baseline rather than
 to zero:
 
-+ a probabilistic Sharpe ratio against the best baseline of at least #fmt(psr-bar, 2) —
++ a probabilistic Sharpe ratio [5] against the best baseline of at least #fmt(psr-bar, 2) —
   the probability that the candidate's Sharpe exceeds the baseline's;
-+ a deflated-Sharpe p-value of at most #fmt(dsr-bar, 2)\;
++ a deflated-Sharpe p-value [6] of at most #fmt(dsr-bar, 2)\;
 + a net excess Sharpe advantage over the best baseline of at least #fmt(gap-bar, 2)\;
 + a turnover ratio against the baseline of at most #fmt(turnover-limit, 2)\;
 + a drawdown slack of at least #fmt(drawdown-min, 3)\;
@@ -356,10 +356,11 @@ not a range of possible futures.
     table.hline(stroke: 0.8pt),
   ),
   caption: [Net excess Sharpe at the #headline-bps bps one-way headline cost, with a
-    #(ci-level)% stationary-bootstrap interval (#ci-reps replications, mean block
+    #(ci-level)% stationary-bootstrap [7] interval (#ci-reps replications, mean block
     #fmt(ci-block, 0) months), annualised turnover, and maximum drawdown of the net excess
-    series. Candidates are bold. Exploratory and non-confirmatory: no confirmatory test
-    exists, and these numbers may not be cited for or against either hypothesis.],
+    series. Candidates and the selected baseline are bold. Exploratory and non-confirmatory: no
+    confirmatory test exists, and these numbers may not be cited for or against either
+    hypothesis.],
 ) <tab-results>
 
 #figure(
@@ -372,23 +373,24 @@ not a range of possible futures.
 
 The intervals are the result, and the ordering is not. Every construction's #(ci-level)%
 interval overlaps the interval for `B3`, most of them by a wide margin, so the table's ordering by point
-estimate is a ranking of estimates rather than a separation of strategies. The two treatments
-carry as much turnover as the baseline or more.
+estimate is a ranking of estimates rather than a separation of strategies. `M2` carries slightly more turnover than
+the baseline; `M1` carries about 9% less.
 
 Both treatments fail the rule. @tab-gates shows why, and the failures are not marginal:
-`M2` passes five of the eight gates and fails three, `M1` passes three and fails five. The
-gate that decides both is the probabilistic Sharpe ratio, where they score
-#fmt(v1.psr, 3) and #fmt(v2.psr, 3) against a bar of
-#fmt(psr-bar, 2). The concentration gate also fails for both: even where an advantage exists,
-it lives in a single fold — #pct(v1.fold-share, 1) for `M1` and
+`M2` passes five of the eight gates and fails three, `M1` passes three and fails five. Both
+fail the probabilistic Sharpe gate, where they score #fmt(v1.psr, 3) and #fmt(v2.psr, 3)
+against a bar of #fmt(psr-bar, 2); both also fail the materiality gap and the concentration
+gate. The concentration failure means that even where an advantage exists, it lives in a
+single fold — #pct(v1.fold-share, 1) for `M1` and
 #pct(v2.fold-share, 1) for `M2`, against a #pct(fold-limit, 0) limit.
 
 `M2` is worth a second look, because it is the case where a careless report would have found
 a win. It leads the ranking, wins #v2.cost-won of the #n-cost-levels cost levels
-and #v2.folds-won of the #n-folds folds, and clears the deflated-Sharpe gate. It
-still fails on the two gates that ask whether the advantage is *worth having*: the gap and
-the probability that the gap is real. That is the conjunction working as designed — the
-robustness gates are satisfied and the materiality gate is not, so the answer is no.
+and #v2.folds-won of the #n-folds folds, and clears the deflated-Sharpe gate. It still fails
+the materiality gap, the probabilistic Sharpe gate, and the concentration gate. The cost,
+fold, turnover, drawdown and deflated-Sharpe gates are satisfied; the gates that ask whether
+the advantage is large enough, and whether it is concentrated, are not. That is the
+conjunction working as designed.
 
 One reading is load-bearing and is disclosed rather than buried. The protocol requires the
 advantage to hold across folds but does not pin "advantage" to a metric. The reading used
@@ -427,9 +429,8 @@ The verdict is therefore the output of a stated reading, not of the arithmetic a
     table.hline(stroke: 0.8pt),
   ),
   caption: [The registered conjunction. A candidate passes only if all eight gates pass.
-    `M2` clears the statistical gate, the robustness gates and the concentration clause's
-    siblings, and fails the two gates that ask whether the advantage is large enough to
-    matter.],
+    `M2` clears the deflated-Sharpe, turnover, drawdown, cost and fold gates, and fails the
+    probabilistic Sharpe, materiality and concentration gates.],
 ) <tab-gates>
 
 == The benchmark, not the correction, is the binding constraint
@@ -441,16 +442,19 @@ and #fmt(v2.dsr, 4). Both fail the probabilistic Sharpe test against `B3`:
 conclusions, and the only difference is what each statistic is measured against.
 
 That is not a paradox. With exactly one registered comparison the family size is one, so the
-selection deflation is inert: the deflated Sharpe ratio and the probabilistic Sharpe ratio
-differ only in their reference point, zero in one case and `B3` in the other. The machinery
+selection-deflation term is inert; apart from the higher-moment adjustment, the deflated Sharpe
+ratio and the probabilistic Sharpe ratio differ mainly in their reference point, zero in one
+case and `B3` in the other. The machinery
 the project specified to correct for multiple testing never fires, because with one test there
 is nothing to correct. What remains binding is the benchmark — the one input to the test that
 the analyst chooses, and the input for which, after the fact, there is always a flattering
 value.
 
-Both p-values answer "is this strategy's Sharpe greater than zero", not "is it better than the
-baseline". A reader who takes p = #fmt(min-dsr, 4) as evidence of improvement has answered a
-question nobody asked. This is the sentence the project exists to make difficult to skip.
+The deflated-Sharpe p-values answer "is this strategy's Sharpe greater than zero"; the
+probabilistic Sharpe ratios answer "what is the probability that it exceeds the baseline".
+The two questions have different answers. A reader who takes p = #fmt(min-dsr, 4) as evidence
+of improvement has answered a question nobody asked. This is the sentence the project exists
+to make difficult to skip.
 
 == The new sample: country ETFs, 2005--2026
 
@@ -493,7 +497,7 @@ The paired comparison is negative for both treatments. `M1` is #fmt(c-d1.delta, 
 [#fmt(c-d1.low, 3), #fmt(c-d1.high, 3)]; `M2` is #fmt(c-d2.delta, 3)
 [#fmt(c-d2.low, 3), #fmt(c-d2.high, 3)]. Both 90% upper bounds are below
 #fmt(gap-bar, 2), so the data exclude a material improvement over #country.best at the 5%
-one-sided level. Both won #c-d1.cost-won of the #n-cost-levels cost levels; they won
+one-sided level. Both won none of the #n-cost-levels cost levels; they won
 #c-d1.folds-won and #c-d2.folds-won of #country.n-folds folds, below the
 #c-d1.folds-required target; and both traded at about #fmt(c-d2.turnover-ratio, 1) times the
 baseline's turnover. Both fail. @tab-country-gates reports the two candidates.
@@ -559,7 +563,7 @@ The usual story for robust construction is that it wins by trading less. Here it
 `B3` carries #fmt(b3.turnover, 2) annualised turnover and
 still leads on net excess Sharpe at the headline cost, while `B5`, the turnover-penalised
 baseline, cuts turnover to #fmt(b5.turnover, 2) and lands
-below `B3`. The two treatments carry as much turnover as the baseline or more. In this sample,
+below `B3`. `M2` carries slightly more turnover than the baseline; `M1` carries less. In this sample,
 turnover penalisation bought a real reduction in trading and did not buy an improvement in net
 Sharpe, while the highest-turnover construction was the best performer. That is a legitimate
 outcome, and it is the kind of thing a single headline number would have hidden.
@@ -581,9 +585,11 @@ covariance — is the only one that moves the point estimate at all.
 
 It is a hypothesis, and it is labelled as one. The cap sweep that tests it, across four
 values of the cap, was registered and has since been run (2026-11-04): it does not support
-the shrinkage version. `M1`'s difference from `B3` stays at or below zero as the cap
-loosens. The cap does bind the Black--Litterman treatment, whose advantage grows with the
-cap but remains below the materiality bar. One arm — the turnover-penalised method at the two
+the shrinkage version. `M1`'s difference from `B3` remains small and statistically
+indistinguishable from zero as the cap loosens; the point estimate is positive at the 40% cap
+(+0.010) but its interval includes zero and it is far below the 0.2 bar. The cap does bind the
+Black--Litterman treatment, whose advantage grows with the cap but remains below the
+materiality bar. One arm — the turnover-penalised method at the two
 looser caps — could not be certified at the frozen tolerance and is reported as incomplete
 rather than tolerated. The test is reported in the repository note, not as a result of this
 paper.
@@ -595,7 +601,8 @@ paper.
 = The defence that failed
 <sec-failed>
 
-Four defences were built before the result was read. Freeze the metric, thresholds and decision
+Four defences were built before the result was read, following the backtesting protocol of
+Arnott, Harvey and Markowitz [9]. Freeze the metric, thresholds and decision
 rule before looking, so the comparator cannot be chosen after the answer is known. Prove the
 absence of leakage mechanically, with a test suite rather than a code review — including one
 test recorded as vacuous rather than passed. Certify the numerics: every rebalance's KKT
@@ -745,7 +752,7 @@ the design was built to detect.
 = Reproducing this paper
 
 Every number in @tab-results, @tab-sweep and @tab-gates, and in @fig-intervals, is read from
-`docs/published-run/` by `scripts/build_paper.py`. The paper's source contains no typed
+`docs/published-run/` by `scripts/build_paper.py`. The paper's source contains no typed table
 measurement, and a test checks that by searching it for the values in the tables. A reader who
 independently holds the snapshot archive can check the tables end to end:
 

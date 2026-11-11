@@ -73,7 +73,8 @@ The motivating story for robust construction is usually that it wins by **tradin
 inverts. `B3`, the plain sample MVO that the project set out to critique, carries 2.12 annualised
 turnover and wins anyway on net Sharpe at the headline cost. `B5`, the turnover-penalised baseline,
 cuts turnover by roughly two thirds — to 0.73 — and lands a hair *below* `B3` at 0.7843. The
-two robust treatments carry as much turnover as the baseline or more (1.92 and 2.14).
+two robust treatments do not trade less: `M2` carries slightly more turnover than the baseline
+(2.14 versus 2.12), and `M1` carries about 9% less (1.92).
 
 So in this sample, turnover-penalisation bought a real reduction in trading and did not buy an improvement
 in net Sharpe, while the highest-turnover method was the best performer. That is a legitimate outcome and
@@ -94,8 +95,9 @@ regularisation than the estimator is**. That would explain why `M1` (shrinkage) 
 `B3`, and why the only candidate with a different *mean* (`M2`) is the only one that separates at all.
 
 It is testable, and I have now tested it. **Update, 2026-11-04:** the cap sweep across 0.20, 0.30, 0.40
-and 1.00 does **not** support the shrinkage version of this hypothesis. `M1 − B3` stays at or below zero
-as the cap loosens, so the cap does not rescue shrinkage. It does show the cap binding the
+and 1.00 does **not** support the shrinkage version of this hypothesis. `M1 − B3` remains within
+noise of zero across the cap grid; the point estimate is positive at the 40% cap (+0.010), but its
+interval includes zero and it is far below the bar. The cap does not rescue shrinkage. It does show the cap binding the
 Black–Litterman treatment, whose advantage grows with the cap but remains below the materiality bar.
 The tidy story failed its own test; the result is in `notes/cap_sweep_shrinkage_2026-11-04.md`.
 

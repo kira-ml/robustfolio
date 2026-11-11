@@ -240,7 +240,7 @@
 #v(3pt)
 #text(size: 11.5pt)[The 90% upper bound is below the advantage the study was designed to detect.]
 #v(6pt)
-#text(size: 10.5pt, fill: muted)[A post-hoc cap sweep did not rescue shrinkage; the gap stays at or below zero as the position cap loosens.]
+#text(size: 10.5pt, fill: muted)[A post-hoc cap sweep did not rescue shrinkage; the gap remains far below the #fmt(paired.bar, 2) bar and its interval includes zero.]
 #takeaway[The result is a bound, not a shrug.]
 #footer
 

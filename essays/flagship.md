@@ -221,8 +221,9 @@ eigenvalues below the lower edge of the Marchenko–Pastur band for a panel of t
 and the uniform 30% position cap is doing more regularisation than the estimator is. It is testable:
 relax the cap and compare shrinkage across cap levels.
 
-**Update, 2026-11-04.** I ran it. The cap explanation did not survive. `M1 − B3` stays at or below zero
-as the cap loosens, so the cap does not rescue shrinkage. The cap does bind the other treatment:
+**Update, 2026-11-04.** I ran it. The cap explanation did not survive. `M1 − B3` remains within
+noise of zero across the cap grid; the point estimate is positive at the 40% cap (+0.010), but its
+interval includes zero and it is far below the bar. The cap does not rescue shrinkage. The cap does bind the other treatment:
 `M2 − B3` grows with the cap, but remains below the 0.20 bar. The tidy story failed its own test; the
 result is in `notes/cap_sweep_shrinkage_2026-11-04.md`. That is the point of labelling a hypothesis
 instead of believing it.
