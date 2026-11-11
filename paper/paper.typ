@@ -152,7 +152,7 @@
   Black--Litterman posterior. The decision rule was fixed before the run and is a
   conjunction — a net excess Sharpe advantage of at least #fmt(gap-bar, 2) over the best
   baseline, a probabilistic Sharpe ratio of at least #fmt(psr-bar, 2) against that same
-  baseline, and six further gates — not a ranking. Both treatments fail. The larger
+  baseline, and six further gates — not a ranking. Both treatments fail the registered rule. The larger
   advantage, #fmt(max-gap, 3) against a bar of #fmt(gap-bar, 2), is a point estimate whose
   interval overlaps the baseline's, and it belongs to the treatment that changes the mean
   rather than the covariance. A post-hoc cap sweep does not rescue the shrinkage treatment;
@@ -235,7 +235,9 @@ are fully invested and long only, with a uniform 30% cap on any position, and th
 mean--variance constructions share a risk aversion of 10. Costs are charged one way at a
 headline #headline-bps basis points, and the run reports every metric at
 #cost-levels.map(c => str(c)).join(", ") basis points so that the headline is a choice among
-reported levels rather than a number selected after the fact.
+reported levels rather than a number selected after the fact. Returns and Sharpe ratios are
+excess over the one-month T-bill; net returns subtract the one-way cost. Turnover is the
+annualised sum of absolute weight changes, one way.
 
 The sample begins with the first eligible month, in mid-2012, and the snapshot ends in September
 2026: #n-months monthly rebalances in #n-folds non-overlapping twelve-month folds, and #n-solves
